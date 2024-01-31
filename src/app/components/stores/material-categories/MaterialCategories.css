@@ -1,0 +1,33 @@
+.depart-card.materialCategory {
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: flex-start;
+}
+
+.depart-card.materialCategory div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.depart-card.materialCategory div .materialCategory-name {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.depart-card.materialCategory div .materialCategory-type {
+    font-size: 1.15em;
+    word-break: normal;
+}
+
+.depart-card.materialCategory div svg {
+    margin-right: 15px;
+    font-size: x-large;
+}
+
+.dialog.materialCategory {
+    width: 320px;
+    height: 200px;
+}

@@ -1,0 +1,35 @@
+.depart-card.supplier {
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.depart-card.supplier div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.depart-card.supplier div .supplier-name {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.depart-card.supplier div .supplier-phone,
+.depart-card.supplier div .supplier-location,
+.depart-card.supplier div .supplier-email {
+    font-size: 1.2em;
+    word-break: normal;
+}
+
+.depart-card.supplier div svg {
+    margin-right: 15px;
+    font-size: x-large;
+}
+
+.dialog.supplier {
+    width: 350px;
+    height: 220px;
+}

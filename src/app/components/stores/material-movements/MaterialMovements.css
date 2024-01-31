@@ -1,0 +1,44 @@
+.depart-card.materialMovement {
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.depart-card.materialMovement div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.depart-card.materialMovement div .materialMovement-name {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.depart-card.materialMovement div .materialMovement-type,
+.depart-card.materialMovement div .materialMovement-description,
+.depart-card.materialMovement div .materialMovement-supplier,
+.depart-card.materialMovement div .materialMovement-color {
+    font-size: 1.15em;
+    word-break: normal;
+}
+
+.depart-card .color-chip {
+    padding: 5px;
+}
+
+.txt-identifiers {
+    font-weight: bold;
+}
+
+.depart-card.materialMovement div svg {
+    margin-right: 15px;
+    font-size: x-large;
+}
+
+.dialog.materialMovement {
+    width: 350px;
+    height: 280px;
+}

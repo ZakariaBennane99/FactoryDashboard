@@ -1,0 +1,189 @@
+
+.parent-container {
+    width: 100%;
+    height: 100%;
+}
+
+.parent-container .top-ribbon {
+    width: 100%;
+    height: 63px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.add-depart-btn, .add-user-btn, .add-warehouse-btn, 
+.add-supplier-btn, .add-material-btn, .add-materialCategory-btn,
+.add-internalOrder-btn, .add-materialMovement-btn {
+    width: 100%;
+}
+
+.parent-container .top-ribbon .add-btn {
+    width: 30%;
+}
+
+.parent-container .top-ribbon .add-btn,
+.add-depart-btn,
+.add-user-btn,
+.add-warehouse-btn,
+.add-supplier-btn,
+.add-material-btn,
+.add-materialCategory-btn,
+.add-internalOrder-btn,
+.add-materialMovement-btn {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #111827;
+    color: white;
+    border-radius: 5px;
+    padding: 10px 20px;
+    transition: all .25s;
+}
+
+.parent-container .top-ribbon .add-btn img {
+    height: 100%;
+    margin-right: 5px;
+}
+
+.parent-container .top-ribbon .add-btn span {
+    color: white;
+    font-size: 1.2em;
+}
+
+.parent-container .top-ribbon .add-btn:hover,
+.add-depart-btn:hover, .add-user-btn:hover, 
+.add-warehouse-btn:hover, .add-supplier-btn:hover,
+.add-material-btn:hover, .add-materialCategory-btn:hover,
+.add-internalOrder-btn:hover, .add-materialMovement-btn:hover {
+    background-color: #2f384a;
+}
+
+
+.parent-container .top-ribbon .search {
+    width: 50%;
+    height: 100%;
+}
+
+.parent-container .top-ribbon .search .MuiInputLabel-outlined {
+    transform: translate(14px, 12px) scale(1); 
+}
+
+.parent-container .top-ribbon .search .MuiInputLabel-outlined.MuiInputLabel-shrink {
+    transform: translate(14px, -7px) scale(0.75); 
+}
+
+
+.parent-container .top-ribbon .filter-btn {
+    width: 1/3;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    transition: all .25s;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
+.parent-container .top-ribbon .filter-btn:hover {
+    background-color: #d1d7e3;
+}
+
+.parent-container .top-ribbon .filter-btn img {
+    height: 68%;
+    margin-right: 5px;
+}
+
+.parent-container .top-ribbon .filter-btn span {
+    color: #111827;
+    font-weight: 600;
+    font-size: 1.2em;
+}
+
+
+.parent-container .main-content {
+    width: 100%;
+    padding: 15px 40px;
+}
+
+.depart-card {
+    height: 300px;
+    padding: 20px;
+    border-radius: 9px;
+    cursor: pointer;
+}
+
+.depart-card.dialog {
+    width: 350px;
+}
+
+.depart-card .head-container {
+    width: 100%;
+    height: 45%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.depart-card .head-container img {
+    width: 37px;
+}
+
+.head-container .category {
+    background-color: #80848f;
+    color: white;
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-size: .85em;
+}
+
+.depart-card .head-container .name {
+    font-size: 1.55em;
+    font-weight: bold;
+}
+
+.depart-card .body-container {
+    width: 100%;
+    height: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.depart-card .body-container .manager {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.3em;
+}
+
+.depart-card .body-container img {
+    width: 27px;
+    margin-right: 5px;
+}
+
+.depart-card .body-container .description {
+    width: 100%;
+    text-align: center;
+    font-size: 1.1em;
+}
+
+.highlight {
+    background-color: yellow;
+}
+
+.add-depart-container {
+    width: 300px;
+    height: 250px;
+}
+
+.add-depart-container #depart-name, 
+.add-depart-container #manager-label,
+.add-depart-container #manager-name {
+    margin-bottom: 20px;
+}
