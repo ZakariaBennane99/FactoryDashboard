@@ -469,6 +469,93 @@ app.get('/material-movements', (req, res) => {
 });
   
 
+// product catalogues
+app.get('/product-catalogues', (req, res) => {
+    res.json({ productCatalogues: [
+        {
+            name: 'Cotton Fabric',
+            description: 'This category includes various grades of cotton fabric.'
+        },
+        {
+            name: 'Wool Fabric',
+            description: 'This section covers different types of wool fabric.'
+        },
+        {
+            name: 'Silk Fabric',
+            description: 'Here we have our collection of silk fabrics.'
+        },
+        {
+            name: 'Polyester Fabric',
+            description: 'This category encompasses our range of polyester fabrics.'
+        },
+        {
+            name: 'Leather Material',
+            description: 'This section includes various types of leather material.'
+        },
+        {
+            name: 'Denim Fabric',
+            description: 'Here you will find our denim fabric options, characterized.'
+        },
+        {
+            name: 'Linen Fabric',
+            description: 'This category includes our linen fabric, valued for its.'
+        }
+    ]  });
+});
+
+
+// product catalogues textiles
+app.get('/product-catalogue-textiles', (req, res) => {
+    res.json({ textiles: [
+        {
+            textileName: 'Basic Cotton',
+            textileType: 'Cotton',
+            composition: '100% Organic Cotton',
+            description: 'A staple fabric known for its breathability and softness, ideal for everyday casual wear.'
+        },
+        {
+            textileName: 'Merino Wool',
+            textileType: 'Wool',
+            composition: '100% Merino Wool',
+            description: 'High-quality wool known for its exceptional warmth and moisture-wicking properties, perfect for premium winter garments.'
+        },
+        {
+            textileName: 'Charmeuse Silk',
+            textileType: 'Silk',
+            composition: '100% Mulberry Silk',
+            description: 'Luxurious silk with a glossy sheen on one side and a matte finish on the other, often used in high-end fashion for dresses and blouses.'
+        },
+        {
+            textileName: 'Sports Polyester',
+            textileType: 'Polyester',
+            composition: '100% Polyester',
+            description: 'Lightweight and durable fabric with quick-dry properties, commonly used in sportswear and active apparel.'
+        },
+        {
+            textileName: 'Nappa Leather',
+            textileType: 'Leather',
+            composition: '100% Full-Grain Leather',
+            description: 'Soft, full-grain leather known for its durability and smooth texture, widely used in premium leather goods.'
+        },
+        {
+            textileName: 'Stretch Denim',
+            textileType: 'Denim',
+            composition: '98% Cotton, 2% Elastane',
+            description: 'Durable denim fabric blended with elastane for added stretch, ideal for comfortable, form-fitting jeans.'
+        },
+        {
+            textileName: 'Irish Linen',
+            textileType: 'Linen',
+            composition: '100% Linen',
+            description: 'High-quality linen known for its natural luster and strength, perfect for luxury linen garments and home textiles.'
+        }
+    ]
+     });
+});
+
+
+
+
 
 
 // Start the server

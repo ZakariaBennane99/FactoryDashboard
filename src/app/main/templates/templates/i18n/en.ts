@@ -1,5 +1,5 @@
 const locale = {
-	TITLE: 'Internal Orders'
+	TITLE: 'Templates'
 };
 
 export default locale;

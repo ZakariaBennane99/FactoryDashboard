@@ -15,14 +15,37 @@ import MaterialsConfig from '../main/stores/materials/MaterialsConfig';
 import MaterialMovementsConfig from '../main/stores/MaterialMovements/MaterialMovementsConfig';
 import MaterialCategoriesConfig from '../main/stores/MaterialCategories/MaterialCategoriesConfig';
 import InternalOrdersConfig from '../main/stores/InternalOrders/InternalOrdersConfig';
+import productCatalogues from '../main/product-catalogues/catalogues/CataloguesConfig';
+import productCataloguesCategoriesI from '../main/product-catalogues/categoriesI/CategoriesIConfig';
+import productCataloguesCategoriesII from '../main/product-catalogues/categoriesII/CategoriesIIConfig';
+import productCataloguesDetails from '../main/product-catalogues/details/DetailsConfig';
+import productCataloguesSeasons from '../main/product-catalogues/seasons/SeasonsConfig';
+import productCataloguesTextiles from '../main/product-catalogues/textiles/TextilesConfig';
+import templatesComponents from '../main/templates/components/ComponentsConfig';
+import templatesManufacturingStages from '../main/templates/manufacturingStages/ManufacturingStagesConfig';
+import templatesPatterns from '../main/templates/patterns/PatternsConfig';
+import templatesSizes from '../main/templates/sizes/SizesConfig';
+import templatesTypes from '../main/templates/types/TypesConfig';
+import templates from '../main/templates/templates/TemplatesConfig';
+import orderColors from '../main/orders/colors/ColorsConfig'
+import orderSizes from '../main/orders/sizes/SizesConfig'
+import orders from '../main/orders/orders/OrdersConfig'
+import orderDetails from '../main/orders/orderDetails/orderDetails/OrderDetailsConfig'
+import orderDetailColors from '../main/orders/orderDetails/colors/ColorsConfig'
+import orderDetailSizes from '../main/orders/orderDetails/sizes/SizesConfig'
+import orderDetailTemplateTypes from '../main/orders/orderDetails/templateTypes/TemplateTypesConfig'
 
 
-const routeConfigs: FuseRouteConfigsType = [ UsersConfig, 
-	DepartmentConfig, SignOutConfig, SignInConfig,
-	SignUpConfig, WarehousesConfig, SuppliersConfig,
-    MaterialsConfig, MaterialMovementsConfig, MaterialCategoriesConfig,
-	InternalOrdersConfig
- ];
+const routeConfigs: FuseRouteConfigsType = [ 
+	UsersConfig, DepartmentConfig, SignOutConfig, SignInConfig, SignUpConfig,
+	WarehousesConfig, SuppliersConfig, MaterialsConfig, MaterialMovementsConfig,
+	MaterialCategoriesConfig, InternalOrdersConfig, productCatalogues, 
+	productCataloguesCategoriesI, productCataloguesCategoriesII, productCataloguesDetails,
+	productCataloguesSeasons, productCataloguesTextiles, templatesComponents,
+	templatesManufacturingStages, templatesPatterns, templatesSizes, templatesTypes,
+	templates, orderColors, orderSizes, orders, orderDetails, orderDetailColors, 
+	orderDetailSizes, orderDetailTemplateTypes
+];
 
 /**
  * The routes of the application.

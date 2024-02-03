@@ -3,24 +3,24 @@ import { lazy } from 'react';
 import en from './i18n/en';
 import ar from './i18n/ar';
 
-i18next.addResourceBundle('en', 'internalOrdersPage', en);
-i18next.addResourceBundle('ar', 'internalOrdersPage', ar);
+i18next.addResourceBundle('en', 'textilesPage', en);
+i18next.addResourceBundle('ar', 'textilesPage', ar);
 
-const InternalOrders = lazy(() => import('./InternalOrders'));
+const Textiles = lazy(() => import('./Textiles'));
 
 /**
  * The Departments page config.
  */
-const InternalOrdersConfig = {
+const TextilesConfig = {
 	settings: {
 		layout: {}
 	},
 	routes: [
 		{
-			path: '/stores/internal-orders',
-			element: <InternalOrders />
+			path: '/product-catalogues/textiles',
+			element: <Textiles />
 		}
 	]
 };
 
-export default InternalOrdersConfig;
+export default TextilesConfig;

@@ -3,24 +3,25 @@ import { lazy } from 'react';
 import en from './i18n/en';
 import ar from './i18n/ar';
 
-i18next.addResourceBundle('en', 'internalOrdersPage', en);
-i18next.addResourceBundle('ar', 'internalOrdersPage', ar);
+i18next.addResourceBundle('en', 'cataloguesPage', en);
+i18next.addResourceBundle('ar', 'cataloguesPage', ar);
 
-const InternalOrders = lazy(() => import('./InternalOrders'));
+const Catalogues = lazy(() => import('./Catalogues'));
 
 /**
  * The Departments page config.
  */
-const InternalOrdersConfig = {
+
+const CataloguesConfig = {
 	settings: {
 		layout: {}
 	},
 	routes: [
 		{
-			path: '/stores/internal-orders',
-			element: <InternalOrders />
+			path: '/product-catalogues',
+			element: <Catalogues />
 		}
 	]
 };
 
-export default InternalOrdersConfig;
+export default CataloguesConfig;

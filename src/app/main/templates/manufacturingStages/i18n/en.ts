@@ -1,5 +1,5 @@
 const locale = {
-	TITLE: 'Internal Orders'
+	TITLE: 'Manufacturing Stages'
 };
 
 export default locale;

@@ -1,8 +1,13 @@
-import InternalOrdersComp from '../../../components/stores/internal-orders/InternalOrders';
+//import DetailsComp from '../../../components/stores/details/Details';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import { useTranslation } from 'react-i18next';
 import { styled } from '@mui/material/styles';
+import i18next from 'i18next';
+import en from './i18n/en';
+import ar from './i18n/ar';
 
+i18next.addResourceBundle('en', 'detailsPage', en);
+i18next.addResourceBundle('ar', 'detailsPage', ar);
 
 const Root = styled(FusePageSimple)(({ theme }) => ({
 	'& .FusePageSimple-header': {
@@ -16,22 +21,8 @@ const Root = styled(FusePageSimple)(({ theme }) => ({
 	'& .FusePageSimple-sidebarContent': {}
 }));
 
-function InternalOrders() {
-	
-	// the examplePage's a namespace that is used in case
-	// you have defined multiple pages in the i18n page wihtin 
-	// this component like so:
-	/*
-		{
-  			"examplePage": {
-  			  "TITLE": "Departments"
-  			},
-  			"anotherPage": {
-  			  "TITLE": "Employees"
-  			}
-		}
-	*/
-	const { t } = useTranslation('internalOrdersPage');
+function Details() {
+	const { t } = useTranslation('detailsPage');
 
 	return (
 		<Root
@@ -42,11 +33,11 @@ function InternalOrders() {
 			}
 			content={
 				<div className="p-24 w-full h-full">
-					<InternalOrdersComp />
+					Deatils
 				</div>
 			}
 		/>
 	);
 }
 
-export default InternalOrders;
+export default Details;

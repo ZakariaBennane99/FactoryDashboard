@@ -1,7 +1,9 @@
-import InternalOrdersComp from '../../../components/stores/internal-orders/InternalOrders';
+import TextilesComp from '../../../components/product-catalogues/textiles/Textiles';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import { useTranslation } from 'react-i18next';
 import { styled } from '@mui/material/styles';
+
+
 
 
 const Root = styled(FusePageSimple)(({ theme }) => ({
@@ -16,7 +18,7 @@ const Root = styled(FusePageSimple)(({ theme }) => ({
 	'& .FusePageSimple-sidebarContent': {}
 }));
 
-function InternalOrders() {
+function Textiles() {
 	
 	// the examplePage's a namespace that is used in case
 	// you have defined multiple pages in the i18n page wihtin 
@@ -31,7 +33,7 @@ function InternalOrders() {
   			}
 		}
 	*/
-	const { t } = useTranslation('internalOrdersPage');
+	const { t } = useTranslation('textilesPage');
 
 	return (
 		<Root
@@ -42,11 +44,11 @@ function InternalOrders() {
 			}
 			content={
 				<div className="p-24 w-full h-full">
-					<InternalOrdersComp />
+					<TextilesComp />
 				</div>
 			}
 		/>
 	);
 }
 
-export default InternalOrders;
+export default Textiles;

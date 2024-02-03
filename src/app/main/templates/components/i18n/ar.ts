@@ -1,5 +1,7 @@
 const locale = {
-	TITLE: 'الطلبات الداخلية'
+	TITLE: 'المكونات'
 };
 
 export default locale;
+
+

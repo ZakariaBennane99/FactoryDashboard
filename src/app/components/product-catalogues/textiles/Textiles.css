@@ -1,0 +1,51 @@
+.depart-card.textile {
+    height: 270px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.depart-card.textile div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.depart-card.textile div .textile-name {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.depart-card.textile div .textile-expected-delivery,
+.depart-card.textile div .textile-status,
+.depart-card.textile div .textile-material,
+.depart-card.textile div .textile-specifics,
+.depart-card.textile div .textile-notes {
+    font-size: 1.15em;
+    word-break:normal;
+}
+
+.depart-card.textile div .textile-color {
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.depart-card.textile div svg {
+    margin-right: 15px;
+    font-size: x-large;
+}
+
+.dialog.textile {
+    width: 350px;
+    height: 280px;
+}
+
+#chip-priority {
+    padding: 3px 6px;
+    font-weight: bold;
+}
+
+.txt-identifiers {
+    font-weight: bold;
+}

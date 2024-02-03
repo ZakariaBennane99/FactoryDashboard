@@ -17,15 +17,6 @@ const navigationConfig: FuseNavigationType = [
 		icon: 'heroicons-outline:home',
 		translate: 'DASHBOARD',
 		children: [
-
-			{
-				id: 'departments',
-				title: 'Departments',
-				type: 'item',
-				icon: 'heroicons-outline:office-building',
-				url: '/departments',
-				translate: 'Departments'
-			},
 			{
 				id: 'users',
 				title: 'Users',
@@ -33,6 +24,14 @@ const navigationConfig: FuseNavigationType = [
 				icon: 'heroicons-outline:user-group',
 				url: '/users',
 				translate: 'Users'
+			},
+			{
+				id: 'departments',
+				title: 'Departments',
+				type: 'item',
+				icon: 'heroicons-outline:office-building',
+				url: '/departments',
+				translate: 'Departments'
 			},
 			{
 				id: 'stores',
@@ -86,46 +85,46 @@ const navigationConfig: FuseNavigationType = [
 				]
 			},
 			{
-				id: 'productCatalogue',
+				id: 'productCatalogues',
 				title: 'ProductCatalogue',
 				type: 'collapse',
 				icon: 'heroicons-outline:puzzle',
-				url: '/apps/productcatalog',
-				translate: 'Product-Catalogue',
+				url: 'product-catalogues',
+				translate: 'Product-Catalogues',
 				children: [
 					{
-						id: 'pc-productcatalogcategories1',
-						title: 'Product Catalog Categories 1',
+						id: 'pc-productcatalogcategories-I',
+						title: 'Categories I',
 						type: 'item',
-						url: 'apps/catalogApp/productcatalogcategories1',
+						url: 'product-catalogues/categories-I',
 						end: true
 					},
 					{
-						id: 'pc-productcatalogcategories2',
-						title: 'Product Catalog Categories 2',
+						id: 'pc-productcatalogcategories-II',
+						title: 'Categories II',
 						type: 'item',
-						url: 'apps/catalogApp/productcatalogcategories2',
-						end: true
-					},
-					{
-						id: 'pc-productcatalog',
-						title: 'Product Catalog',
-						type: 'item',
-						url: 'apps/catalogApp/productcatalogs',
+						url: 'product-catalogues/categories-II',
 						end: true
 					},
 					{
 						id: 'pc-productcatalogtextiles',
-						title: 'Product Catalog Textiles',
+						title: 'Textiles',
 						type: 'item',
-						url: 'apps/catalogApp/productcatalogtextiles',
+						url: 'product-catalogues/textiles',
 						end: true
 					},
 					{
 						id: 'pc-productcatalogdetails',
-						title: 'Product Catalog Details',
+						title: 'Details',
 						type: 'item',
-						url: 'apps/catalogApp/productcatalogdetails',
+						url: 'product-catalogues/details',
+						end: true
+					},
+					{
+						id: 'pc-productcatalogdetails',
+						title: 'Seasons',
+						type: 'item',
+						url: 'product-catalogues/seasons',
 						end: true
 					}
 				]
@@ -135,56 +134,101 @@ const navigationConfig: FuseNavigationType = [
 				title: 'Templates',
 				type: 'collapse',
 				icon: 'heroicons-outline:scissors',
-				url: '/apps/template',
-				translate: 'Template',
+				url: 'templates',
+				translate: 'Templates',
 				children: [
 					{
-						id: 't-templatesizes',
-						title: 'Template Sizes',
+						id: 't-templatepatterns',
+						title: 'Manufacturing Stages',
 						type: 'item',
-						url: 'apps/storeApp/templatesizes',
-						end: true
-					},
-					{
-						id: 't-templatetypes',
-						title: 'Template Types',
-						type: 'item',
-						url: 'apps/storeApp/templatetypes',
+						url: 'templates/manufacturing-stages',
 						end: true
 					},
 					{
 						id: 't-templatepatterns',
-						title: 'Template Patterns',
+						title: 'Components',
 						type: 'item',
-						url: 'apps/storeApp/templatepatterns',
+						url: 'templates/components',
 						end: true
 					},
 					{
-						id: 't-templates',
-						title: 'Templates',
+						id: 't-templatepatterns',
+						title: 'Patterns',
 						type: 'item',
-						url: 'apps/storeApp/templates',
+						url: 'templates/patterns',
 						end: true
 					},
+					{
+						id: 't-templatetypes',
+						title: 'Types',
+						type: 'item',
+						url: 'templates/types',
+						end: true
+					},					
+					{
+						id: 't-templatesizes',
+						title: 'Sizes',
+						type: 'item',
+						url: 'templates/sizes',
+						end: true
+					}
 				
 				]
 			},
 			{
-				id: 'apps.orders',
+				id: 'orders',
 				title: 'Orders',
-				type: 'item',
+				type: 'collapse',
 				icon: 'heroicons-outline:ticket',
-				url: '/apps/Orders',
-				translate: 'Orders'
-			},
-			{
-				id: 'apps.product',
-				title: 'Product',
-				type: 'item',
-				icon: 'heroicons-outline:wrench',
-				url: '/apps/product',
-				translate: 'Product'
-			},
+				url: 'orders',
+				translate: 'Orders',
+				children: [
+					{
+						id: 't-templatepatterns',
+						title: 'Details',
+						type: 'collapse',
+						url: 'orders/details',
+						end: true,
+						children: [
+							{
+								id: 't-templatepatterns',
+								title: 'Template Types',
+								type: 'item',
+								url: 'orders/details/template-types',
+								end: true
+							},
+							{
+								id: 't-templatepatterns',
+								title: 'Colors',
+								type: 'item',
+								url: 'orders/details/colors',
+								end: true
+							},
+							{
+								id: 't-templatepatterns',
+								title: 'Sizes',
+								type: 'item',
+								url: 'orders/details/sizes',
+								end: true
+							},
+						]
+					},
+					{
+						id: 't-templatepatterns',
+						title: 'Colors',
+						type: 'item',
+						url: 'orders/colors',
+						end: true
+					},					
+					{
+						id: 't-templatesizes',
+						title: 'Sizes',
+						type: 'item',
+						url: 'orders/sizes',
+						end: true
+					}
+				]
+			}
 		]
 	},
 
