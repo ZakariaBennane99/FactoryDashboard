@@ -1,17 +1,17 @@
-.depart-card.size {
+.depart-card.type {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
 }
 
-.depart-card.size div {
+.depart-card.type div {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.depart-card.size div .size-name {
+.depart-card.type div .type-name {
     font-size: 1.5em;
     font-weight: bold;
 }
@@ -20,16 +20,16 @@
     margin-bottom: 15px;
 }
 
-.depart-card.size div:not(:last-of-type) {
+.depart-card.type div:not(:last-of-type) {
     margin-bottom: 15px;
 }
 
-.depart-card.size div .size-color {
+.depart-card.type div .type-color {
     padding: 5px;
     border-radius: 3px;
 }
 
-.depart-card.size div svg:not(#delete-icon, #edit-icon) {
+.depart-card.type div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
 }

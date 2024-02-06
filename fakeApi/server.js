@@ -1014,6 +1014,64 @@ app.get('/template-types', (req, res) => {
     });
 });
 
+// orders
+app.get('/orders', (req, res) => {
+  res.json({
+      types: [
+        {
+          orderNumber: 1001,
+          orderDate: "10-01-2024",
+          totalAmount: 1500.00,
+          status: "PENDING",
+          season: "Spring"
+        },
+        {
+          orderNumber: 1002,
+          orderDate: "15-02-2024",
+          totalAmount: 2700.00,
+          status: "APPROVED",
+          season: "Spring"
+        },
+        {
+          orderNumber: 1003,
+          orderDate: "20-03-2024",
+          totalAmount: 3200.00,
+          status: "FULFILLED",
+          season: "Summer"
+        },
+        {
+          orderNumber: 1004,
+          orderDate: "25-04-2024",
+          totalAmount: 1100.00,
+          status: "CANCELLED",
+          season: "Summer"
+        },
+        {
+          orderNumber: 1005,
+          orderDate: "30-05-2024",
+          totalAmount: 2900.00,
+          status: "COMPLETED",
+          season: "Autumn"
+        },
+        {
+          orderNumber: 1006,
+          orderDate: "04-06-2024",
+          totalAmount: 2100.00,
+          status: "ONGOING",
+          season: "Autumn"
+        },
+        {
+          orderNumber: 1007,
+          orderDate: "09-07-2024",
+          totalAmount: 1800.00,
+          status: "REJECTED",
+          season: "Winter"
+        }
+      ]               
+  });
+});
+
+
 // Start the server
 app.listen(port, () => {
   console.log(`Express server running on http://localhost:${port}`);

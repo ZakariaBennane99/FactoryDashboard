@@ -1,49 +1,37 @@
-.depart-card.internalOrder {
-    height: 280px;
+.depart-card.type {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
 }
 
-.depart-card.internalOrder div {
+.depart-card.type div {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.depart-card.internalOrder div .internalOrder-name {
+.depart-card.type div .type-name {
     font-size: 1.5em;
     font-weight: bold;
 }
 
-.depart-card.internalOrder div .internalOrder-expected-delivery,
-.depart-card.internalOrder div .internalOrder-status,
-.depart-card.internalOrder div .internalOrder-material,
-.depart-card.internalOrder div .internalOrder-specifics,
-.depart-card.internalOrder div .internalOrder-notes {
-    font-size: 1.15em;
-    word-break:normal;
+#edit-container {
+    margin-bottom: 15px;
 }
 
-.depart-card.internalOrder div .internalOrder-color {
+.depart-card.type div:not(:last-of-type) {
+    margin-bottom: 15px;
+}
+
+.depart-card.type div .type-color {
     padding: 5px;
     border-radius: 3px;
 }
 
-.depart-card.internalOrder div svg {
+.depart-card.type div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
-}
-
-.dialog.internalOrder {
-    width: 350px;
-    height: 280px;
-}
-
-#chip-priority {
-    padding: 3px 6px;
-    font-weight: bold;
 }
 
 .txt-identifiers {
