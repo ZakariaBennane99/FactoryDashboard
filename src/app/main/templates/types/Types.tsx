@@ -1,4 +1,4 @@
-// import InternalOrdersComp from '../../../components/stores/internal-orders/Types';
+import TypesComp from '../../../components/templates/types/Types';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import { useTranslation } from 'react-i18next';
 import { styled } from '@mui/material/styles';
@@ -42,7 +42,7 @@ function Types() {
 			}
 			content={
 				<div className="p-24 w-full h-full">
-					Types
+					<TypesComp />
 				</div>
 			}
 		/>

@@ -11,17 +11,17 @@
     align-items: center;
 }
 
-.depart-card.size div .size-name {
-    font-size: 1.5em;
-    font-weight: bold;
-}
-
 #edit-container {
     margin-bottom: 15px;
 }
 
 .depart-card.size div:not(:last-of-type) {
     margin-bottom: 15px;
+}
+
+.depart-card.size div .size-name {
+    font-size: 1.5em;
+    font-weight: bold;
 }
 
 .depart-card.size div .size-color {
@@ -36,4 +36,11 @@
 
 .txt-identifiers {
     font-weight: bold;
+}
+
+.add-new-component-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 8px;
 }

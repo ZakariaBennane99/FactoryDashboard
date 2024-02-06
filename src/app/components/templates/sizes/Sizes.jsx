@@ -221,7 +221,7 @@ function Sizes() {
                                         </span>
                                     </div>
                                     {
-                                        size.components && size.components.length > 0 ? 
+                                        size.components.length > 0 ? 
                                         <div>
                                             <ExtensionIcon />
                                             <div className="component">

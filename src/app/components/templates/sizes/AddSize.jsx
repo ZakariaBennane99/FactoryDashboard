@@ -175,7 +175,7 @@ function AddTemplateSize({ sze }) {
                     />
                 </FormControl>
 
-                {templateSize.components.map((component, index) => (
+                {templateSize.components && templateSize.components.map((component, index) => (
                     <Box key={index} sx={{ display: 'flex', flexDirection: 'column', marginTop: '10px' }}>
                         <h4 style={{ fontWeight: 'bold' }}>Component {index + 1}</h4>
                         <FormControl fullWidth margin="normal">
