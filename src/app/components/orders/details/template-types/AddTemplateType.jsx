@@ -35,12 +35,11 @@ function AddTemplateType({ tmplTypes }) {
                         variant="outlined"
                         value={templateType.orderDetailName}
                         onChange={handleChange('orderDetailName')}
-                        type='number'
                         required
                     />
                 </FormControl>
 
-                <button type="submit" className="add-internalOrder-btn">{tmplTypes ? 'Update' : 'Add'} TemplateType</button>
+                <button type="submit" className="add-internalOrder-btn">{tmplTypes ? 'Update' : 'Add'} Template Type</button>
             </form>
         </Box>
     );

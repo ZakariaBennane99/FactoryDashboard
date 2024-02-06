@@ -1,4 +1,4 @@
-// import InternalOrdersComp from '../../../components/stores/internal-orders/TemplateTypes';
+import TemplateTypeComp from '../../../../components/orders/details/template-types/TemplateTypes';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import { useTranslation } from 'react-i18next';
 import { styled } from '@mui/material/styles';
@@ -42,7 +42,7 @@ function TemplateTypes() {
 			}
 			content={
 				<div className="p-24 w-full h-full">
-					Template Types
+					<TemplateTypeComp />
 				</div>
 			}
 		/>
