@@ -1,5 +1,4 @@
 .depart-card.internalOrder {
-    height: 280px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -17,6 +16,10 @@
     font-weight: bold;
 }
 
+#edit-container {
+    margin-bottom: 17px;
+}
+
 .depart-card.internalOrder div .internalOrder-expected-delivery,
 .depart-card.internalOrder div .internalOrder-status,
 .depart-card.internalOrder div .internalOrder-material,
@@ -26,19 +29,18 @@
     word-break:normal;
 }
 
+.depart-card.internalOrder div:not(:last-of-type) {
+    margin-bottom: 15px;
+}
+
 .depart-card.internalOrder div .internalOrder-color {
     padding: 5px;
     border-radius: 3px;
 }
 
-.depart-card.internalOrder div svg {
+.depart-card.internalOrder div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
-}
-
-.dialog.internalOrder {
-    width: 350px;
-    height: 280px;
 }
 
 #chip-priority {

@@ -1,10 +1,9 @@
 
 import '../../Departments.css'
 import './Textiles.css'
-import {  } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
-import { openDialog } from 'app/store/fuse/dialogSlice';
+import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import axios from 'axios';
 import { TextField, Box, Grid, Paper } from '@mui/material'
 import TextureIcon from '@mui/icons-material/Texture';
@@ -12,7 +11,18 @@ import GrainIcon from '@mui/icons-material/Grain';
 import CategoryIcon from '@mui/icons-material/Category';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AddTextile from './AddTextile';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Delete from '../../Delete';
 
+
+function trimText(txt, maxLength) {
+    if (txt.length > maxLength) {
+        return txt.substring(0, maxLength) + '...'
+    } else {
+        return txt
+    }
+}
 
 
 function Textiles() {
@@ -119,6 +129,36 @@ function Textiles() {
         }))
     }
 
+    function handleEdit(i) {
+        // first close the current window
+        dispatch(closeDialog())
+        setTimeout(() => {
+            // Now open a new edit dialog with the selected user data
+            dispatch(openDialog({
+                children: ( 
+                    <AddTextile txtle={textiles[i]} />
+                )
+            }));
+        }, 100);
+    }
+
+    function handleDelete(i) {
+        // first close the current window
+        dispatch(closeDialog())
+        setTimeout(() => {
+            // Now open a new edit dialog with the selected user data
+            dispatch(openDialog({
+                // you need to pass the user id to the 
+                // component, so you can easily delete it
+                children: ( 
+                    <Delete itemId={i} />
+                )
+            }));
+        }, 100);
+    }
+
+
+
     return (
         <div className="parent-container">
 
@@ -149,6 +189,10 @@ function Textiles() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog textile">
+                                    <div id="edit-container">
+                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                    </div>
                                     <div>
                                         <TextureIcon />
                                         <span className="textile-name">
@@ -199,7 +243,7 @@ function Textiles() {
                         <div>
                             <DescriptionIcon />
                             <span className="textile-description">
-                                {textile.description}
+                                {trimText(textile.description, 30)}
                             </span>
                         </div>
                       </Paper>
@@ -216,6 +260,10 @@ function Textiles() {
                         dispatch(openDialog({
                             children: (
                             <div className="depart-card dialog textile">
+                                <div id="edit-container">
+                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                </div>
                                 <div>
                                     <TextureIcon />
                                     <span className="textile-name">
@@ -266,7 +314,7 @@ function Textiles() {
                         <div>
                             <DescriptionIcon />
                             <span className="textile-description">
-                                {highlightMatch(textile.description, query)}
+                                {highlightMatch(trimText(textile.description, 30), query)}
                             </span>
                         </div>
                       </Paper>

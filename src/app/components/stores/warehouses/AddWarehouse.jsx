@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
 
-function AddWarehouse() {
+function AddWarehouse({ wrhouse }) {
 
     const [managers, setManagers] = useState([
         'Moha Itani',
@@ -10,10 +10,10 @@ function AddWarehouse() {
     ])
 
     const [warehouse, setWarehouse] = useState({
-        name: '',
-        location: '',
-        capacity: '',
-        manager: ''
+        name: wrhouse ? wrhouse.name : '',
+        location: wrhouse ? wrhouse.location : '',
+        capacity: wrhouse ? wrhouse.capacity : '',
+        manager: wrhouse ? wrhouse.manager : ''
     });
 
     const handleChange = (prop) => (event) => {
@@ -81,7 +81,7 @@ function AddWarehouse() {
                 </FormControl>
 
 
-                <button type="submit" className="add-warehouse-btn">Add Warehouse</button>
+                <button type="submit" className="add-warehouse-btn">{wrhouse ? 'Update' : 'Add'} Warehouse</button>
             </form>
         </Box>
     );

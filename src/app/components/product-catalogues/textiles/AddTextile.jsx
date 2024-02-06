@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
 
-function AddTextile() {
+function AddTextile({ txtle }) {
 
     const [textile, setTextile] = useState({
-        textileName: '',
-        textileType: '',
-        composition: '',
-        description: ''
+        textileName: txtle ? txtle.textileName : '',
+        textileType: txtle ? txtle.textileType : '',
+        composition: txtle ? txtle.composition : '',
+        description: txtle ? txtle.description : ''
     });
 
     const handleChange = (prop) => (event) => {
@@ -64,7 +64,7 @@ function AddTextile() {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-textile-btn">Add Textile</button>
+                <button type="submit" className="add-textile-btn">{ txtle ? 'Update' : 'Add' } Textile</button>
             </form>
         </Box>
     );

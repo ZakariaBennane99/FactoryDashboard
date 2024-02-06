@@ -1,5 +1,4 @@
 .depart-card.materialCategory {
-    height: 180px;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -12,9 +11,21 @@
     align-items: center;
 }
 
+.depart-card.materialCategory div:not(:last-of-type) {
+    margin-bottom: 15px;
+}
+
+#edit-container {
+    margin-bottom: 15px;
+}
+
 .depart-card.materialCategory div .materialCategory-name {
     font-size: 1.5em;
     font-weight: bold;
+}
+
+.depart-card.materialCategory div .materialCategory-description {
+    font-size: 1.15em;
 }
 
 .depart-card.materialCategory div .materialCategory-type {
@@ -22,12 +33,11 @@
     word-break: normal;
 }
 
-.depart-card.materialCategory div svg {
+.depart-card.materialCategory div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
 }
 
 .dialog.materialCategory {
-    width: 320px;
-    height: 200px;
+    justify-content: space-between;
 }

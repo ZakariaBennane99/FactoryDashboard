@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
 
-function AddCategoryI() {
+function AddCategoryI({ ctgrI }) {
 
     const [categoryI, setCategoriesI] = useState({
-        name: '',
-        description: '',
+        name: ctgrI ? ctgrI.mame : '',
+        description: ctgrI ? ctgrI.description : '',
     });
 
     const handleChange = (prop) => (event) => {
@@ -42,7 +42,7 @@ function AddCategoryI() {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-categoryI-btn">Add Category I</button>
+                <button type="submit" className="add-categoryI-btn">{ctgrI ? 'Update' : 'Add'} Category I</button>
             </form>
         </Box>
     );

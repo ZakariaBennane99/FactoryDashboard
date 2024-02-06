@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box, Select, MenuItem, InputLabel, Button } from '@mui/material';
 
-function AddMaterialMovement() {
+function AddMaterialMovement({ mtrlMovement }) {
     const [materialMovement, setMaterialMovement] = useState({
-        materialName: '',
-        from: '',
-        to: '',
-        movementType: '',
-        quantity: 0,
-        unitOfMeasure: '',
-        status: '',
-        notes: ''
+        materialName: mtrlMovement ? mtrlMovement.materialName : '',
+        from: mtrlMovement ? mtrlMovement.from : '',
+        to: mtrlMovement ? mtrlMovement.to : '',
+        movementType: mtrlMovement ? mtrlMovement.movementType : '',
+        quantity: mtrlMovement ? mtrlMovement.quantity : 0,
+        unitOfMeasure: mtrlMovement ? mtrlMovement.unitOfMeasure : '',
+        status: mtrlMovement ? mtrlMovement.status : '',
+        notes: mtrlMovement ? mtrlMovement.notes : ''
     });
 
     const materials = [
@@ -163,7 +163,7 @@ function AddMaterialMovement() {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-materialMovement-btn">Add Material Movement</button>
+                <button type="submit" className="add-materialMovement-btn">{mtrlMovement ? 'Update' : 'Add'} Material Movement</button>
             </form>
         </Box>
     );

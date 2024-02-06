@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
 
-function AddProductCatalogue() {
+function AddProductCatalogue({  prdctCatalogue }) {
 
     const [productCatalogue, setProductCatalogue] = useState({
-        name: '',
-        description: '',
+        name: prdctCatalogue ? prdctCatalogue.name : '',
+        description: prdctCatalogue ? prdctCatalogue.description : '',
     });
 
     const handleChange = (prop) => (event) => {
@@ -42,7 +42,7 @@ function AddProductCatalogue() {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-productCatalogue-btn">Add Product Catalogue</button>
+                <button type="submit" className="add-productCatalogue-btn">{prdctCatalogue ? 'Update' : 'Add'} Product Catalogue</button>
             </form>
         </Box>
     );

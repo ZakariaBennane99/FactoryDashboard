@@ -3,12 +3,18 @@ import './Departments.css'
 import TextField from '@mui/material/TextField';
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
-import { openDialog } from 'app/store/fuse/dialogSlice';
+import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import axios from 'axios';
 import AddUser from './AddUser';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Delete from './Delete';
+import ApartmentIcon from '@mui/icons-material/Apartment';
+import EmailIcon from '@mui/icons-material/Email';
+import PhoneIcon from '@mui/icons-material/Phone';
 
 
 
@@ -23,45 +29,23 @@ function Users() {
     const [isQueryFound, setIsQueryFound] = useState(false);
    
     function highlightMatch(text, query) {
-
-        if (!isQueryFound) {
-            return text
+        if (!isQueryFound || !query) {
+            return <span>{text}</span>;
         }
-
-        // Escape special characters for use in a regular expression
+    
+        // Escape special characters in the query for use in a RegExp
         const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
         // Create a RegExp object with global and case-insensitive flags
         const regex = new RegExp(escapedQuery, 'gi');
     
-        // Split the text into parts based on the query matches
-        const parts = text.split(regex);
+        // Replace matches in the text with a highlighted span
+        const highlightedText = text.replace(regex, (match) => `<span class="highlight">${match}</span>`);
     
-        // Create an array to hold the resulting JSX elements
-        const result = [];
-    
-        // Keep track of the current index in the original text
-        let currentIndex = 0;
-    
-        parts.forEach((part, index) => {
-            // Add the non-matching part
-            result.push(<span key={`text-${index}`}>{part}</span>);
-    
-            // Calculate the length of the match in the original text
-            const matchLength = text.substr(currentIndex + part.length).match(regex)?.[0]?.length || 0;
-    
-            if (matchLength > 0) {
-                // Add the matching part wrapped in a highlight span
-                const match = text.substr(currentIndex + part.length, matchLength);
-                result.push(<span key={`highlight-${index}`} className="highlight">{match}</span>);
-            }
-    
-            // Update the current index
-            currentIndex += part.length + matchLength;
-        });
-    
-        return result;
-    }   
+        // Return the highlighted text as JSX
+        // Use dangerouslySetInnerHTML to render the HTML string as real HTML
+        return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
+    }  
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -107,13 +91,41 @@ function Users() {
         getUsers();
     }, []);
 
-
     function handleAddingUser() {
         dispatch(openDialog({
             children: ( 
-                <AddUser />
+                <AddUser usr={null} />
             )
         }))
+    }
+
+    function handleEdit(i) {
+        console.log(users[i])
+        // first close the current window
+        dispatch(closeDialog())
+        setTimeout(() => {
+            // Now open a new edit dialog with the selected user data
+            dispatch(openDialog({
+                children: ( 
+                    <AddUser user={users[i]} />
+                )
+            }));
+        }, 100);
+    }
+
+    function handleDelete(i) {
+        // first close the current window
+        dispatch(closeDialog())
+        setTimeout(() => {
+            // Now open a new edit dialog with the selected user data
+            dispatch(openDialog({
+                // you need to pass the user id to the 
+                // component, so you can easily delete it
+                children: ( 
+                    <Delete itemId={i} />
+                )
+            }));
+        }, 100);
     }
 
 
@@ -147,19 +159,36 @@ function Users() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog user">
+                                    <div id="edit-container">
+                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                    </div>
                                     <div className="head-container">
-                                         <img id="avatar" src={`/assets/images/avatars/${user.name.toLowerCase().replace(/\s/g, '')}.jpg`} />
+                                         <img id="avatar" src={`/assets/images/avatars/${user.userName.toLowerCase()}.jpg`} />
+                                         <span className="name">
+                                            {user.firstName + ' ' + user.lastName} 
+                                         </span>
                                          <span className="category">
                                             {user.category}
                                          </span>
-                                         <span className="name">
-                                            {user.name}
-                                         </span>
                                      </div>
-                                     <div className="body-container">
+                                     <div className="full-body-container">
                                             <div className="manager">
+                                                <ApartmentIcon />
                                                 <span>
-                                                   {user.office}
+                                                   {user.department}
+                                                </span>
+                                            </div>
+                                            <div className="manager">
+                                                <EmailIcon />
+                                                <span>
+                                                   {user.email}
+                                                </span>
+                                            </div>
+                                            <div className="manager">
+                                                <PhoneIcon />
+                                                <span>
+                                                   {user.phoneNumber}
                                                 </span>
                                             </div>
                                     </div>
@@ -169,9 +198,9 @@ function Users() {
                       }}
                     >
                         <div className="head-container">
-                            <img id="avatar" src={`/assets/images/avatars/${user.name.toLowerCase().replace(/\s/g, '')}.jpg`} />
+                            <img id="avatar" src={`/assets/images/avatars/${user.userName.toLowerCase()}.jpg`} />
                             <span className="name">
-                                {user.name}
+                                {user.firstName + ' ' + user.lastName} 
                             </span>
                         </div>
                         <div className="body-container">
@@ -180,7 +209,7 @@ function Users() {
                             </span>
                             <div className="manager">
                                 <span>
-                                    {user.office}
+                                    {user.department}
                                 </span>
                             </div>
                         </div>
@@ -198,21 +227,38 @@ function Users() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog user">
+                                    <div id="edit-container">
+                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                    </div>
                                     <div className="head-container">
-                                         <img id="avatar" src={`/assets/images/avatars/${user.name.toLowerCase().replace(/\s/g, '')}.jpg`} />
-                                         <span className="category">
+                                        <img id="avatar" src={`/assets/images/avatars/${user.userName.toLowerCase()}.jpg`} />
+                                        <span className="name">
+                                            {highlightMatch(user.firstName + ' ' + user.lastName, query)}
+                                        </span>
+                                        <span className="category">
                                             {highlightMatch(user.category, query)}
-                                         </span>
-                                         <span className="name">
-                                            {highlightMatch(user.name, query)}
-                                         </span>
-                                     </div>
-                                     <div className="body-container">
-                                            <div className="manager">
-                                                <span>
-                                                   {highlightMatch(user.office, query)}
-                                                </span>
-                                            </div>
+                                        </span>
+                                    </div>
+                                    <div className="full-body-container">
+                                        <div className="manager">
+                                            <ApartmentIcon />
+                                            <span>
+                                                {highlightMatch(user.department, query)}
+                                            </span>
+                                        </div>
+                                        <div className="manager">
+                                            <EmailIcon />
+                                            <span>
+                                                {highlightMatch(user.email, query)}
+                                            </span>
+                                        </div>
+                                        <div className="manager">
+                                            <PhoneIcon />
+                                            <span>
+                                                {highlightMatch(user.phoneNumber, query)}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             )
@@ -220,18 +266,18 @@ function Users() {
                       }}
                     >
                         <div className="head-container">
-                            <img id="avatar" src={`/assets/images/avatars/${user.name.toLowerCase().replace(/\s/g, '')}.jpg`} />
-                            <span className="category">
-                                {highlightMatch(user.category, query)}
-                            </span>
+                            <img id="avatar" src={`/assets/images/avatars/${user.userName.toLowerCase()}.jpg`} />
                             <span className="name">
-                                {highlightMatch(user.name, query)}
+                                {highlightMatch(user.firstName + ' ' + user.lastName, query)}
                             </span>
                         </div>
                         <div className="body-container">
+                            <span className="category">
+                                {highlightMatch(user.category, query)}
+                            </span>
                             <div className="manager">
                                 <span>
-                                    {highlightMatch(user.name, query)}
+                                    {highlightMatch(user.department, query)}
                                 </span>
                             </div>
                         </div>

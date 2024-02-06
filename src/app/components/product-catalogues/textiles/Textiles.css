@@ -1,5 +1,4 @@
 .depart-card.textile {
-    height: 270px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -12,18 +11,22 @@
     align-items: center;
 }
 
+.depart-card.textile div:not(:last-of-type) {
+    margin-bottom: 10px;
+}
+
+#edit-container {
+    margin-bottom: 15px;
+}
+
+.depart-card.textile div .textile-type, .depart-card.textile div .textile-composition,
+.depart-card.textile div .textile-description {
+    font-size: 1.15em;
+}
+
 .depart-card.textile div .textile-name {
     font-size: 1.5em;
     font-weight: bold;
-}
-
-.depart-card.textile div .textile-expected-delivery,
-.depart-card.textile div .textile-status,
-.depart-card.textile div .textile-material,
-.depart-card.textile div .textile-specifics,
-.depart-card.textile div .textile-notes {
-    font-size: 1.15em;
-    word-break:normal;
 }
 
 .depart-card.textile div .textile-color {
@@ -31,19 +34,13 @@
     border-radius: 3px;
 }
 
-.depart-card.textile div svg {
+.depart-card.textile div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
 }
 
 .dialog.textile {
-    width: 350px;
-    height: 280px;
-}
-
-#chip-priority {
-    padding: 3px 6px;
-    font-weight: bold;
+    justify-content: space-between;
 }
 
 .txt-identifiers {

@@ -21,10 +21,10 @@
 .depart-card.supplier div .supplier-location,
 .depart-card.supplier div .supplier-email {
     font-size: 1.2em;
-    word-break: normal;
+    word-break: break-all;
 }
 
-.depart-card.supplier div svg {
+.depart-card.supplier div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
 }

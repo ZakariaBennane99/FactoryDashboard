@@ -17,7 +17,7 @@
 .add-supplier-btn, .add-material-btn, .add-materialCategory-btn,
 .add-internalOrder-btn, .add-materialMovement-btn,
 .add-productCatalogue-btn, .add-categoryI-btn, .add-categoryII-btn,
-.add-textile-btn {
+.add-textile-btn, .add-details-btn {
     width: 100%;
 }
 
@@ -30,7 +30,7 @@
 .add-supplier-btn, .add-material-btn, .add-materialCategory-btn,
 .add-internalOrder-btn, .add-materialMovement-btn, 
 .add-productCatalogue-btn, .add-categoryI-btn, .add-categoryII-btn,
-.add-textile-btn {
+.add-textile-btn, .add-details-btn {
     height: 100%;
     display: flex;
     justify-content: center;
@@ -47,7 +47,7 @@
     margin-right: 5px;
 }
 
-.parent-container .top-ribbon .add-btn span {
+.parent-container .top-ribbon .add-btn span:not(#not-applied) {
     color: white;
     font-size: 1.2em;
 }
@@ -58,7 +58,7 @@
 .add-material-btn:hover, .add-materialCategory-btn:hover,
 .add-internalOrder-btn:hover, .add-materialMovement-btn:hover,
 .add-productCatalogue-btn:hover, .add-categoryI-btn:hover,
-.add-categoryII-btn:hover, .add-textile-btn:hover {
+.add-categoryII-btn:hover, .add-textile-btn:hover, .add-details-btn:hover {
     background-color: #2f384a;
 }
 
@@ -98,7 +98,7 @@
     margin-right: 5px;
 }
 
-.parent-container .top-ribbon .filter-btn span {
+.parent-container .top-ribbon .filter-btn span:not(#not-applied) {
     color: #111827;
     font-weight: 600;
     font-size: 1.2em;
@@ -111,7 +111,7 @@
 }
 
 .depart-card {
-    height: 300px;
+    height:  fit-content;
     padding: 20px;
     border-radius: 9px;
     cursor: pointer;
@@ -123,15 +123,16 @@
 
 .depart-card .head-container {
     width: 100%;
-    height: 45%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 9px;
 }
 
 .depart-card .head-container img {
     width: 37px;
+    margin-bottom: 5px;
 }
 
 .head-container .category {
@@ -140,6 +141,7 @@
     border-radius: 3px;
     padding: 3px 7px;
     font-size: .85em;
+    margin-bottom: 5px;
 }
 
 .depart-card .head-container .name {
@@ -163,6 +165,10 @@
     font-size: 1.3em;
 }
 
+.depart-card .body-container .manager span {
+    margin-bottom: 4px;
+}
+
 .depart-card .body-container img {
     width: 27px;
     margin-right: 5px;
@@ -180,11 +186,71 @@
 
 .add-depart-container {
     width: 300px;
-    height: 250px;
+    height: fit-content;
 }
 
 .add-depart-container #depart-name, 
 .add-depart-container #manager-label,
 .add-depart-container #manager-name {
     margin-bottom: 20px;
+}
+
+#edit-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+#delete-icon {
+    color: rgb(225, 63, 63);
+    transition: all .2s;
+    font-size: 30px;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+#edit-icon {
+    font-size: 30px;
+    color: #111827;
+    transition: all .25s;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+#edit-icon:hover {
+    background-color: #d1d7e3;
+}
+
+#delete-icon:hover {
+    background-color: rgb(225, 218, 218);
+}
+
+.delete-box p {
+    font-size: 1.2em;
+    margin-bottom: 8px;
+}
+
+.button-container button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    margin-top: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    background-color: #111827;
+    transition: background-color 0.3s, transform 0.2s;
+    color: white;
+}
+
+.button-container .yes-button {
+    margin-right: 15px;
+}
+
+.button-container .yes-button:hover {
+    background-color: #47c049; 
+}
+
+.button-container .no-button:hover {
+    background-color: #f44336;
 }

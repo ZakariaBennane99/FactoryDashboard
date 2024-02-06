@@ -1,150 +1,137 @@
 import { useState } from 'react';
-import { FormControl, TextField, Box, Select, MenuItem, InputLabel, Button } from '@mui/material';
+import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 
-function AddInternalOrder() {
-    const [internalOrder, setInternalOrder] = useState({
-        expectedDelivery: null,
-        priority: '',
-        status: '',
-        material: '',
-        quantity: 0,
-        specifics: '',
-        notes: ''
+function AddManufacturingStage({ mnfStage }) {
+    const [manufacturingStage, setManufacturingStage] = useState({
+        stageNumber: mnfStage ? mnfStage.stageNumber : '',
+        stageName: mnfStage ? mnfStage.stageName : '',
+        workDescription: mnfStage ? mnfStage.workDescription : '',
+        duration: mnfStage ? mnfStage.duration : '',
+        description: mnfStage ? mnfStage.description : '',
+        template: mnfStage ? mnfStage.template : '',
+        department: mnfStage ? mnfStage.department : ''
     });
 
-    const priorities = ['HIGH', 'MEDIUM', 'LOW'];
-    const statuses = [
-        'PENDING', 'APPROVED', 'REJECTED', 'FULFILLED',
-        'CANCELLED', 'COMPLETED', 'ONGOING'
-    ];
-    // Mock materials array, replace with actual data if needed
-    const materials = [
-        'Material 1',
-        'Material 2',
-        'Material 3',
+    const templates = ['Basic Tee', 'Classic Jeans', 'Summer Dress'];
+    const departments = [
+        'Engineering Office', 'Finance Office', 'Accounting Office',
+        'Production Plant 1', 'Cutting Division'
     ];
 
     const handleChange = (prop) => (event) => {
-        setInternalOrder({ ...internalOrder, [prop]: event.target.value });
-    };
-
-    const handleDateChange = (date) => {
-        setInternalOrder({ ...internalOrder, expectedDelivery: date });
+        setManufacturingStage({ ...manufacturingStage, [prop]: event.target.value });
     };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        console.log(internalOrder);
+        console.log(manufacturingStage);
     };
 
     return (
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-                <form onSubmit={handleSubmit}>
-                    <FormControl fullWidth margin="normal">
-                        <DatePicker
-                            label="Expected Delivery"
-                            value={internalOrder.expectedDelivery}
-                            onChange={handleDateChange}
-                            renderInput={(params) => <TextField {...params} required />}
-                        />
-                    </FormControl>
+        <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
+            <form onSubmit={handleSubmit}>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Stage Number"
+                        variant="outlined"
+                        type="number"
+                        value={manufacturingStage.stageNumber}
+                        onChange={handleChange('stageNumber')}
+                        required
+                        inputProps={{ min: 1 }}
+                    />
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="priority-select-label">Priority</InputLabel>
-                        <Select
-                            labelId="priority-select-label"
-                            id="priority-select"
-                            value={internalOrder.priority}
-                            label="Priority"
-                            onChange={handleChange('priority')}
-                            required
-                        >
-                            {priorities.map((priority, index) => (
-                                <MenuItem key={index} value={priority}>
-                                    {priority}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Stage Name"
+                        variant="outlined"
+                        value={manufacturingStage.stageName}
+                        onChange={handleChange('stageName')}
+                        required
+                    />
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="status-select-label">Status</InputLabel>
-                        <Select
-                            labelId="status-select-label"
-                            id="status-select"
-                            value={internalOrder.status}
-                            label="Status"
-                            onChange={handleChange('status')}
-                            required
-                        >
-                            {statuses.map((status, index) => (
-                                <MenuItem key={index} value={status}>
-                                    {status}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Work Description"
+                        variant="outlined"
+                        value={manufacturingStage.workDescription}
+                        onChange={handleChange('workDescription')}
+                        required
+                        multiline
+                        rows={2}
+                    />
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="material-select-label">Material</InputLabel>
-                        <Select
-                            labelId="material-select-label"
-                            id="material-select"
-                            value={internalOrder.material}
-                            label="Material"
-                            onChange={handleChange('material')}
-                            required
-                        >
-                            {materials.map((material, index) => (
-                                <MenuItem key={index} value={material}>
-                                    {material}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Duration (minutes)"
+                        variant="outlined"
+                        type="number"
+                        value={manufacturingStage.duration}
+                        onChange={handleChange('duration')}
+                        required
+                        inputProps={{ min: 1 }}
+                    />
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <TextField
-                            label="Quantity"
-                            variant="outlined"
-                            type="number"
-                            value={internalOrder.quantity}
-                            onChange={handleChange('quantity')}
-                            required
-                            inputProps={{ min: 0 }}
-                        />
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Description"
+                        variant="outlined"
+                        value={manufacturingStage.description}
+                        onChange={handleChange('description')}
+                        required
+                        multiline
+                        rows={2}
+                    />
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <TextField
-                            label="Specifics"
-                            variant="outlined"
-                            value={internalOrder.specifics}
-                            onChange={handleChange('specifics')}
-                            required
-                        />
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="template-select-label">Template</InputLabel>
+                    <Select
+                        labelId="template-select-label"
+                        id="template-select"
+                        value={manufacturingStage.template}
+                        label="Template"
+                        onChange={handleChange('template')}
+                        required
+                    >
+                        {templates.map((template, index) => (
+                            <MenuItem key={index} value={template}>
+                                {template}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
-                        <TextField
-                            label="Notes"
-                            variant="outlined"
-                            value={internalOrder.notes}
-                            onChange={handleChange('notes')}
-                            multiline
-                            rows={3}
-                            required
-                        />
-                    </FormControl>
+                <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
+                    <InputLabel id="department-select-label">Department</InputLabel>
+                    <Select
+                        labelId="department-select-label"
+                        id="department-select"
+                        value={manufacturingStage.department}
+                        label="Department"
+                        onChange={handleChange('department')}
+                        required
+                    >
+                        {departments.map((department, index) => (
+                            <MenuItem key={index} value={department}>
+                                {department}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
 
-                    <button type="submit" className="add-internalOrder-btn">Add Internal Order</button>
-                </form>
-            </Box>
-        </LocalizationProvider>
+                <button type="submit" className="add-internalOrder-btn">
+                    {mnfStage ? 'Update' : 'Add'} Manufacturing Stage
+                </button>
+            </form>
+        </Box>
     );
 }
 
-export default AddInternalOrder;
+export default AddManufacturingStage;

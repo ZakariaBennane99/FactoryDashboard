@@ -3,7 +3,7 @@ import './Materials.css'
 import TextField from '@mui/material/TextField';
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
-import { openDialog } from 'app/store/fuse/dialogSlice';
+import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
@@ -15,7 +15,17 @@ import BusinessIcon from '@mui/icons-material/Business';
 import PaletteIcon from '@mui/icons-material/Palette';
 import tinycolor from 'tinycolor2';
 import AddMaterial from './AddMaterial';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Delete from '../../Delete';
 
+function trimText(txt, maxLength) {
+    if (txt.length > maxLength) {
+        return txt.substring(0, maxLength) + '...'
+    } else {
+        return txt
+    }
+}
 
 
 function Materials() {
@@ -29,44 +39,23 @@ function Materials() {
     const [isQueryFound, setIsQueryFound] = useState(false);
    
     function highlightMatch(text, query) {
-        // Convert text and query to strings to ensure compatibility with string methods
-        text = String(text);
-        query = String(query);
+        if (!isQueryFound || !query) {
+            return <span>{text}</span>;
+        }
     
-        // Escape special characters for use in a regular expression
+        // Escape special characters in the query for use in a RegExp
         const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
         // Create a RegExp object with global and case-insensitive flags
         const regex = new RegExp(escapedQuery, 'gi');
     
-        // Split the text into parts based on the query matches
-        const parts = text.split(regex);
+        // Replace matches in the text with a highlighted span
+        const highlightedText = text.replace(regex, (match) => `<span class="highlight">${match}</span>`);
     
-        // Create an array to hold the resulting JSX elements
-        const result = [];
-    
-        // Keep track of the current index in the original text
-        let currentIndex = 0;
-    
-        parts.forEach((part, index) => {
-            // Add the non-matching part
-            result.push(<span key={`text-${index}`}>{part}</span>);
-    
-            // Calculate the length of the match in the original text
-            const matchLength = text.substr(currentIndex + part.length).match(regex)?.[0]?.length || 0;
-    
-            if (matchLength > 0) {
-                // Add the matching part wrapped in a highlight span
-                const match = text.substr(currentIndex + part.length, matchLength);
-                result.push(<span key={`highlight-${index}`} className="highlight">{match}</span>);
-            }
-    
-            // Update the current index
-            currentIndex += part.length + matchLength;
-        });
-    
-        return result;
-    }
+        // Return the highlighted text as JSX
+        // Use dangerouslySetInnerHTML to render the HTML string as real HTML
+        return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
+    } 
     
 
     function handleSearch(e) {
@@ -117,11 +106,38 @@ function Materials() {
     function handleAddingMaterial() {
         dispatch(openDialog({
             children: ( 
-                <AddMaterial />
+                <AddMaterial mtrl={false} />
             )
         }))
     }
 
+    function handleEdit(i) {
+        // first close the current window
+        dispatch(closeDialog())
+        setTimeout(() => {
+            // Now open a new edit dialog with the selected user data
+            dispatch(openDialog({
+                children: ( 
+                    <AddMaterial mtrl={materials[i]} />
+                )
+            }));
+        }, 100);
+    }
+
+    function handleDelete(i) {
+        // first close the current window
+        dispatch(closeDialog())
+        setTimeout(() => {
+            // Now open a new edit dialog with the selected user data
+            dispatch(openDialog({
+                // you need to pass the user id to the 
+                // component, so you can easily delete it
+                children: ( 
+                    <Delete itemId={i} />
+                )
+            }));
+        }, 100);
+    }
 
     return (
         <div className="parent-container">
@@ -153,6 +169,10 @@ function Materials() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog material">
+                                    <div id="edit-container">
+                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                    </div>
                                     <div>
                                         <TextSnippetIcon />
                                         <span className="material-name">
@@ -213,7 +233,7 @@ function Materials() {
                         <div>
                             <DescriptionIcon />
                             <span className="material-description">
-                                {material.description}
+                                {trimText(material.description, 40)}
                             </span>
                         </div>
                         <div>
@@ -236,6 +256,10 @@ function Materials() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog material">
+                                    <div id="edit-container">
+                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                    </div>
                                 <div>
                                     <TextSnippetIcon />
                                     <span className="material-name">
@@ -296,7 +320,7 @@ function Materials() {
                             <div>
                                 <DescriptionIcon />
                                 <span className="material-description">
-                                    {highlightMatch(material.description, query)}
+                                    {highlightMatch(trimText(material.description, 40), query)}
                                 </span>
                             </div>
                             <div>

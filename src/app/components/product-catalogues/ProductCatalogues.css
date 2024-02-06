@@ -1,5 +1,4 @@
 .depart-card.productCatalogue {
-    height: 180px;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -17,13 +16,16 @@
     font-weight: bold;
 }
 
-.depart-card.productCatalogue div .productCatalogue-expected-delivery,
-.depart-card.productCatalogue div .productCatalogue-status,
-.depart-card.productCatalogue div .productCatalogue-material,
-.depart-card.productCatalogue div .productCatalogue-specifics,
-.depart-card.productCatalogue div .productCatalogue-notes {
+.depart-card.productCatalogue div:not(:last-of-type) {
+    margin-bottom: 15px;
+}
+
+.depart-card.productCatalogue div .productCatalogue-description {
     font-size: 1.15em;
-    word-break:normal;
+}
+
+#edit-container {
+    margin-bottom: 15px;
 }
 
 .depart-card.productCatalogue div .productCatalogue-color {
@@ -31,14 +33,13 @@
     border-radius: 3px;
 }
 
-.depart-card.productCatalogue div svg {
+.depart-card.productCatalogue div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
 }
 
 .dialog.productCatalogue {
-    width: 320px;
-    height: 200px;
+    justify-content: space-between;
 }
 
 #chip-priority {

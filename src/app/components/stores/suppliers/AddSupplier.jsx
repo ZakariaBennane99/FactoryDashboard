@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
 
-function AddSupplier() {
+function AddSupplier({ splier }) {
 
     const [supplier, setSupplier] = useState({
-        name: '',
-        phone: '',
-        email: '',
-        address: ''
+        name: splier ? splier.name : '',
+        phone: splier ? splier.phone : '',
+        email: splier ? splier.email : '',
+        address: splier ? splier.address : ''
     });
 
     const handleChange = (prop) => (event) => {
@@ -62,7 +62,7 @@ function AddSupplier() {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-supplier-btn">Add Supplier</button>
+                <button type="submit" className="add-supplier-btn">{splier ? 'Update' : 'Add'} Supplier</button>
             </form>
         </Box>
     );

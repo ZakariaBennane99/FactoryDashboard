@@ -113,7 +113,7 @@
 }
 
 .depart-card.dialog.user {
-    width: 300px;
+    width: fit-content;
     height: fit-content;
 }
 
@@ -129,3 +129,17 @@
     margin-bottom: 10px;
 }
 
+.full-body-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.12em;
+}
+
+.full-body-container div {
+    margin-top: 14px;
+}
+
+.full-body-container div span {
+    margin-left: 5px;
+}

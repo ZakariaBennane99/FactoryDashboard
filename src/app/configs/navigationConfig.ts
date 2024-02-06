@@ -146,13 +146,6 @@ const navigationConfig: FuseNavigationType = [
 					},
 					{
 						id: 't-templatepatterns',
-						title: 'Components',
-						type: 'item',
-						url: 'templates/components',
-						end: true
-					},
-					{
-						id: 't-templatepatterns',
 						title: 'Patterns',
 						type: 'item',
 						url: 'templates/patterns',

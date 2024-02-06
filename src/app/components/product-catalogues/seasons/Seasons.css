@@ -1,51 +1,34 @@
-.depart-card.internalOrder {
-    height: 280px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: flex-start;
+.season-card {
+    border-radius: 9px;
+    cursor: pointer;
+    padding: 5px 20px 20px 20px;
 }
 
-.depart-card.internalOrder div {
+.season-card div:not(#edit-container),
+.season-card .dialog div:not(#edit-container) {
+    margin-top: 15px;
     display: flex;
-    justify-content: space-between;
+    flex-direction: row;
+    justify-content: flex-start;
     align-items: center;
 }
 
-.depart-card.internalOrder div .internalOrder-name {
+.season-card div span:not(#not-applied),
+.season-card .dialog div span:not(#not-applied) {
+    font-size: 1.2em;
+    margin-left: 7px;
+}
+
+.txt-identifier {
+    font-weight: bold;
+}
+
+.dialog {
+    padding: 20px
+}
+
+.season-card .season span:not(#not-applied),
+.season span:not(#not-applied) {
     font-size: 1.5em;
-    font-weight: bold;
-}
-
-.depart-card.internalOrder div .internalOrder-expected-delivery,
-.depart-card.internalOrder div .internalOrder-status,
-.depart-card.internalOrder div .internalOrder-material,
-.depart-card.internalOrder div .internalOrder-specifics,
-.depart-card.internalOrder div .internalOrder-notes {
-    font-size: 1.15em;
-    word-break:normal;
-}
-
-.depart-card.internalOrder div .internalOrder-color {
-    padding: 5px;
-    border-radius: 3px;
-}
-
-.depart-card.internalOrder div svg {
-    margin-right: 15px;
-    font-size: x-large;
-}
-
-.dialog.internalOrder {
-    width: 350px;
-    height: 280px;
-}
-
-#chip-priority {
-    padding: 3px 6px;
-    font-weight: bold;
-}
-
-.txt-identifiers {
     font-weight: bold;
 }

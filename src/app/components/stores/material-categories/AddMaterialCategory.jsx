@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
 
-function AddMaterial() {
+function AddMaterial({ mtrlCat }) {
 
     const [materialCategory, setMaterial] = useState({
-        name: '',
-        description: '',
+        name: mtrlCat ? mtrlCat.name : '',
+        description: mtrlCat ? mtrlCat.description : '',
     });
 
     const handleChange = (prop) => (event) => {
@@ -42,7 +42,7 @@ function AddMaterial() {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-materialCategory-btn">Add Material Category</button>
+                <button type="submit" className="add-materialCategory-btn">{mtrlCat ? 'Update' : 'Add'} Material Category</button>
             </form>
         </Box>
     );

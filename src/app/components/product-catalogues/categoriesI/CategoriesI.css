@@ -1,5 +1,4 @@
 .depart-card.categoryI {
-    height: 180px;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -8,8 +7,16 @@
 
 .depart-card.categoryI div {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: center;
+}
+
+.depart-card.categoryI div:not(:last-of-type) {
+    margin-bottom: 10px;
+}
+
+#edit-container {
+    margin-bottom: 15px;
 }
 
 .depart-card.categoryI div .categoryI-name {
@@ -17,13 +24,8 @@
     font-weight: bold;
 }
 
-.depart-card.categoryI div .categoryI-expected-delivery,
-.depart-card.categoryI div .categoryI-status,
-.depart-card.categoryI div .categoryI-material,
-.depart-card.categoryI div .categoryI-specifics,
-.depart-card.categoryI div .categoryI-notes {
+.depart-card.categoryI div .categoryI-description {
     font-size: 1.15em;
-    word-break:normal;
 }
 
 .depart-card.categoryI div .categoryI-color {
@@ -31,14 +33,13 @@
     border-radius: 3px;
 }
 
-.depart-card.categoryI div svg {
+.depart-card.categoryI div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
 }
 
 .dialog.categoryI {
-    width: 320px;
-    height: 200px;
+    justify-content: space-between;
 }
 
 #chip-priority {

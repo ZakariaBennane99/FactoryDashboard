@@ -3,7 +3,6 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
 }
 
 .paper-container {
@@ -15,6 +14,10 @@
     align-items: flex-start;
 }
 
+#edit-container {
+    margin-bottom: 15px;
+}
+
 .depart-card.warehouse .paper-container div {
     display: flex;
     justify-content: space-between;
@@ -22,22 +25,22 @@
 }
 
 .depart-card.warehouse div .warehouse-name {
-    font-size: 1.8em;
+    font-size: 1.5em;
     font-weight: bold;
 }
 
 .depart-card.warehouse div .warehouse-manager,
 .depart-card.warehouse div .warehouse-location,
 .depart-card.warehouse div .warehouse-capacity {
-    font-size: 1.4em;
+    font-size: 1.2em;
 }
 
-.depart-card.warehouse div svg {
+.depart-card.warehouse div svg:not(#delete-icon) {
     margin-right: 5px;
 }
 
 
 .dialog.warehouse {
-    width: 250px;
-    height: 200px;
+    width: 280px;
+    height: 220px;
 }

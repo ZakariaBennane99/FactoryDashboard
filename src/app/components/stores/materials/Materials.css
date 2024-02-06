@@ -1,5 +1,4 @@
 .depart-card.material {
-    height: 280px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -10,6 +9,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+#edit-container {
+    margin-bottom: 15px;
+}
+
+.depart-card.material div:not(:last-of-type) {
+    margin-bottom: 15px;
 }
 
 .depart-card.material div .material-name {
@@ -30,12 +37,7 @@
     border-radius: 3px;
 }
 
-.depart-card.material div svg {
+.depart-card.material div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
-}
-
-.dialog.material {
-    width: 350px;
-    height: 280px;
 }

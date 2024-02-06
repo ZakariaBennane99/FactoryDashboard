@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
 
-function AddMaterial() {
+function AddMaterial({ mtrl }) {
 
     const [suppliers, setSuppliers] = useState([
         'Tartous Textile Solutions',
@@ -12,11 +12,11 @@ function AddMaterial() {
     ])
 
     const [material, setMaterial] = useState({
-        name: '',
-        type: '',
-        color: '', // Both HEX and text but make sure you save it in Text regardless of the input type
-        description: '',
-        supplier: ''
+        name: mtrl ? mtrl.name : '',
+        type: mtrl ? mtrl.type : '',
+        color: mtrl ? mtrl.color : '',
+        description: mtrl ? mtrl.description : '',
+        supplier: mtrl ? mtrl.supplier : ''
     });
 
     const handleChange = (prop) => (event) => {
@@ -91,7 +91,7 @@ function AddMaterial() {
                     </Select>
                 </FormControl>
 
-                <button type="submit" className="add-material-btn">Add Material</button>
+                <button type="submit" className="add-material-btn">{mtrl ? 'Update' : 'Add'} Material</button>
             </form>
         </Box>
     );

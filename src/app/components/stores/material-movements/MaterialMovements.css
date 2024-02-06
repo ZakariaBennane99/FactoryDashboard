@@ -1,5 +1,4 @@
 .depart-card.materialMovement {
-    height: 280px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -25,6 +24,14 @@
     word-break: normal;
 }
 
+.depart-card.materialMovement div:not(:last-of-type) {
+    margin-bottom: 15px;
+}
+
+#edit-container {
+    margin-bottom: 15px;
+}
+
 .depart-card .color-chip {
     padding: 5px;
 }
@@ -33,12 +40,7 @@
     font-weight: bold;
 }
 
-.depart-card.materialMovement div svg {
+.depart-card.materialMovement div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
-}
-
-.dialog.materialMovement {
-    width: 350px;
-    height: 280px;
 }

@@ -1,17 +1,17 @@
 import { useState } from 'react';
-import { FormControl, TextField, Box, Select, MenuItem, InputLabel, Button } from '@mui/material';
+import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 
-function AddInternalOrder() {
+function AddInternalOrder({ intrlOrder }) {
     const [internalOrder, setInternalOrder] = useState({
-        expectedDelivery: null,
-        priority: '',
-        status: '',
-        material: '',
-        quantity: 0,
-        specifics: '',
-        notes: ''
+        expectedDelivery: intrlOrder ? new Date(intrlOrder.expectedDelivery) : null,
+        priority: intrlOrder ? intrlOrder.priority : '',
+        status: intrlOrder ? intrlOrder.status : '',
+        material: intrlOrder ? intrlOrder.material : '',
+        quantity: intrlOrder ? intrlOrder.quantity : 0,
+        specifics: intrlOrder ? intrlOrder.specifics : '',
+        notes: intrlOrder ? intrlOrder.notes : ''
     });
 
     const priorities = ['HIGH', 'MEDIUM', 'LOW'];
@@ -140,7 +140,7 @@ function AddInternalOrder() {
                         />
                     </FormControl>
 
-                    <button type="submit" className="add-internalOrder-btn">Add Internal Order</button>
+                    <button type="submit" className="add-internalOrder-btn">{intrlOrder ? "Update" : "Add"} Internal Order</button>
                 </form>
             </Box>
         </LocalizationProvider>

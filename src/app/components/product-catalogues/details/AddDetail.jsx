@@ -1,150 +1,149 @@
 import { useState } from 'react';
-import { FormControl, TextField, Box, Select, MenuItem, InputLabel, Button } from '@mui/material';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
 
-function AddInternalOrder() {
-    const [internalOrder, setInternalOrder] = useState({
-        expectedDelivery: null,
-        priority: '',
-        status: '',
-        material: '',
-        quantity: 0,
-        specifics: '',
-        notes: ''
+function AddDetails({ dtl }) {
+    const [details, setDetails] = useState({
+        category1: dtl ? dtl.Category1 : '',
+        category2: dtl ? dtl.Category2 : '',
+        season: dtl ? dtl.Season : '',
+        textile: dtl ? dtl.Textile : '',
+        templatePattern: dtl ? dtl.TemplatePattern : '',
+        templateType: dtl ? dtl.TemplateType : '',
+        standardWeight: dtl ? dtl.StandardWeight : '',
+        grammage: dtl ? dtl.Grammage : '',
+        description: dtl ? dtl.Description : ''
     });
 
-    const priorities = ['HIGH', 'MEDIUM', 'LOW'];
-    const statuses = [
-        'PENDING', 'APPROVED', 'REJECTED', 'FULFILLED',
-        'CANCELLED', 'COMPLETED', 'ONGOING'
-    ];
-    // Mock materials array, replace with actual data if needed
-    const materials = [
-        'Material 1',
-        'Material 2',
-        'Material 3',
-    ];
-
     const handleChange = (prop) => (event) => {
-        setInternalOrder({ ...internalOrder, [prop]: event.target.value });
-    };
-
-    const handleDateChange = (date) => {
-        setInternalOrder({ ...internalOrder, expectedDelivery: date });
+        setDetails({ ...details, [prop]: event.target.value });
     };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        console.log(internalOrder);
+        console.log(details);
     };
 
     return (
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-                <form onSubmit={handleSubmit}>
-                    <FormControl fullWidth margin="normal">
-                        <DatePicker
-                            label="Expected Delivery"
-                            value={internalOrder.expectedDelivery}
-                            onChange={handleDateChange}
-                            renderInput={(params) => <TextField {...params} required />}
-                        />
-                    </FormControl>
+        <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
+            <form onSubmit={handleSubmit}>
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="category1-select-label">Category 1</InputLabel>
+                    <Select
+                        labelId="category1-select-label"
+                        id="category1-select"
+                        value={details.category1}
+                        label="Category 1"
+                        onChange={handleChange('category1')}
+                        required
+                    >
+                        <MenuItem value="Tops">Tops</MenuItem>
+                        <MenuItem value="Bottoms">Bottoms</MenuItem>
+                        {/* ... other categories */}
+                    </Select>
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="priority-select-label">Priority</InputLabel>
-                        <Select
-                            labelId="priority-select-label"
-                            id="priority-select"
-                            value={internalOrder.priority}
-                            label="Priority"
-                            onChange={handleChange('priority')}
-                            required
-                        >
-                            {priorities.map((priority, index) => (
-                                <MenuItem key={index} value={priority}>
-                                    {priority}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="category2-select-label">Category 2</InputLabel>
+                    <Select
+                        labelId="category2-select-label"
+                        id="category2-select"
+                        value={details.category2}
+                        label="Category 2"
+                        onChange={handleChange('category2')}
+                        required
+                    >
+                        <MenuItem value="Jeans">Jeans</MenuItem>
+                        <MenuItem value="Shorts">Shorts</MenuItem>
+                        {/* ... other subcategories */}
+                    </Select>
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="status-select-label">Status</InputLabel>
-                        <Select
-                            labelId="status-select-label"
-                            id="status-select"
-                            value={internalOrder.status}
-                            label="Status"
-                            onChange={handleChange('status')}
-                            required
-                        >
-                            {statuses.map((status, index) => (
-                                <MenuItem key={index} value={status}>
-                                    {status}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="season-select-label">Season</InputLabel>
+                    <Select
+                        labelId="season-select-label"
+                        id="season-select"
+                        value={details.season}
+                        label="Season"
+                        onChange={handleChange('season')}
+                        required
+                    >
+                        <MenuItem value="Summer">Summer</MenuItem>
+                        <MenuItem value="Winter">Winter</MenuItem>
+                        {/* ... other seasons */}
+                    </Select>
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="material-select-label">Material</InputLabel>
-                        <Select
-                            labelId="material-select-label"
-                            id="material-select"
-                            value={internalOrder.material}
-                            label="Material"
-                            onChange={handleChange('material')}
-                            required
-                        >
-                            {materials.map((material, index) => (
-                                <MenuItem key={index} value={material}>
-                                    {material}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Textile"
+                        variant="outlined"
+                        value={details.textile}
+                        onChange={handleChange('textile')}
+                        required
+                    />
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <TextField
-                            label="Quantity"
-                            variant="outlined"
-                            type="number"
-                            value={internalOrder.quantity}
-                            onChange={handleChange('quantity')}
-                            required
-                            inputProps={{ min: 0 }}
-                        />
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Template Pattern"
+                        variant="outlined"
+                        value={details.templatePattern}
+                        onChange={handleChange('templatePattern')}
+                        required
+                    />
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <TextField
-                            label="Specifics"
-                            variant="outlined"
-                            value={internalOrder.specifics}
-                            onChange={handleChange('specifics')}
-                            required
-                        />
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Template Type"
+                        variant="outlined"
+                        value={details.templateType}
+                        onChange={handleChange('templateType')}
+                        required
+                    />
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
-                        <TextField
-                            label="Notes"
-                            variant="outlined"
-                            value={internalOrder.notes}
-                            onChange={handleChange('notes')}
-                            multiline
-                            rows={3}
-                            required
-                        />
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Standard Weight (g)"
+                        variant="outlined"
+                        type="number"
+                        value={details.standardWeight}
+                        onChange={handleChange('standardWeight')}
+                        required
+                        inputProps={{ min: 0 }}
+                    />
+                </FormControl>
 
-                    <button type="submit" className="add-internalOrder-btn">Add Internal Order</button>
-                </form>
-            </Box>
-        </LocalizationProvider>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Grammage (g/m²)"
+                        variant="outlined"
+                        type="number"
+                        value={details.grammage}
+                        onChange={handleChange('grammage')}
+                        required
+                        inputProps={{ min: 0 }}
+                    />
+                </FormControl>
+
+                <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
+                    <TextField
+                        label="Description"
+                        variant="outlined"
+                        value={details.description}
+                        onChange={handleChange('description')}
+                        multiline
+                        rows={2}
+                        required
+                    />
+                </FormControl>
+
+                <button type="submit" className="add-details-btn">{ dtl ? 'Update' : 'Add' } Details</button>
+            </form>
+        </Box>
     );
 }
 
-export default AddInternalOrder;
+export default AddDetails;

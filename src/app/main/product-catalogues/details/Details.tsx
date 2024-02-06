@@ -1,4 +1,4 @@
-//import DetailsComp from '../../../components/stores/details/Details';
+import DetailsComp from '../../../components/product-catalogues/details/Details';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import { useTranslation } from 'react-i18next';
 import { styled } from '@mui/material/styles';
@@ -33,7 +33,7 @@ function Details() {
 			}
 			content={
 				<div className="p-24 w-full h-full">
-					Deatils
+					<DetailsComp />
 				</div>
 			}
 		/>

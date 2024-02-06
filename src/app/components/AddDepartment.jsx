@@ -2,17 +2,19 @@ import React from 'react';
 import { useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
 
-function AddDepartment() {
+function AddDepartment({ dprt }) {
 
-    const [managers, setManagers] = useState(['Chris Evans', 'Marly Manson', 'Tim Bergling'])
+    const [managers, setManagers] = useState(['Chris Evans', 'Marly Manson', 'Tim Bergling', 'Hamid Abdelhamid',
+'Sam Kfouri', 'Omar Akil', 'Mohammed Atouani', 'Mouad Moutaouakil', 'Chris Tucker'])
 
-    const [department, setDepartment] = React.useState({
-        name: '',
-        manager: '',
-        category: '',
-        description: ''
+    const [department, setDepartment] = useState({
+        name: dprt ? dprt.name : '',
+        manager: dprt ? dprt.manager : '',
+        category: dprt ? dprt.category : '',
+        description: dprt ? dprt.description : ''
     });
 
+    console.log('The manager', dprt)
     const handleChange = (prop) => (event) => {
         setDepartment({ ...department, [prop]: event.target.value });
     };
@@ -45,7 +47,7 @@ function AddDepartment() {
                     <InputLabel id="manager-label">Manager</InputLabel>
                     <Select
                         labelId="manager-label"
-                        value={department.manager}
+                        value={department.manager.split(" ").join("").toLocaleLowerCase()}
                         label="Manager"
                         onChange={handleChange('manager')}
                         required
@@ -82,7 +84,7 @@ function AddDepartment() {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-depart-btn">Add Department</button>
+                <button type="submit" className="add-depart-btn">{dprt ? 'Update' : 'Add' } Department</button>
             </form>
         </Box>
     );
