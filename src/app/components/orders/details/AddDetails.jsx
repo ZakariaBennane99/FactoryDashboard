@@ -1,150 +1,120 @@
 import { useState } from 'react';
-import { FormControl, TextField, Box, Select, MenuItem, InputLabel, Button } from '@mui/material';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
 
-function AddInternalOrder() {
-    const [internalOrder, setInternalOrder] = useState({
-        expectedDelivery: null,
-        priority: '',
-        status: '',
-        material: '',
-        quantity: 0,
-        specifics: '',
-        notes: ''
+function AddOrderDetails({ dtls }) {
+    const [order, setOrder] = useState({
+        orderNumber: dtls ? dtls.orderNumber : '',
+        quantityDetails: dtls ? dtls.quantityDetails : '',
+        templatePattern: dtls ? dtls.templatePattern : '',
+        productCatalogue: dtls ? dtls.productCatalogue : '',
+        modelName: dtls ? dtls.modelName : '',
+        modelQuantity: dtls ? dtls.modelQuantity : 0
     });
 
-    const priorities = ['HIGH', 'MEDIUM', 'LOW'];
-    const statuses = [
-        'PENDING', 'APPROVED', 'REJECTED', 'FULFILLED',
-        'CANCELLED', 'COMPLETED', 'ONGOING'
-    ];
-    // Mock materials array, replace with actual data if needed
-    const materials = [
-        'Material 1',
-        'Material 2',
-        'Material 3',
-    ];
+    // Mock arrays, replace with actual data if needed
+    const templatePatterns = ['Basic Tee', 'Classic Jeans', 'Summer Dress'];
+    const productCatalogues = ['Summer Collection 2024', 'Autumn Collection 2024', 'Winter Collection 2024'];
+    const modelNames = ['Sunshine Tee', 'Rugged Denim', 'Breezy Sundress', 'Classic White Shirt', 'Winter Puffer', 'Stretch Yoga Pants', 'Cozy Knit'];
 
     const handleChange = (prop) => (event) => {
-        setInternalOrder({ ...internalOrder, [prop]: event.target.value });
-    };
-
-    const handleDateChange = (date) => {
-        setInternalOrder({ ...internalOrder, expectedDelivery: date });
+        setOrder({ ...order, [prop]: event.target.value });
     };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        console.log(internalOrder);
+        console.log(order);
     };
 
     return (
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-                <form onSubmit={handleSubmit}>
-                    <FormControl fullWidth margin="normal">
-                        <DatePicker
-                            label="Expected Delivery"
-                            value={internalOrder.expectedDelivery}
-                            onChange={handleDateChange}
-                            renderInput={(params) => <TextField {...params} required />}
-                        />
-                    </FormControl>
+        <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
+            <form onSubmit={handleSubmit}>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Order Number"
+                        variant="outlined"
+                        type="number"
+                        value={order.orderNumber}
+                        onChange={handleChange('orderNumber')}
+                        required
+                    />
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="priority-select-label">Priority</InputLabel>
-                        <Select
-                            labelId="priority-select-label"
-                            id="priority-select"
-                            value={internalOrder.priority}
-                            label="Priority"
-                            onChange={handleChange('priority')}
-                            required
-                        >
-                            {priorities.map((priority, index) => (
-                                <MenuItem key={index} value={priority}>
-                                    {priority}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Quantity Details"
+                        variant="outlined"
+                        value={order.quantityDetails}
+                        onChange={handleChange('quantityDetails')}
+                        multiline
+                        rows={2}
+                        required
+                    />
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="status-select-label">Status</InputLabel>
-                        <Select
-                            labelId="status-select-label"
-                            id="status-select"
-                            value={internalOrder.status}
-                            label="Status"
-                            onChange={handleChange('status')}
-                            required
-                        >
-                            {statuses.map((status, index) => (
-                                <MenuItem key={index} value={status}>
-                                    {status}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="template-pattern-select-label">Template Pattern</InputLabel>
+                    <Select
+                        labelId="template-pattern-select-label"
+                        id="template-pattern-select"
+                        value={order.templatePattern}
+                        label="Template Pattern"
+                        onChange={handleChange('templatePattern')}
+                        required
+                    >
+                        {templatePatterns.map((pattern, index) => (
+                            <MenuItem key={index} value={pattern}>{pattern}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="material-select-label">Material</InputLabel>
-                        <Select
-                            labelId="material-select-label"
-                            id="material-select"
-                            value={internalOrder.material}
-                            label="Material"
-                            onChange={handleChange('material')}
-                            required
-                        >
-                            {materials.map((material, index) => (
-                                <MenuItem key={index} value={material}>
-                                    {material}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="product-catalogue-select-label">Product Catalogue</InputLabel>
+                    <Select
+                        labelId="product-catalogue-select-label"
+                        id="product-catalogue-select"
+                        value={order.productCatalogue}
+                        label="Product Catalogue"
+                        onChange={handleChange('productCatalogue')}
+                        required
+                    >
+                        {productCatalogues.map((catalogue, index) => (
+                            <MenuItem key={index} value={catalogue}>{catalogue}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <TextField
-                            label="Quantity"
-                            variant="outlined"
-                            type="number"
-                            value={internalOrder.quantity}
-                            onChange={handleChange('quantity')}
-                            required
-                            inputProps={{ min: 0 }}
-                        />
-                    </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="model-name-select-label">Model Name</InputLabel>
+                    <Select
+                        labelId="model-name-select-label"
+                        id="model-name-select"
+                        value={order.modelName}
+                        label="Model Name"
+                        onChange={handleChange('modelName')}
+                        required
+                    >
+                        {modelNames.map((name, index) => (
+                            <MenuItem key={index} value={name}>{name}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal">
-                        <TextField
-                            label="Specifics"
-                            variant="outlined"
-                            value={internalOrder.specifics}
-                            onChange={handleChange('specifics')}
-                            required
-                        />
-                    </FormControl>
+                <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
+                    <TextField
+                        label="Model Quantity"
+                        variant="outlined"
+                        type="number"
+                        value={order.modelQuantity}
+                        onChange={handleChange('modelQuantity')}
+                        required
+                        inputProps={{ min: 0 }}
+                    />
+                </FormControl>
 
-                    <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
-                        <TextField
-                            label="Notes"
-                            variant="outlined"
-                            value={internalOrder.notes}
-                            onChange={handleChange('notes')}
-                            multiline
-                            rows={3}
-                            required
-                        />
-                    </FormControl>
-
-                    <button type="submit" className="add-internalOrder-btn">Add Internal Order</button>
-                </form>
-            </Box>
-        </LocalizationProvider>
+                <button type="submit" className="add-internalOrder-btn">{dtls ? 'Update' : 'Add'} Order Details</button>
+            </form>
+        </Box>
     );
 }
 
-export default AddInternalOrder;
+export default AddOrderDetails;

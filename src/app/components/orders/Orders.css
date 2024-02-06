@@ -1,17 +1,17 @@
-.depart-card.type {
+.depart-card.Order {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
 }
 
-.depart-card.type div {
+.depart-card.Order div {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.depart-card.type div .type-name {
+.depart-card.Order div .order-name {
     font-size: 1.5em;
     font-weight: bold;
 }
@@ -20,16 +20,16 @@
     margin-bottom: 15px;
 }
 
-.depart-card.type div:not(:last-of-type) {
+.depart-card.Order div:not(:last-of-type) {
     margin-bottom: 15px;
 }
 
-.depart-card.type div .type-color {
+.depart-card.Order div .Order-color {
     padding: 5px;
-    border-radius: 3px;
+    bOrder-radius: 3px;
 }
 
-.depart-card.type div svg:not(#delete-icon, #edit-icon) {
+.depart-card.Order div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
 }

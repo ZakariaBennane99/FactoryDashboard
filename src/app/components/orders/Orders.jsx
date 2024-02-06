@@ -1,4 +1,4 @@
-import '../../../components/Departments.css'
+import '../Departments.css'
 import './Orders.css'
 import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
@@ -7,7 +7,7 @@ import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
-import Delete from '../../../components/Delete';
+import Delete from '../Delete';
 import AddOrder from './AddOrder';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import EventIcon from '@mui/icons-material/Event';
@@ -90,7 +90,7 @@ function Orders() {
             try {
                 const response = await axios.get('http://localhost:3050/orders');
                 console.log('The response', response)
-                const materialsArr = response.data.Orders;
+                const materialsArr = response.data.orders;
                 setOrders(materialsArr);
             } catch (error) {
                 console.error('There was an error!', error);
@@ -116,7 +116,7 @@ function Orders() {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
                 children: ( 
-                    <AddOrder ordr={Orders[i]} />
+                    <AddOrder ordr={orders[i]} />
                 )
             }));
         }, 100);
@@ -158,6 +158,21 @@ function Orders() {
         }
     }
 
+    function getSeasonIcon(season) {
+        switch (season.toUpperCase()) {
+          case 'WINTER':
+            return <AcUnitIcon />;
+          case 'SUMMER':
+            return <WbSunnyIcon />;
+          case 'AUTUMN':
+            return <FilterDramaIcon />;
+          case 'SPRING':
+            return <LocalFloristIcon />;
+          default:
+            return null; 
+        }
+      }
+
     return (
         <div className="parent-container">
 
@@ -176,7 +191,7 @@ function Orders() {
             <div className="main-content">
             <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {orders.length > 0 && !isQueryFound ? Orders.map((order, index) => (
+                  {orders.length > 0 && !isQueryFound ? orders.map((order, index) => (
                     <Grid item xs={2} sm={4} md={4} key={index}>
                     <Paper
                       className="depart-card Order"
@@ -211,30 +226,55 @@ function Orders() {
                                         </span>
                                     </div>
                                     <div>
-                                        <EventIcon />
+                                        {getStatusIcon(order.status)}
+                                        <span className="order-status">
+                                            {order.status}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        {getSeasonIcon(order.season)}
                                         <span className="order-date">
-                                            {order.orderDate}
+                                            {order.season}
                                         </span>
                                     </div>
                                 </div>
                             )
                         }))
                       }}
-                    >   <div>
-                            <CategoryIcon /> 
+                    >
+                        <div>
+                            <ConfirmationNumberIcon /> 
                             <span className="order-name">
-                                {Order.templateOrderName}
+                                {order.orderNumber}
                             </span>
                         </div>
                         <div>
-                            <DescriptionIcon />
-                            <span className="order-description">
-                                {trimText(Order.description, 30)}
+                            <EventIcon />
+                            <span className="order-date">
+                                {order.orderDate}
+                            </span>
+                        </div>
+                        <div>
+                            <AttachMoneyIcon /> 
+                            <span className="order-amount">
+                                {order.totalAmount}
+                            </span>
+                        </div>
+                        <div>
+                            {getStatusIcon(order.status)}
+                            <span className="order-status">
+                                {order.status}
+                            </span>
+                        </div>
+                        <div>
+                            {getSeasonIcon(order.season)}
+                            <span className="order-date">
+                                {order.season}
                             </span>
                         </div>
                       </Paper>
                     </Grid>
-                  )) : filteredOrders && isQueryFound ? filteredOrders.map((Order, index) => (
+                  )) : filteredOrders && isQueryFound ? filteredOrders.map((order, index) => (
                     <Grid item xs={2} sm={4} md={4} key={index}>
                     <Paper
                       className="depart-card Order"
@@ -245,40 +285,80 @@ function Orders() {
                         setElevatedIndex(index)
                         dispatch(openDialog({
                             children: (
-                            <div className="depart-card dialog Order">
-                                <div id="edit-container">
-                                    <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                    <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                <div className="depart-card dialog Order">
+                                    <div id="edit-container">
+                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                    </div>
+                                    <div>
+                                        <ConfirmationNumberIcon /> 
+                                        <span className="order-name">
+                                            {highlightMatch(order.orderNumber, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <EventIcon />
+                                        <span className="order-date">
+                                            {highlightMatch(order.orderDate, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <AttachMoneyIcon /> 
+                                        <span className="order-amount">
+                                            {highlightMatch(order.totalAmount.toString(), query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        {getStatusIcon(order.status)}
+                                        <span className="order-status">
+                                            {highlightMatch(order.status, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        {getSeasonIcon(order.season)}
+                                        <span className="order-date">
+                                            {highlightMatch(order.season, query)}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <CategoryIcon /> 
-                                    <span className="Order-name">
-                                        {highlightMatch(Order.templateOrderName, query)}
-                                    </span>
-                                </div>
-                                <div>
-                                    <DescriptionIcon />
-                                    <span className="Order-description">
-                                        {highlightMatch(Order.description, query)}
-                                    </span>
-                                </div>
-                            </div>
                             )
                         }))
                       }}
                     >
-                        <div>
-                            <CategoryIcon /> 
-                            <span className="Order-name">
-                                {highlightMatch(Order.templateOrderName, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="Order-description">
-                                {highlightMatch(trimText(Order.description, 30), query)}
-                            </span>
-                        </div>
+                                    <div id="edit-container">
+                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                    </div>
+                                    <div>
+                                        <ConfirmationNumberIcon /> 
+                                        <span className="order-name">
+                                            {highlightMatch(order.orderNumber, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <EventIcon />
+                                        <span className="order-date">
+                                            {highlightMatch(order.orderDate, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <AttachMoneyIcon /> 
+                                        <span className="order-amount">
+                                            {highlightMatch(order.totalAmount.toString(), query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        {getStatusIcon(order.status)}
+                                        <span className="order-status">
+                                            {highlightMatch(order.status, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        {getSeasonIcon(order.season)}
+                                        <span className="order-date">
+                                            {highlightMatch(order.season, query)}
+                                        </span>
+                                    </div>
                       </Paper>
                     </Grid>
                   )) : <div>Loading...</div>

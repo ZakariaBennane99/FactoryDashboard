@@ -1,4 +1,4 @@
-// import InternalOrdersComp from '../../../components/stores/internal-orders/OrderDetails';
+import OrderDetailsComp from '../../../../components/orders/details/Details';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import { useTranslation } from 'react-i18next';
 import { styled } from '@mui/material/styles';
@@ -42,7 +42,7 @@ function OrderDetails() {
 			}
 			content={
 				<div className="p-24 w-full h-full">
-					Order Details
+					<OrderDetailsComp />
 				</div>
 			}
 		/>

@@ -1017,38 +1017,38 @@ app.get('/template-types', (req, res) => {
 // orders
 app.get('/orders', (req, res) => {
   res.json({
-      types: [
+      orders: [
         {
           orderNumber: 1001,
-          orderDate: "10-01-2024",
+          orderDate: "01-10-2024",
           totalAmount: 1500.00,
           status: "PENDING",
           season: "Spring"
         },
         {
           orderNumber: 1002,
-          orderDate: "15-02-2024",
+          orderDate: "02-12-2024",
           totalAmount: 2700.00,
           status: "APPROVED",
           season: "Spring"
         },
         {
           orderNumber: 1003,
-          orderDate: "20-03-2024",
+          orderDate: "03-20-2024",
           totalAmount: 3200.00,
           status: "FULFILLED",
           season: "Summer"
         },
         {
           orderNumber: 1004,
-          orderDate: "25-04-2024",
+          orderDate: "04-25-2024",
           totalAmount: 1100.00,
           status: "CANCELLED",
           season: "Summer"
         },
         {
           orderNumber: 1005,
-          orderDate: "30-05-2024",
+          orderDate: "05-30-2024",
           totalAmount: 2900.00,
           status: "COMPLETED",
           season: "Autumn"
@@ -1068,6 +1068,263 @@ app.get('/orders', (req, res) => {
           season: "Winter"
         }
       ]               
+  });
+});
+
+
+// orders
+app.get('/order-details', (req, res) => {
+  res.json({
+      details: [
+        {
+          orderNumber: 1001,
+          quantityDetails: "50 units of size M, 30 units of size L",
+          templatePattern: "Basic Tee",
+          productCatalogue: "Summer Collection 2024",
+          modelName: "Sunshine Tee",
+          modelQuantity: 80
+        },
+        {
+          orderNumber: 1002,
+          quantityDetails: "100 units of size 32, 150 units of size 34",
+          templatePattern: "Classic Jeans",
+          productCatalogue: "Autumn Collection 2024",
+          modelName: "Rugged Denim",
+          modelQuantity: 250
+        },
+        {
+          orderNumber: 1003,
+          quantityDetails: "40 units of size S, 60 units of size M",
+          templatePattern: "Summer Dress",
+          productCatalogue: "Spring Collection 2024",
+          modelName: "Breezy Sundress",
+          modelQuantity: 100
+        },
+        {
+          orderNumber: 1004,
+          quantityDetails: "30 units of size 40, 40 units of size 42",
+          templatePattern: "Formal Shirt",
+          productCatalogue: "Winter Collection 2024",
+          modelName: "Classic White Shirt",
+          modelQuantity: 70
+        },
+        {
+          orderNumber: 1005,
+          quantityDetails: "50 units of size XL, 70 units of size XXL",
+          templatePattern: "Puffer Jacket",
+          productCatalogue: "Winter Collection 2024",
+          modelName: "Winter Puffer",
+          modelQuantity: 120
+        },
+        {
+          orderNumber: 1006,
+          quantityDetails: "60 units of size M, 40 units of size L",
+          templatePattern: "Yoga Pants",
+          productCatalogue: "Fitness Collection 2024",
+          modelName: "Stretch Yoga Pants",
+          modelQuantity: 100
+        },
+        {
+          orderNumber: 1007,
+          quantityDetails: "80 units of One Size",
+          templatePattern: "Knit Sweater",
+          productCatalogue: "Autumn Collection 2024",
+          modelName: "Cozy Knit",
+          modelQuantity: 80
+        }
+      ]               
+  });
+});
+
+
+// ordersDetailColors
+app.get('/detail-colors', (req, res) => {
+  res.json({
+      colors : [
+        {
+          orderId: 2001,
+          colorName: "Red"
+        },
+        {
+          orderId: 2002,
+          colorName: "Blue"
+        },
+        {
+          orderId: 2003,
+          colorName: "Green"
+        },
+        {
+          orderId: 2004,
+          colorName: "Yellow"
+        },
+        {
+          orderId: 2005,
+          colorName: "Black"
+        },
+        {
+          orderId: 2006,
+          colorName: "White"
+        },
+        {
+          orderId: 2007,
+          colorName: "Purple"
+        }
+      ]               
+  });
+});
+
+
+// order colors
+app.get('/order-colors', (req, res) => {
+  res.json({
+      colors : [
+        {
+          colorName: "Red",
+          colorCode: "#FF0000",
+          description: "A vibrant and attention-grabbing color often associated with energy and passion."
+        },
+        {
+          colorName: "Blue",
+          colorCode: "#0000FF",
+          description: "A calming color representing stability, trust, and confidence."
+        },
+        {
+          colorName: "Green",
+          colorCode: "#008000",
+          description: "A refreshing color symbolizing growth, harmony, and nature."
+        },
+        {
+          colorName: "Yellow",
+          colorCode: "#FFFF00",
+          description: "A bright and cheerful color associated with happiness, optimism, and creativity."
+        },
+        {
+          colorName: "Black",
+          colorCode: "#000000",
+          description: "A powerful and sophisticated color representing elegance, formality, and mystery."
+        },
+        {
+          colorName: "White",
+          colorCode: "#FFFFFF",
+          description: "A pure and simple color representing cleanliness, innocence, and peace."
+        },
+        {
+          colorName: "Purple",
+          colorCode: "#800080",
+          description: "A rich color often associated with royalty, luxury, and ambition."
+        }
+      ]              
+  });
+});
+
+
+// order colors
+app.get('/order-sizes', (req, res) => {
+  res.json({
+      sizes : [
+        {
+          sizeName: "Small",
+          description: "A size suitable for those who prefer a tighter, more snug fit."
+        },
+        {
+          sizeName: "Medium",
+          description: "The most common size offering a balance between snugness and comfort."
+        },
+        {
+          sizeName: "Large",
+          description: "A size for those who prefer a looser, more relaxed fit."
+        },
+        {
+          sizeName: "Extra Large",
+          description: "A larger size providing additional room and comfort for the wearer."
+        },
+        {
+          sizeName: "2XL",
+          description: "An extended size for those requiring extra room and comfort."
+        },
+        {
+          sizeName: "3XL",
+          description: "A further extended size to cater to diverse body shapes and preferences."
+        },
+        {
+          sizeName: "Custom",
+          description: "A bespoke size tailored to the specific measurements of the wearer."
+        }
+      ]            
+  });
+});
+
+
+// order template types
+app.get('/order-template-types', (req, res) => {
+  res.json({
+      templateTypes : [
+        {
+          orderDetailName: "Order Detail 1",
+          templateTypeName: "Basic Tee"
+        },
+        {
+          orderDetailName: "Order Detail 2",
+          templateTypeName: "Classic Jeans"
+        },
+        {
+          orderDetailName: "Order Detail 3",
+          templateTypeName: "Summer Dress"
+        },
+        {
+          orderDetailName: "Order Detail 4",
+          templateTypeName: "Formal Shirt"
+        },
+        {
+          orderDetailName: "Order Detail 5",
+          templateTypeName: "Puffer Jacket"
+        },
+        {
+          orderDetailName: "Order Detail 6",
+          templateTypeName: "Yoga Pants"
+        },
+        {
+          orderDetailName: "Order Detail 7",
+          templateTypeName: "Knit Sweater"
+        }
+      ]           
+  });
+});
+
+
+// order detail size
+app.get('/order-detail-sizes', (req, res) => {
+  res.json({
+      orderSizes : [
+        {
+          orderDetailName: "Order Detail 1",
+          sizeName: "Small"
+        },
+        {
+          orderDetailName: "Order Detail 2",
+          sizeName: "Medium"
+        },
+        {
+          orderDetailName: "Order Detail 3",
+          sizeName: "Large"
+        },
+        {
+          orderDetailName: "Order Detail 4",
+          sizeName: "Extra Large"
+        },
+        {
+          orderDetailName: "Order Detail 5",
+          sizeName: "2XL"
+        },
+        {
+          orderDetailName: "Order Detail 6",
+          sizeName: "3XL"
+        },
+        {
+          orderDetailName: "Order Detail 7",
+          sizeName: "Custom"
+        }
+      ]         
   });
 });
 
