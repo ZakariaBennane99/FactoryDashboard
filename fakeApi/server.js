@@ -69,7 +69,7 @@ app.get('/users', (req, res) => {
             "email": "hamid.abdel@example.com",
             "category": "Production",
             "department": "Tailoring Division",
-            "userRole": 'production manager'
+            "userRole": 'Production Manager'
         },
         { 
             "firstName": "Sam",
@@ -80,7 +80,7 @@ app.get('/users', (req, res) => {
             "email": "sam.kfouri@example.com",
             "category": "Production",
             "department": "Printing",
-            "userRole": 'production manager'
+            "userRole": 'Production Manager'
         },
         { 
             "firstName": "Omar",
@@ -91,7 +91,7 @@ app.get('/users', (req, res) => {
             "email": "omar.akil@example.com",
             "category": "Production",
             "department": "Cutting Division II",
-            "userRole": 'production manager'
+            "userRole": 'Production Manager'
         },
         { 
             "firstName": "Mohammed",
@@ -102,7 +102,7 @@ app.get('/users', (req, res) => {
             "email": "mohammed.atouani@example.com",
             "category": "Production",
             "department": "Cutting Division I",
-            "userRole": 'production manager'
+            "userRole": 'Production Manager'
         },
         { 
             "firstName": "Mouad",
@@ -113,7 +113,7 @@ app.get('/users', (req, res) => {
             "email": "mouad.moutaouakil@example.com",
             "category": "Management",
             "department": "Finance Office",
-            "userRole": 'managerial head'
+            "userRole": 'Managerial Head'
         },
         { 
             "firstName": "Chris",
@@ -124,7 +124,7 @@ app.get('/users', (req, res) => {
             "email": "chris.tucker@example.com",
             "category": "Management",
             "department": "Engineering Office",
-            "userRole": 'managerial head'
+            "userRole": 'Managerial Head'
         }
     ] });
 });
