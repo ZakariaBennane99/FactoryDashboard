@@ -69,7 +69,8 @@ app.get('/users', (req, res) => {
             "email": "hamid.abdel@example.com",
             "category": "Production",
             "department": "Tailoring Division",
-            "userRole": 'Production Manager'
+            "userRole": 'Production Manager',
+            "active": false
         },
         { 
             "firstName": "Sam",
@@ -80,7 +81,8 @@ app.get('/users', (req, res) => {
             "email": "sam.kfouri@example.com",
             "category": "Production",
             "department": "Printing",
-            "userRole": 'Production Manager'
+            "userRole": 'Production Manager',
+            "active": true
         },
         { 
             "firstName": "Omar",
@@ -91,7 +93,8 @@ app.get('/users', (req, res) => {
             "email": "omar.akil@example.com",
             "category": "Production",
             "department": "Cutting Division II",
-            "userRole": 'Production Manager'
+            "userRole": 'Production Manager',
+            "active": true
         },
         { 
             "firstName": "Mohammed",
@@ -102,7 +105,8 @@ app.get('/users', (req, res) => {
             "email": "mohammed.atouani@example.com",
             "category": "Production",
             "department": "Cutting Division I",
-            "userRole": 'Production Manager'
+            "userRole": 'Production Manager',
+            "active": true
         },
         { 
             "firstName": "Mouad",
@@ -113,7 +117,8 @@ app.get('/users', (req, res) => {
             "email": "mouad.moutaouakil@example.com",
             "category": "Management",
             "department": "Finance Office",
-            "userRole": 'Managerial Head'
+            "userRole": 'Managerial Head',
+            "active": false
         },
         { 
             "firstName": "Chris",
@@ -124,7 +129,8 @@ app.get('/users', (req, res) => {
             "email": "chris.tucker@example.com",
             "category": "Management",
             "department": "Engineering Office",
-            "userRole": 'Managerial Head'
+            "userRole": 'Managerial Head',
+            "active": true
         }
     ] });
 });

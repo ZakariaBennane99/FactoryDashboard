@@ -99,6 +99,7 @@
 .depart-card.dialog.user {
     width: fit-content;
     height: fit-content;
+    cursor:auto;
 }
 
 .depart-card.dialog.user img {
@@ -116,7 +117,7 @@
 .full-body-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     font-size: 1.12em;
 }
 

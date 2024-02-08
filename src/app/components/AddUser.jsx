@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
 
+
 function AddUser({ user }) { 
 
     const [departments, setDepartments] = useState([

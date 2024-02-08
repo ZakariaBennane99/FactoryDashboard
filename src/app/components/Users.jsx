@@ -16,12 +16,15 @@ import Delete from './Delete';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
+import { Switch, FormControlLabel } from '@mui/material';
+
 
 
 
 function Users() {
 
     const [filteredUsers, setFilteredUsers] = useState(null);
+
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
@@ -107,6 +110,7 @@ function Users() {
         setTimeout(() => {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
+                key: updateKey,
                 children: ( 
                     <AddUser user={users[i]} />
                 )
@@ -136,6 +140,16 @@ function Users() {
             )
         }))
     }
+
+    // Add a new function to handle the active toggle
+    function handleToggleActive(e, index) {
+        const updatedUsers = [...users];
+        // Update the active status of the specific user
+        updatedUsers[index] = { ...updatedUsers[index], active: e.target.checked };
+        setUsers(updatedUsers);
+        setUpdateKey(prevKey => prevKey + 1);
+    }
+
 
 
     return (
@@ -179,6 +193,12 @@ function Users() {
                                          </span>
                                          <span className="category">
                                             {user.category}
+                                         </span>
+                                         <span>
+                                            <FormControlLabel
+                                              control={<Switch checked={user.active} onChange={(e) => handleToggleActive(e, index)} />}
+                                              label={user.active ? 'Active' : 'Inactive'}
+                                            />
                                          </span>
                                      </div>
                                      <div className="full-body-container">
@@ -248,6 +268,12 @@ function Users() {
                                         <span className="category">
                                             {highlightMatch(user.category, query)}
                                         </span>
+                                        <span>
+                                            <FormControlLabel
+                                              control={<Switch checked={user.active} onChange={(e) => handleToggleActive(e, index)} />}
+                                              label={user.active ? 'Active' : 'Inactive'}
+                                            />
+                                         </span>
                                     </div>
                                     <div className="full-body-container">
                                         <div className="manager">
