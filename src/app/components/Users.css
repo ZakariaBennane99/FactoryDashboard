@@ -20,8 +20,19 @@
     width: 30%;
 }
 
+.parent-container .top-ribbon .filter-btn {
+    width: 1/3;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    transition: all .25s;
+    border-radius: 5px;
+}
+
 .parent-container .top-ribbon .add-btn,
-.add-depart-btn {
+.add-depart-btn, .filter-btn {
     height: 100%;
     display: flex;
     justify-content: center;
@@ -33,18 +44,18 @@
     transition: all .25s;
 }
 
-.parent-container .top-ribbon .add-btn img {
+.parent-container .top-ribbon .add-btn img, .filter-btn img {
     height: 100%;
     margin-right: 5px;
 }
 
-.parent-container .top-ribbon .add-btn span {
+.parent-container .top-ribbon .add-btn span, .filter-btn span {
     color: white;
     font-size: 1.2em;
 }
 
 .parent-container .top-ribbon .add-btn:hover,
-.add-depart-btn:hover {
+.add-depart-btn:hover, .filter-btn:hover {
     background-color: #2f384a;
 }
 
@@ -61,33 +72,6 @@
     transform: translate(14px, -7px) scale(0.75); 
 }
 
-
-.parent-container .top-ribbon .filter-btn {
-    width: 1/3;
-    height: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    transition: all .25s;
-    border-radius: 5px;
-    padding: 5px 10px;
-}
-
-.parent-container .top-ribbon .filter-btn:hover {
-    background-color: #d1d7e3;
-}
-
-.parent-container .top-ribbon .filter-btn img {
-    height: 68%;
-    margin-right: 5px;
-}
-
-.parent-container .top-ribbon .filter-btn span {
-    color: #111827;
-    font-weight: 600;
-    font-size: 1.2em;
-}
 
 .head-container #avatar {
     width: 60px;

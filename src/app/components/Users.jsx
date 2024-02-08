@@ -9,6 +9,7 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import axios from 'axios';
 import AddUser from './AddUser';
+import AddRole from './AddRole'
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from './Delete';
@@ -128,6 +129,14 @@ function Users() {
         }, 100);
     }
 
+    function handleAddingRole() {
+        dispatch(openDialog({
+            children: ( 
+                <AddRole />
+            )
+        }))
+    }
+
 
     return (
         <div className="parent-container">
@@ -138,9 +147,9 @@ function Users() {
                     <span>Add User</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Users" type="search" />
-                <button className="filter-btn">
-                    <img src="/assets/gen/filter.svg" /> 
-                    <span>Filter</span>
+                <button className="filter-btn" onClick={handleAddingRole}>
+                    <img src="/assets/gen/plus.svg" />  
+                    <span>Add Role</span>
                 </button>
             </div>  
 

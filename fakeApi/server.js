@@ -67,8 +67,9 @@ app.get('/users', (req, res) => {
             "password": "password123",
             "phoneNumber": "123-456-7890",
             "email": "hamid.abdel@example.com",
-            "category": "Management",
-            "department": "Tailoring Division"
+            "category": "Production",
+            "department": "Tailoring Division",
+            "userRole": 'production manager'
         },
         { 
             "firstName": "Sam",
@@ -77,8 +78,9 @@ app.get('/users', (req, res) => {
             "password": "password123",
             "phoneNumber": "321-654-0987",
             "email": "sam.kfouri@example.com",
-            "category": "Management",
-            "department": "Printing"
+            "category": "Production",
+            "department": "Printing",
+            "userRole": 'production manager'
         },
         { 
             "firstName": "Omar",
@@ -88,7 +90,8 @@ app.get('/users', (req, res) => {
             "phoneNumber": "456-123-7890",
             "email": "omar.akil@example.com",
             "category": "Production",
-            "department": "Cutting Division II"
+            "department": "Cutting Division II",
+            "userRole": 'production manager'
         },
         { 
             "firstName": "Mohammed",
@@ -98,7 +101,8 @@ app.get('/users', (req, res) => {
             "phoneNumber": "654-321-0987",
             "email": "mohammed.atouani@example.com",
             "category": "Production",
-            "department": "Cutting Division I"
+            "department": "Cutting Division I",
+            "userRole": 'production manager'
         },
         { 
             "firstName": "Mouad",
@@ -107,8 +111,9 @@ app.get('/users', (req, res) => {
             "password": "password123",
             "phoneNumber": "789-456-1230",
             "email": "mouad.moutaouakil@example.com",
-            "category": "Production",
-            "department": "Finance Office"
+            "category": "Management",
+            "department": "Finance Office",
+            "userRole": 'managerial head'
         },
         { 
             "firstName": "Chris",
@@ -117,8 +122,9 @@ app.get('/users', (req, res) => {
             "password": "password123",
             "phoneNumber": "987-654-3210",
             "email": "chris.tucker@example.com",
-            "category": "Production",
-            "department": "Engineering Office"
+            "category": "Management",
+            "department": "Engineering Office",
+            "userRole": 'managerial head'
         }
     ] });
 });
