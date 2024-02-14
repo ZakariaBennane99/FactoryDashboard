@@ -17,7 +17,7 @@ const MaterialMovementsConfig = {
 	},
 	routes: [
 		{
-			path: '/stores/material-movements',
+			path: '/store-processes/material-movements',
 			element: <MaterialMovements />
 		}
 	]

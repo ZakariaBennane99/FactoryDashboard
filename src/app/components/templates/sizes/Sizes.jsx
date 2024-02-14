@@ -150,7 +150,7 @@ function Sizes() {
             <div className="top-ribbon">
                 <button className="add-btn" onClick={handleAddingInternalOrder}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Size</span>
+                    <span>Add Template Size</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Sizes" type="search" />
                 <button className="filter-btn">

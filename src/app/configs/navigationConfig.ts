@@ -11,12 +11,280 @@ i18next.addResourceBundle('ar', 'navigation', ar);
  */
 const navigationConfig: FuseNavigationType = [
 	{
-		id: 'dashboard',
-		title: 'dashboard',
+		id: 'engineeringOffice',
+		title: 'engineeringOffice',
 		type: 'group',
 		icon: 'heroicons-outline:home',
-		translate: 'DASHBOARD',
+		translate: 'ENGINEERING-OFFICE',
 		children: [
+			{
+				id: 'dashboard',
+				title: 'dashboard',
+				type: 'item',
+				icon: 'heroicons-outline:speakerphone',
+				url: 'dashboard',
+				translate: 'Dashboard'
+			},
+			{
+				id: 'productCatalogues',
+				title: 'ProductCatalogue',
+				type: 'collapse',
+				icon: 'heroicons-outline:puzzle',
+				url: 'product-catalogues',
+				translate: 'Product-Catalogues',
+				children: [
+					{
+						id: 'basic-properties',
+						title: 'Basic Properties',
+						type: 'collapse',
+						children: [
+							{
+								id: 'pc-productcatalogcategories-I',
+								title: 'Categories I',
+								type: 'item',
+								url: 'product-catalogues/categories-I',
+								end: true
+							},
+							{
+								id: 'pc-productcatalogcategories-II',
+								title: 'Categories II',
+								type: 'item',
+								url: 'product-catalogues/categories-II',
+								end: true
+							},
+							{
+								id: 'pc-productcatalogtextiles',
+								title: 'Textiles',
+								type: 'item',
+								url: 'product-catalogues/textiles',
+								end: true
+							},
+							{
+								id: 't-templatepatterns',
+								title: 'Colors',
+								type: 'item',
+								url: 'orders/details/colors',
+								end: true
+							},
+							{
+								id: 'pc-productcatalogdetails',
+								title: 'Seasons',
+								type: 'item',
+								url: 'product-catalogues/seasons',
+								end: true
+							}
+						]
+					},
+					{
+						id: 'pc-productcatalogdetails',
+						title: 'Details',
+						type: 'item',
+						url: 'product-catalogues/details',
+						end: true
+					}
+				]
+			},
+			{
+				id: 'templates',
+				title: 'Templates',
+				type: 'collapse',
+				icon: 'heroicons-outline:scissors',
+				url: 'templates',
+				translate: 'Templates',
+				children: [
+					{
+						id: 'basic-properties',
+						title: 'Basic Properties',
+						type: 'collapse',
+						children: [
+							{
+								id: 't-templatepatterns',
+								title: 'Patterns',
+								type: 'item',
+								url: 'templates/patterns',
+								end: true
+							},
+							{
+								id: 't-templatepatterns',
+								title: 'Types',
+								type: 'item',
+								url: 'models/template-types',
+								end: true
+							}
+						]
+					},
+					{
+						id: 't-templatesizes',
+						title: 'Template Sizes',
+						type: 'item',
+						url: 'templates/sizes',
+						end: true
+					},
+					{
+						id: 't-templatepatterns',
+						title: 'Manufacturing Stages',
+						type: 'item',
+						url: 'templates/manufacturing-stages',
+						end: true
+					}
+				]
+			},
+			{
+				id: 'orders',
+				title: 'Orders',
+				type: 'collapse',
+				icon: 'heroicons-outline:ticket',
+				url: 'orders',
+				translate: 'Orders',
+				children: [
+					{
+						id: 't-templatepatterns',
+						title: 'Order Details',
+						type: 'item',
+						url: 'orders/details'
+					}
+				]
+			},
+			{
+				id: 'models',
+				title: 'Models',
+				type: 'collapse',
+				icon: 'heroicons-outline:tag',
+				url: 'models',
+				translate: 'Models',
+				children: [
+					{
+						id: 't-templatepatterns',
+						title: 'Sizes',
+						type: 'item',
+						url: 'models/sizes',
+						end: true
+					},
+					{
+						id: 't-templatepatterns',
+						title: 'Colors',
+						type: 'item',
+						url: 'models/colors',
+						end: true
+					},
+				]
+			},
+			{
+				id: 'actions',
+				title: 'Actions',
+				type: 'collapse',
+				icon: 'heroicons-outline:switch-horizontal',
+				translate: 'Actions',
+				children: [
+					{
+						id: 'cf-iorders',
+						title: 'Internal Orders',
+						type: 'item',
+						url: 'internal-orders',
+						end: true
+					},
+					{
+						id: 'cf-iorders',
+						title: 'Tasks',
+						type: 'item',
+						url: 'tasks',
+						end: true
+					},
+					{
+						id: 'cf-iorders',
+						title: 'Feedback',
+						type: 'item',
+						url: 'feedback',
+						end: true
+					},
+					{
+						id: 'cf-iorders',
+						title: 'Material Reports',
+						type: 'item',
+						url: 'material-reports',
+						end: true
+					}
+				]
+			}
+		],
+	},
+	{
+		id: 'store',
+		title: 'store',
+		type: 'group',
+		icon: 'heroicons-outline:home',
+		translate: 'STORE',
+		children: [
+			{
+				id: 'storeManagement',
+				title: 'Store Management',
+				type: 'collapse',
+				icon: 'heroicons-outline:color-swatch',
+				url: '/store-management',
+				children: [
+					{
+						id: 'cf-warehouses',
+						title: 'Warehouses',
+						type: 'item',
+						url: '/store-management/warehouses',
+						end: true
+					},
+					{
+						id: 'cf-suppliers',
+						title: 'Suppliers',
+						type: 'item',
+						url: '/store-management/suppliers',
+						end: true
+					},
+					{
+						id: 'cf-materialCategories',
+						title: 'Material Categories',
+						type: 'item',
+						url: '/store-management/material-categories',
+						end: true
+					}
+				]
+			},
+			{
+				id: 'storeProcesses',
+				title: 'Store-Processes',
+				type: 'collapse',
+				icon: 'heroicons-outline:switch-vertical',
+				translate: 'Store-Processes',
+				children: [
+					{
+						id: 'cf-materials',
+						title: 'Materials',
+						type: 'item',
+						url: '/store-processes/materials',
+						end: true
+					},
+					{
+						id: 'cf-materialmovements',
+						title: 'Material Movements',
+						type: 'item',
+						url: '/store-processes/material-movements',
+						end: true
+					}
+				]
+			}
+		],
+	},
+	{
+		id: 'manager',
+		title: 'manager',
+		type: 'group',
+		icon: 'heroicons-outline:home',
+		translate: 'MANAGER',
+		children: [
+			{
+				id: 'dashboards',
+				title: 'Dashboards',
+				type: 'item',
+				icon: 'heroicons-outline:speakerphone',
+				url: '/dashboards',
+				translate: 'Dashboards'
+			},
 			{
 				id: 'users',
 				title: 'Users',
@@ -34,197 +302,31 @@ const navigationConfig: FuseNavigationType = [
 				translate: 'Departments'
 			},
 			{
-				id: 'stores',
-				title: 'Stores',
+				id: 'actions',
+				title: 'Actions',
 				type: 'collapse',
-				icon: 'heroicons-outline:color-swatch',
-				translate: 'Stores',
+				icon: 'heroicons-outline:hand',
+				url: '/actions',
+				translate: 'Actions',
 				children: [
 					{
-						id: 'cf-warehouses',
-						title: 'Warehouses',
+						id: 'cf-iorders',
+						title: 'Tasks',
 						type: 'item',
-						url: '/stores/warehouses',
-						end: true
-					},
-					{
-						id: 'cf-suppliers',
-						title: 'Suppliers',
-						type: 'item',
-						url: '/stores/suppliers',
-						end: true
-					},
-					{
-						id: 'cf-materials',
-						title: 'Materials',
-						type: 'item',
-						url: '/stores/materials',
-						end: true
-					},
-					{
-						id: 'cf-materialCategories',
-						title: 'Material Categories',
-						type: 'item',
-						url: '/stores/material-categories',
+						url: 'tasks',
 						end: true
 					},
 					{
 						id: 'cf-iorders',
-						title: 'Internal Orders',
+						title: 'Feedbacks',
 						type: 'item',
-						url: '/stores/internal-orders',
+						url: 'feedbacks',
 						end: true
 					},
-					{
-						id: 'cf-materialmovements',
-						title: 'Material Movements',
-						type: 'item',
-						url: '/stores/material-movements',
-						end: true
-					}
-				]
-			},
-			{
-				id: 'productCatalogues',
-				title: 'ProductCatalogue',
-				type: 'collapse',
-				icon: 'heroicons-outline:puzzle',
-				url: 'product-catalogues',
-				translate: 'Product-Catalogues',
-				children: [
-					{
-						id: 'pc-productcatalogcategories-I',
-						title: 'Categories I',
-						type: 'item',
-						url: 'product-catalogues/categories-I',
-						end: true
-					},
-					{
-						id: 'pc-productcatalogcategories-II',
-						title: 'Categories II',
-						type: 'item',
-						url: 'product-catalogues/categories-II',
-						end: true
-					},
-					{
-						id: 'pc-productcatalogtextiles',
-						title: 'Textiles',
-						type: 'item',
-						url: 'product-catalogues/textiles',
-						end: true
-					},
-					{
-						id: 'pc-productcatalogdetails',
-						title: 'Details',
-						type: 'item',
-						url: 'product-catalogues/details',
-						end: true
-					},
-					{
-						id: 'pc-productcatalogdetails',
-						title: 'Seasons',
-						type: 'item',
-						url: 'product-catalogues/seasons',
-						end: true
-					}
-				]
-			},
-			{
-				id: 'templates',
-				title: 'Templates',
-				type: 'collapse',
-				icon: 'heroicons-outline:scissors',
-				url: 'templates',
-				translate: 'Templates',
-				children: [
-					{
-						id: 't-templatepatterns',
-						title: 'Manufacturing Stages',
-						type: 'item',
-						url: 'templates/manufacturing-stages',
-						end: true
-					},
-					{
-						id: 't-templatepatterns',
-						title: 'Patterns',
-						type: 'item',
-						url: 'templates/patterns',
-						end: true
-					},
-					{
-						id: 't-templatetypes',
-						title: 'Types',
-						type: 'item',
-						url: 'templates/types',
-						end: true
-					},					
-					{
-						id: 't-templatesizes',
-						title: 'Sizes',
-						type: 'item',
-						url: 'templates/sizes',
-						end: true
-					}
-				
-				]
-			},
-			{
-				id: 'orders',
-				title: 'Orders',
-				type: 'collapse',
-				icon: 'heroicons-outline:ticket',
-				url: 'orders',
-				translate: 'Orders',
-				children: [
-					{
-						id: 't-templatepatterns',
-						title: 'Details',
-						type: 'collapse',
-						url: 'orders/details',
-						end: true,
-						children: [
-							{
-								id: 't-templatepatterns',
-								title: 'Template Types',
-								type: 'item',
-								url: 'orders/details/template-types',
-								end: true
-							},
-							{
-								id: 't-templatepatterns',
-								title: 'Colors',
-								type: 'item',
-								url: 'orders/details/colors',
-								end: true
-							},
-							{
-								id: 't-templatepatterns',
-								title: 'Sizes',
-								type: 'item',
-								url: 'orders/details/sizes',
-								end: true
-							},
-						]
-					},
-					{
-						id: 't-templatepatterns',
-						title: 'Colors',
-						type: 'item',
-						url: 'orders/colors',
-						end: true
-					},					
-					{
-						id: 't-templatesizes',
-						title: 'Sizes',
-						type: 'item',
-						url: 'orders/sizes',
-						end: true
-					}
 				]
 			}
-		]
-	},
-
+		],
+	}
 ];
 
 export default navigationConfig;

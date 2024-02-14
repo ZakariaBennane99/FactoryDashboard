@@ -17,7 +17,7 @@ const TypesConfig = {
 	},
 	routes: [
 		{
-			path: '/templates/types',
+			path: '/models/template-types',
 			element: <Types />
 		}
 	]

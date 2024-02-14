@@ -34,17 +34,21 @@ import orderDetails from '../main/orders/orderDetails/orderDetails/OrderDetailsC
 import orderDetailColors from '../main/orders/orderDetails/colors/ColorsConfig'
 import orderDetailSizes from '../main/orders/orderDetails/sizes/SizesConfig'
 import orderDetailTemplateTypes from '../main/orders/orderDetails/templateTypes/TemplateTypesConfig'
+import tableConfig from '../../app/configs/tableConfig'
+import modelsConfig from '../main/orders/models/ModelsConfig'
+
+
 
 
 const routeConfigs: FuseRouteConfigsType = [ 
 	UsersConfig, DepartmentConfig, SignOutConfig, SignInConfig, SignUpConfig,
-	WarehousesConfig, SuppliersConfig, MaterialsConfig, MaterialMovementsConfig,
+	...tableConfig, SuppliersConfig, MaterialsConfig, MaterialMovementsConfig,
 	MaterialCategoriesConfig, InternalOrdersConfig, productCatalogues, 
 	productCataloguesCategoriesI, productCataloguesCategoriesII, productCataloguesDetails,
 	productCataloguesSeasons, productCataloguesTextiles, templatesComponents,
 	templatesManufacturingStages, templatesPatterns, templatesSizes, templatesTypes,
 	templates, orderColors, orderSizes, orders, orderDetails, orderDetailColors, 
-	orderDetailSizes, orderDetailTemplateTypes
+	orderDetailSizes, orderDetailTemplateTypes, modelsConfig 
 ];
 
 /**

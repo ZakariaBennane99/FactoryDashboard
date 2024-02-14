@@ -17,7 +17,7 @@ const SizesConfig = {
 	},
 	routes: [
 		{
-			path: '/orders/sizes',
+			path: '/models/sizes',
 			element: <Sizes />
 		}
 	]

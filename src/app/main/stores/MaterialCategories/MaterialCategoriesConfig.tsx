@@ -18,7 +18,7 @@ const MaterialCategoriesConfig = {
 	},
 	routes: [
 		{
-			path: '/stores/material-categories',
+			path: '/store-management/material-categories',
 			element: <MaterialCategories />
 		}
 	]

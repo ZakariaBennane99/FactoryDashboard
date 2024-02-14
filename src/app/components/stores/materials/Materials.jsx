@@ -18,6 +18,8 @@ import AddMaterial from './AddMaterial';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import ReportDate from './ReportDates'
 
 
 
@@ -126,6 +128,19 @@ function Materials() {
         }, 100);
     }
 
+    function handleReports(i) {
+        // first close the current window
+        dispatch(closeDialog())
+        setTimeout(() => {
+            // Now open a new edit dialog with the selected user data
+            dispatch(openDialog({
+                children: ( 
+                    <ReportDate materialId={i} />
+                )
+            }));
+        }, 100);
+    }
+
     function handleDelete(i) {
         // first close the current window
         dispatch(closeDialog())
@@ -150,10 +165,6 @@ function Materials() {
                     <span>Add Material</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Materials" type="search" />
-                <button className="filter-btn">
-                    <img src="/assets/gen/filter.svg" /> 
-                    <span>Filter</span>
-                </button>
             </div>  
 
             <div className="main-content">
@@ -173,6 +184,7 @@ function Materials() {
                                 <div className="depart-card dialog material">
                                     <div id="edit-container">
                                         <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                        <AccountTreeIcon id="material-reports" onClick={() => handleReports(index)} />
                                         <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
                                     </div>
                                     <div>
@@ -260,6 +272,7 @@ function Materials() {
                                 <div className="depart-card dialog material">
                                     <div id="edit-container">
                                         <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+
                                         <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
                                     </div>
                                 <div>

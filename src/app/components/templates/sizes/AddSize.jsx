@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FormControl, TextField, Box, Select, MenuItem, InputLabel, Button, IconButton } from '@mui/material';
+import { FormControl, TextField, Box, Select, MenuItem, InputLabel, IconButton } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 function AddTemplateSize({ sze }) {
@@ -11,6 +11,7 @@ function AddTemplateSize({ sze }) {
         measurementValue: sze ? sze.measurementValue : '',
         measurementUnit: sze ? sze.measurementUnit : '',
         components: sze ? sze.components : [],
+        measurements: sze ? sze.measurement : [],
         description: sze ? sze.description : ''
     });
 
@@ -51,6 +52,23 @@ function AddTemplateSize({ sze }) {
         setTemplateSize({
             ...templateSize,
             components: [...templateSize.components, { componentName: '', description: '', material: '', template: '', quantity: '', unitOfMeasure: '' }]
+        });
+    };
+
+    const handleMeasurementChange = (index, prop) => (event) => {
+        const updatedMeasurements = templateSize.measurements.map((measurement, i) => {
+            if (i === index) {
+                return { ...measurement, [prop]: event.target.value };
+            }
+            return measurement;
+        });
+        setTemplateSize({ ...templateSize, measurements: updatedMeasurements });
+    };
+
+    const addMeasurement = () => {
+        setTemplateSize({
+            ...templateSize,
+            measurements: [...templateSize.measurements, { measurementName: '', measurementUnits: '', measurementValue:'' }]
         });
     };
 
@@ -116,52 +134,57 @@ function AddTemplateSize({ sze }) {
                     </Select>
                 </FormControl>
 
-                <FormControl fullWidth margin="normal">
-                    <InputLabel id="measurement-name-select-label">Measurement Name</InputLabel>
-                    <Select
-                        labelId="measurement-name-select-label"
-                        id="measurement-name-select"
-                        value={templateSize.measurementName}
-                        label="Measurement Name"
-                        onChange={handleChange('measurementName')}
-                        required
-                    >
-                        {unitsOfMeasure.map((name, i) => (
-                            <MenuItem key={i} value={name}>
-                                {name}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+                {templateSize.measurements && templateSize.measurements.map((measurement, index) => (
+                    <Box key={index} sx={{ display: 'flex', flexDirection: 'column', marginTop: '10px' }}>
+                        <h4 style={{ fontWeight: 'bold' }}>Measurement {index + 1}</h4>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel id="measurement-name-select-label">Measurement Name</InputLabel>
+                            <Select
+                                labelId="measurement-name-select-label"
+                                id="measurement-name-select"
+                                value={measurement.measurementName}
+                                label="Measurement Name"
+                                onChange={handleMeasurementChange(index, 'measurementName')}
+                                required
+                            >
+                                {unitsOfMeasure.map((name, i) => (
+                                    <MenuItem key={i} value={name}>
+                                        {name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
 
-                <FormControl fullWidth margin="normal">
-                    <TextField
-                        id="measurement-value-input"
-                        label="Measurement Value"
-                        variant="outlined"
-                        value={templateSize.measurementValue}
-                        onChange={handleChange('measurementValue')}
-                        required
-                    />
-                </FormControl>
-
-                <FormControl fullWidth margin="normal">
-                    <InputLabel id={`measurement-unit-select-label`}>Measurement Unit</InputLabel>
-                    <Select
-                        labelId={`measurement-unit-select-label`}
-                        id={`measurement-unit-select`}
-                        value={templateSize.measurementUnit}
-                        label="Measurement Unit"
-                        onChange={handleChange('measurementUnit')}
-                        required
-                    >
-                        {measurementUnits.map((unit, i) => (
-                            <MenuItem key={i} value={unit}>
-                                {unit}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+                        <FormControl fullWidth margin="normal">
+                            <TextField
+                                id="measurement-value-input"
+                                label="Measurement Value"
+                                variant="outlined"
+                                value={measurement.measurementValue}
+                                onChange={handleMeasurementChange(index, 'measurementValue')}
+                                required
+                            />
+                        </FormControl>
+        
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel id={`measurement-unit-select-label`}>Measurement Unit</InputLabel>
+                            <Select
+                                labelId={`measurement-unit-select-label`}
+                                id={`measurement-unit-select`}
+                                value={measurement.measurementUnit}
+                                label="Measurement Unit"
+                                onChange={handleMeasurementChange(index, 'measurementUnit')}
+                                required
+                            >
+                                {measurementUnits.map((unit, i) => (
+                                    <MenuItem key={i} value={unit}>
+                                        {unit}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
+                ))}
 
                 <FormControl fullWidth margin="normal">
                     <TextField
@@ -262,12 +285,22 @@ function AddTemplateSize({ sze }) {
                 ))}
 
                 <div className="add-new-component-container">
-                    <IconButton onClick={addComponent} color="primary" aria-label="add component">
-                     <AddCircleOutlineIcon />
-                    </IconButton>
-                    <span>
-                        Add New Component
-                    </span>
+                    <div>
+                        <IconButton onClick={addComponent} color="primary" aria-label="add component">
+                         <AddCircleOutlineIcon />
+                        </IconButton>
+                        <span>
+                            Add Component
+                        </span>
+                    </div>
+                    <div>
+                        <IconButton onClick={addMeasurement} color="primary" aria-label="add component">
+                         <AddCircleOutlineIcon />
+                        </IconButton>
+                        <span>
+                            Add Measurement
+                        </span>
+                    </div>
                 </div>
 
                 <button type="submit" className="add-internalOrder-btn">{sze ? 'Update' : 'Add'} Size</button>

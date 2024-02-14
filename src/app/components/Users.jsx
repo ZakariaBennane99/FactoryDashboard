@@ -110,7 +110,6 @@ function Users() {
         setTimeout(() => {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
-                key: updateKey,
                 children: ( 
                     <AddUser user={users[i]} />
                 )
@@ -147,7 +146,6 @@ function Users() {
         // Update the active status of the specific user
         updatedUsers[index] = { ...updatedUsers[index], active: e.target.checked };
         setUsers(updatedUsers);
-        setUpdateKey(prevKey => prevKey + 1);
     }
 
 
@@ -160,7 +158,7 @@ function Users() {
                     <img src="/assets/gen/plus.svg" /> 
                     <span>Add User</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Users" type="search" />
+                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search-user" label="Search Users" type="search" />
                 <button className="filter-btn" onClick={handleAddingRole}>
                     <img src="/assets/gen/plus.svg" />  
                     <span>Add Role</span>

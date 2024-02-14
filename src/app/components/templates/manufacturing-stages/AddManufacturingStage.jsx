@@ -32,6 +32,25 @@ function AddManufacturingStage({ mnfStage }) {
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
             <form onSubmit={handleSubmit}>
+
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="template-select-label">Template</InputLabel>
+                    <Select
+                        labelId="template-select-label"
+                        id="template-select"
+                        value={manufacturingStage.template}
+                        label="Template"
+                        onChange={handleChange('template')}
+                        required
+                    >
+                        {templates.map((template, index) => (
+                            <MenuItem key={index} value={template}>
+                                {template}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
                 <FormControl fullWidth margin="normal">
                     <TextField
                         label="Stage Number"
@@ -52,6 +71,24 @@ function AddManufacturingStage({ mnfStage }) {
                         onChange={handleChange('stageName')}
                         required
                     />
+                </FormControl>
+
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="department-select-label">Department</InputLabel>
+                    <Select
+                        labelId="department-select-label"
+                        id="department-select"
+                        value={manufacturingStage.department}
+                        label="Department"
+                        onChange={handleChange('department')}
+                        required
+                    >
+                        {departments.map((department, index) => (
+                            <MenuItem key={index} value={department}>
+                                {department}
+                            </MenuItem>
+                        ))}
+                    </Select>
                 </FormControl>
 
                 <FormControl fullWidth margin="normal">
@@ -78,7 +115,7 @@ function AddManufacturingStage({ mnfStage }) {
                     />
                 </FormControl>
 
-                <FormControl fullWidth margin="normal">
+                <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
                         label="Description"
                         variant="outlined"
@@ -88,42 +125,6 @@ function AddManufacturingStage({ mnfStage }) {
                         multiline
                         rows={2}
                     />
-                </FormControl>
-
-                <FormControl fullWidth margin="normal">
-                    <InputLabel id="template-select-label">Template</InputLabel>
-                    <Select
-                        labelId="template-select-label"
-                        id="template-select"
-                        value={manufacturingStage.template}
-                        label="Template"
-                        onChange={handleChange('template')}
-                        required
-                    >
-                        {templates.map((template, index) => (
-                            <MenuItem key={index} value={template}>
-                                {template}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-
-                <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
-                    <InputLabel id="department-select-label">Department</InputLabel>
-                    <Select
-                        labelId="department-select-label"
-                        id="department-select"
-                        value={manufacturingStage.department}
-                        label="Department"
-                        onChange={handleChange('department')}
-                        required
-                    >
-                        {departments.map((department, index) => (
-                            <MenuItem key={index} value={department}>
-                                {department}
-                            </MenuItem>
-                        ))}
-                    </Select>
                 </FormControl>
 
                 <button type="submit" className="add-internalOrder-btn">

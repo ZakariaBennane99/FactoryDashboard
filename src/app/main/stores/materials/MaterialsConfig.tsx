@@ -17,7 +17,7 @@ const MaterialsConfig = {
 	},
 	routes: [
 		{
-			path: '/stores/materials',
+			path: '/store-processes/materials',
 			element: <Materials />
 		}
 	]

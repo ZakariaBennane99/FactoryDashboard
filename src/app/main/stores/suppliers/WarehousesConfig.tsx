@@ -17,7 +17,7 @@ const SuppliersConfig = {
 	},
 	routes: [
 		{
-			path: '/stores/suppliers',
+			path: '/store-management/suppliers',
 			element: <Suppliers />
 		}
 	]

@@ -16,9 +16,32 @@ import AddSupplier from './AddSupplier';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
+import { DataGrid } from '@mui/x-data-grid';
+import * as React from 'react';
+
+
+
 
 
 function Suppliers() {
+
+    const columns = [
+        { field: 'name', headerName: 'Name', width: 200 },
+        { field: 'address', headerName: 'Address', width: 300 },
+        { field: 'phone', headerName: 'Phone Number', width: 150 },
+        { field: 'email', headerName: 'Email', width: 250 },
+    ];
+      
+      
+    const rows = [
+        { id: 1, name: "Aleppo Textiles Ltd.", phone: "+963 1234 567", email: "contact@aleppotextiles.sy", address: "123 Industrial Zone, Aleppo, Syria" },
+        { id: 2, name: "Damascus Fabrics Co.", phone: "+963 9876 543", email: "info@damascusfabrics.sy", address: "456 Business District, Damascus, Syria" },
+        { id: 3, name: "Latakia Weaving Works", phone: "+963 3456 789", email: "sales@latakia-weaving.sy", address: "789 Seaside Avenue, Latakia, Syria" },
+        { id: 4, name: "Homs Cotton Suppliers", phone: "+963 2345 678", email: "support@homscotton.sy", address: "321 Cotton Drive, Homs, Syria" },
+        { id: 5, name: "Tartous Textile Solutions", phone: "+963 5432 109", email: "inquiries@tartoustextile.sy", address: "654 Harbor Road, Tartous, Syria" },
+        { id: 6, name: "Raqqa Garment Makers", phone: "+963 6789 012", email: "contact@raqqagarments.sy", address: "987 Fabric Lane, Raqqa, Syria" },
+        { id: 7, name: "Deir Ezzor Cloth Co.", phone: "+963 7890 345", email: "info@deirezzorcloth.sy", address: "210 Textile Avenue, Deir Ezzor, Syria" },
+    ];
 
     const [filteredSuppliers, setFilteredSuppliers] = useState(null);
 
@@ -131,6 +154,23 @@ function Suppliers() {
 
 
     return (
+        <div style={{ height: 400, width: '100%' }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          initialState={{
+            pagination: {
+              paginationModel: { page: 0, pageSize: 5 },
+            },
+          }}
+          pageSizeOptions={[5, 10]}
+          checkboxSelection
+        />
+      </div>
+    )
+
+    /*
+    return (
         <div className="parent-container">
 
             <div className="top-ribbon">
@@ -139,10 +179,7 @@ function Suppliers() {
                     <span>Add Supplier</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Suppliers" type="search" />
-                <button className="filter-btn">
-                    <img src="/assets/gen/filter.svg" /> 
-                    <span>Filter</span>
-                </button>
+
             </div>  
 
             <div className="main-content">
@@ -297,7 +334,7 @@ function Suppliers() {
             </div>
 
         </div>
-    )
+    )*/
 }
 
 export default Suppliers;

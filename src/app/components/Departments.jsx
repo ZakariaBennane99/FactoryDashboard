@@ -148,10 +148,6 @@ function Departments() {
                     <span>Add Department</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Departments" type="search" />
-                <button className="filter-btn">
-                    <img src="/assets/gen/filter.svg" /> 
-                    <span>Filter</span>
-                </button>
             </div>   
 
             <div className="main-content">

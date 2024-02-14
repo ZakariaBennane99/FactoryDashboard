@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
+import { FormControl, TextField, Box, Select, MenuItem, InputLabel, InputProps } from '@mui/material';
+import { IconButton } from '@mui/icons-material';
 
 function AddTemplate({ tmplt }) {
     const [template, setTemplate] = useState({
@@ -70,13 +71,7 @@ function AddTemplate({ tmplt }) {
                 </FormControl>
 
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
-                    <TextField
-                        label="File Name"
-                        variant="outlined"
-                        value={template.fileName}
-                        onChange={handleChange('FileName')}
-                        required
-                    />
+                    
                 </FormControl>
 
                 <button type="submit" className="add-internalOrder-btn">{tmplt ? 'Update' : 'Add'} Template</button>

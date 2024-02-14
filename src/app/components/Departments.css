@@ -63,16 +63,23 @@
 }
 
 
-.parent-container .top-ribbon .search {
+.parent-container .top-ribbon .search:not(.search-user) {
+    width: 63%;
+    height: 100%;
+}
+
+.parent-container .top-ribbon .search-user {
     width: 50%;
     height: 100%;
 }
 
-.parent-container .top-ribbon .search .MuiInputLabel-outlined {
+.parent-container .top-ribbon .search .MuiInputLabel-outlined,
+.parent-container .top-ribbon .search-user .MuiInputLabel-outlined {
     transform: translate(14px, 12px) scale(1); 
 }
 
-.parent-container .top-ribbon .search .MuiInputLabel-outlined.MuiInputLabel-shrink {
+.parent-container .top-ribbon .search .MuiInputLabel-outlined.MuiInputLabel-shrink,
+.parent-container .top-ribbon .search-user .MuiInputLabel-outlined.MuiInputLabel-shrink {
     transform: translate(14px, -7px) scale(0.75); 
 }
 

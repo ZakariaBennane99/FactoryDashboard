@@ -583,6 +583,7 @@ app.get('/product-catalogue-details', (req, res) => {
             "ProductCatalogId": "PC101",
             "Category1": "Outerwear",
             "Category2": "Jackets",
+            "Catalogue": "cat1",
             "Season": "Winter",
             "Textile": "Polyester",
             "TemplatePattern": "Solid",
@@ -595,6 +596,7 @@ app.get('/product-catalogue-details', (req, res) => {
             "ProductCatalogId": "PC102",
             "Category1": "Tops",
             "Category2": "Shirts",
+            "Catalogue": "cat2",
             "Season": "Summer",
             "Textile": "Linen",
             "TemplatePattern": "Plain",
@@ -607,6 +609,7 @@ app.get('/product-catalogue-details', (req, res) => {
             "ProductCatalogId": "PC103",
             "Category1": "Bottoms",
             "Category2": "Jeans",
+            "Catalogue": "cat3",
             "Season": "Spring",
             "Textile": "Denim",
             "TemplatePattern": "Distressed",
@@ -619,6 +622,7 @@ app.get('/product-catalogue-details', (req, res) => {
             "ProductCatalogId": "PC104",
             "Category1": "Tops",
             "Category2": "T-Shirts",
+            "Catalogue": "cat4",
             "Season": "Spring",
             "Textile": "Cotton",
             "TemplatePattern": "Graphic",
@@ -631,6 +635,7 @@ app.get('/product-catalogue-details', (req, res) => {
             "ProductCatalogId": "PC105",
             "Category1": "Activewear",
             "Category2": "Leggings",
+            "Catalogue": "cat5",
             "Season": "Autumn",
             "Textile": "Spandex",
             "TemplatePattern": "Print",
@@ -643,6 +648,7 @@ app.get('/product-catalogue-details', (req, res) => {
             "ProductCatalogId": "PC106",
             "Category1": "Undergarments",
             "Category2": "Socks",
+            "Catalogue": "cat6",
             "Season": "Summer",
             "Textile": "Cotton Blend",
             "TemplatePattern": "Ribbed",
@@ -655,6 +661,7 @@ app.get('/product-catalogue-details', (req, res) => {
             "ProductCatalogId": "PC107",
             "Category1": "Accessories",
             "Category2": "Hats",
+            "Catalogue": "cat7",
             "Season": "Autumn",
             "Textile": "Straw",
             "TemplatePattern": "Woven",
@@ -1337,6 +1344,126 @@ app.get('/order-detail-sizes', (req, res) => {
           sizeName: "Custom"
         }
       ]         
+  });
+});
+
+
+// models
+app.get('/models', (req, res) => {
+  res.json({
+      models: [
+        {
+          orderId: 1001,
+          modelId: 345,
+          modelName: "Svex",
+          templateType: "Casual Wear",
+          color: "Green",
+          size: "XL",
+          quantity: 123,
+          quantityDetails: "123 items to be shipped.",
+          notes: "Shipped to the warehouse."
+        },
+        {
+          orderId: 1001,
+          modelId: 345,
+          modelName: "Svex",
+          templateType: "Casual Wear",
+          color: "Green",
+          size: "XL",
+          quantity: 123,
+          quantityDetails: "123 items to be shipped.",
+          notes: "Shipped to the warehouse."
+        },
+        {
+          orderId: 1001,
+          modelId: 345,
+          modelName: "Svex",
+          templateType: "Casual Wear",
+          color: "Green",
+          size: "XL",
+          quantity: 123,
+          quantityDetails: "123 items to be shipped.",
+          notes: "Shipped to the warehouse."
+        },
+        {
+          orderId: 1001,
+          modelId: 345,
+          modelName: "Svex",
+          templateType: "Casual Wear",
+          color: "Green",
+          size: "XL",
+          quantity: 123,
+          quantityDetails: "123 items to be shipped.",
+          notes: "Shipped to the warehouse."
+        },
+        {
+          orderId: 1001,
+          modelId: 345,
+          modelName: "Svex",
+          templateType: "Casual Wear",
+          color: "Green",
+          size: "XL",
+          quantity: 123,
+          quantityDetails: "123 items to be shipped.",
+          notes: "Shipped to the warehouse."
+        },
+        {
+          orderId: 1001,
+          modelId: 345,
+          modelName: "Svex",
+          templateType: "Casual Wear",
+          color: "Green",
+          size: "XL",
+          quantity: 123,
+          quantityDetails: "123 items to be shipped.",
+          notes: "Shipped to the warehouse."
+        },
+        {
+          orderId: 1001,
+          modelId: 345,
+          modelName: "Svex",
+          templateType: "Casual Wear",
+          color: "Green",
+          size: "XL",
+          quantity: 123,
+          quantityDetails: "123 items to be shipped.",
+          notes: "Shipped to the warehouse."
+        }
+      ]               
+  });
+});
+
+
+
+// generate reports
+app.get('/order-detail-sizes', (req, res) => {
+  res.json({
+    report: [
+      {
+      internalOrdersId: 123,
+      movementId: 4312,
+      from: 'Department',
+      to: 'warehouse',
+      quantity: 23,
+      date: '12-01-1990'
+    },
+    {
+      internalOrdersId: 1234,
+      movementId: 432,
+      from: 'Department',
+      to: 'Department',
+      quantity: 239,
+      date: '12-02-1990'
+    },
+    {
+      internalOrdersId: 8394,
+      movementId: 9345,
+      from: 'Warehouse',
+      to: 'Department',
+      quantity: 2339,
+      date: '12-03-1990'
+    }
+  ]
   });
 });
 

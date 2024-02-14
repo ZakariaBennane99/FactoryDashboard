@@ -26,6 +26,24 @@ function AddDetails({ dtl }) {
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
             <form onSubmit={handleSubmit}>
+
+
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="product-catalogue-select-label">Product Catalogue</InputLabel>
+                    <Select
+                        labelId="category2-select-label"
+                        id="category2-select"
+                        value={details.category2}
+                        label="Category 2"
+                        onChange={handleChange('category2')}
+                        required
+                    >
+                        <MenuItem value="Jeans">Jeans</MenuItem>
+                        <MenuItem value="Shorts">Shorts</MenuItem>
+                        {/* ... other subcategories */}
+                    </Select>
+                </FormControl>
+
                 <FormControl fullWidth margin="normal">
                     <InputLabel id="category1-select-label">Category 1</InputLabel>
                     <Select

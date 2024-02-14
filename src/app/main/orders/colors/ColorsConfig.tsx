@@ -17,7 +17,7 @@ const ColorsConfig = {
 	},
 	routes: [
 		{
-			path: '/orders/colors',
+			path: '/models/colors',
 			element: <Colors />
 		}
 	]

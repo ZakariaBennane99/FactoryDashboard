@@ -17,7 +17,7 @@ const InternalOrdersConfig = {
 	},
 	routes: [
 		{
-			path: '/stores/internal-orders',
+			path: '/internal-orders',
 			element: <InternalOrders />
 		}
 	]

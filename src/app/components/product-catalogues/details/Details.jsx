@@ -22,6 +22,8 @@ import AcUnitIcon from '@mui/icons-material/AcUnit'; // Winter
 import WbSunnyIcon from '@mui/icons-material/WbSunny'; // summer
 import FilterDramaIcon from '@mui/icons-material/FilterDrama'; // autumn
 import LocalFloristIcon from '@mui/icons-material/LocalFlorist'; // Spring
+import DnsIcon from '@mui/icons-material/Dns';
+
 
 
 function Details() {
@@ -193,6 +195,12 @@ function Details() {
                                         <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
                                     </div>
                                     <div className="body-container">
+                                        <div>
+                                            <DnsIcon />
+                                            <span>
+                                                {detail.Catalogue}
+                                            </span>
+                                        </div>
                                         <div className="cat1">
                                             <CategoryIcon />
                                             <span>
