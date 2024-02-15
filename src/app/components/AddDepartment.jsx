@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
-import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { closeDialog, openDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
 import { useAppDispatch } from 'app/store';
 import jwtService from '../auth/services/jwtService';
@@ -86,6 +86,46 @@ function AddDepartment({ dprt }) {
         }
 
     };
+
+    function showMsg(msg, status) {
+        // take the itemId, and delete the item
+    
+        // then close the dialog, and show a quick message
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    /* TO BE UNCOMMENTED IN PRODUCTION
+    // get existing managers
+    useEffect(() => {    
+        async function getManagers() {
+            try {
+                // @route: api/managers
+                // @description: get Managers
+                const res = await jwtService.getManagers({ 
+                    currentUserId: currentUserId
+                });
+                if (res) {
+                    setManagers(res.departs)
+                }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getManagers();
+    }, []);*/
+
 
     
     return (

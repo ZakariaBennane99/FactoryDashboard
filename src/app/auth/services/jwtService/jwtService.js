@@ -123,15 +123,14 @@ class JwtService extends FuseUtils.EventEmitter {
 					if (response.data.user) {
 						// resolve with a success message and 201/200 code
 						_setSession(response.data.access_token);
-						resolve(response.data.user);
+						resolve(response.data.user); // '<itemInfo.itemType> has been successfully created!'
 					} else {
 						reject(response.data.error);
 						// send back the error + consistent error code: 404, 401..
 						// should return a msg for the error:
 						// 1. 'Server error'
-						// 2. 'You don't have permission to edit' (forbidden) 
-						// 3. 'User has been successfully created!'
-						// 4. 'Phone Number/Username/email/departement already in use!'
+						// 2. 'You don't have permission to edit' (forbidden)
+						// 3. '<element/elements> is/are already in use!'
 					}
 				}
 			);
@@ -146,14 +145,14 @@ class JwtService extends FuseUtils.EventEmitter {
 				(response) => {
 					if (response.data) {
 						resolve(response.data); // return a ok msg with a 201/200
-						// 'User has been successfully updated!'
+						// '<itemInfo.itemType> has been successfully updated!'
 					} else {
 						reject(response.data.error); 
 						// send back the error + consistent error code: 404, 401..
 						// should return a msg for the error:
 						// 1. 'Server error'
 						// 2. 'You don't have permission to edit' (forbidden
-						// 3. 'Phone Number/Username/email already in use!'
+						// 3. '<element/elements> already in use!'
 					}
 				}
 			)
@@ -209,9 +208,9 @@ class JwtService extends FuseUtils.EventEmitter {
 	/**
 	 * Get items.
 	 */
-	getItems = (itemInfo, headers) =>
+	getItems = (itemsInfo) =>
 	new Promise((resolve, reject) => {
-			axios.get(`http://localhost:3050/api/items/${itemInfo.itemType}`, headers).then(
+			axios.get(`http://localhost:3050/api/items/${itemsInfo.itemType}`, itemsInfo.currentUserId).then(
 				(
 					response
 				) => {
@@ -253,6 +252,51 @@ class JwtService extends FuseUtils.EventEmitter {
 		);
 	});	
 
+	/**
+	 * Get Managers
+	 */
+	getManagers = (data) =>
+	new Promise((resolve, reject) => {
+		axios.get(`/api/managers`, data).then(
+			(
+				response
+			) => {
+				if (response.data) {
+					// resolve with 201/200 code
+					resolve(response.data); // return an array of managers
+				} else {
+					reject(response.data.error);
+					// send back the error + consistent error code: 404, 401..
+					// should return a msg for the error:
+					// 1. 'Server error! Please try again later.'
+					// 2. 'You don't have permission to get data.' (forbidden)
+				}
+			}
+		);
+	});	
+
+	/**
+	 * Get Model Data
+	 */
+	getModelData = (data) =>
+	new Promise((resolve, reject) => {
+		axios.get(`/api/modelData`, data).then(
+			(
+				response
+			) => {
+				if (response.data) {
+					// resolve with 201/200 code
+					resolve(response.data); // return an object of 4 arrays: orderIds, templateTypeIds, colors, and sizes
+				} else {
+					reject(response.data.error);
+					// send back the error + consistent error code: 404, 401..
+					// should return a msg for the error:
+					// 1. 'Server error! Please try again later.'
+					// 2. 'You don't have permission to get data.' (forbidden)
+				}
+			}
+		);
+	});	
 
 	/**
 	 * Signs out the user.

@@ -4,7 +4,6 @@ import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
@@ -14,31 +13,24 @@ import PaletteIcon from '@mui/icons-material/Palette';
 import RulerIcon from '@mui/icons-material/Straighten';
 import PlusOneIcon from '@mui/icons-material/PlusOne';
 import DescriptionIcon from '@mui/icons-material/Description';
+import { showMessage } from 'app/store/fuse/messageSlice';
 import Delete from '../Delete';
 import AddOrder from './AddModel';
 import EventIcon from '@mui/icons-material/Event';
-import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import CancelIcon from '@mui/icons-material/Cancel';
-import DoneAllIcon from '@mui/icons-material/DoneAll';
-import AutorenewIcon from '@mui/icons-material/Autorenew';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import AcUnitIcon from '@mui/icons-material/AcUnit';
-import WbSunnyIcon from '@mui/icons-material/WbSunny';
-import FilterDramaIcon from '@mui/icons-material/FilterDrama';
-import LocalFloristIcon from '@mui/icons-material/LocalFlorist';
+import jwtService from '../../../app/auth/services/jwtService'
 
 
 
 
 function Models() {
 
+    const currentUserId = window.localStorage.getItem('userId')
+
     const [filteredOrders, setFilteredOrders] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [models, setOrders] = useState([]);
+    const [models, setModels] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -75,6 +67,20 @@ function Models() {
         }
     }
 
+    function showMsg(msg, status) {
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
     useEffect(() => {
         if (Models.length > 0 && isQueryFound) {
             const filtered = Models.filter((user) => {
@@ -90,15 +96,20 @@ function Models() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
         async function getModels() {
             try {
-                const response = await axios.get('http://localhost:3050/models');
-                console.log('The response', response)
-                const materialsArr = response.data.models;
-                setOrders(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/models
+                // @description: get models
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "models"
+                });
+                if (res) {
+                    setModels(res)
+                }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
             }
         }
         
@@ -136,47 +147,12 @@ function Models() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} itemType='model' />
+                    <Delete itemId={models[i].modelId} itemType='model' />
                 )
             }));
         }, 100);
     }
 
-    function getStatusIcon(status) {
-        switch (status) {
-          case 'PENDING':
-            return <HourglassEmptyIcon />;
-          case 'APPROVED':
-            return <CheckCircleOutlineIcon />;
-          case 'FULFILLED':
-            return <TaskAltIcon />;
-          case 'CANCELLED':
-            return <CancelIcon />;
-          case 'COMPLETED':
-            return <DoneAllIcon />;
-          case 'ONGOING':
-            return <AutorenewIcon />;
-          case 'REJECTED':
-            return <RemoveCircleOutlineIcon />;
-          default:
-            return null; // or a default icon
-        }
-    }
-
-    function getSeasonIcon(season) {
-        switch (season.toUpperCase()) {
-          case 'WINTER':
-            return <AcUnitIcon />;
-          case 'SUMMER':
-            return <WbSunnyIcon />;
-          case 'AUTUMN':
-            return <FilterDramaIcon />;
-          case 'SPRING':
-            return <LocalFloristIcon />;
-          default:
-            return null; 
-        }
-    }
 
     return (
         <div className="parent-container">

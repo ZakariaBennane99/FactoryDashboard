@@ -5,7 +5,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
 import { useAppDispatch } from 'app/store';
-import jwtService from '../auth/services/jwtService';
+import jwtService from '../../../app/auth/services/jwtService';
 
 
 function AddModel({ mdl }) {
@@ -14,7 +14,20 @@ function AddModel({ mdl }) {
 
     // this will host an object of arrays for orderIds, templateTypeIds, colors
     // and sizes to be fetched from the backend
-    const [modelExistingData, setModelExistingData] = useState()
+    const [modelExistingData, setModelExistingData] = useState({
+        orderIds: [
+            123, 41234, 12341, 2135
+        ],
+        templateTypeIds: [
+            123, 41234, 12341, 2135
+        ],
+        colors: [
+            "Red", "White", "Blue", "Black"
+        ],
+        sizes: [
+            "XL", "L", "M", "S"
+        ]
+    })
 
     const currentUserId = window.localStorage.getItem('userId')
 
@@ -66,11 +79,11 @@ function AddModel({ mdl }) {
              }, { 'Content-Type': 'application/json' });
             if (res) {
                 // the msg will be sent so you don't have to hardcode it
-                showMsg('Model has been successfully created!', 'success')
+                showMsg(res, 'success')
             }
-        } catch (_errors) {
+        } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg('Model creation failed. Please try again.!', 'error')
+            showMsg(_error, 'error')
         }  
     };
 
@@ -99,21 +112,35 @@ function AddModel({ mdl }) {
         
     };
 
-    const orderIds = [
-        123, 41234, 12341, 2135
-    ]
 
-    const templateTypeIds = [
-        123, 41234, 12341, 2135
-    ]
+        /* TO BE UNCOMMENTED IN PRODUCTION
+    // get existing Model Data
+    useEffect(() => {    
+        async function getModelData() {
+            try {
+                // @route: api/modelData
+                // @description: get Model Data <colors, sizes, orderIds, templateTypes>
+                const res = await jwtService.getModelData({ 
+                    currentUserId: currentUserId
+                });
+                if (res) {
+                    setModelExistingData({
+                        orderIds: res.orderIds,
+                        templateTypeIds: res.templateTypeIds,
+                        colors: res.colors,
+                        sizes: res.sizes
+                    })
+                }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getModelData();
+    }, []);*/
 
-    const colors = [
-        "Red", "White", "Blue", "Black"
-    ]
 
-    const sizes = [
-        "XL", "L", "M", "S"
-    ]
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -130,7 +157,7 @@ function AddModel({ mdl }) {
                             onChange={handleChange('orderId')}
                             required
                         >
-                            {orderIds.map((name, index) => (
+                            {modelExistingData.orderIds.map((name, index) => (
                                 <MenuItem key={index} value={name}>{name}</MenuItem>
                             ))}
                         </Select>
@@ -168,7 +195,7 @@ function AddModel({ mdl }) {
                             onChange={handleChange('templateType')}
                             required
                         >
-                            {templateTypeIds.map((name, index) => (
+                            {modelExistingData.templateTypeIds.map((name, index) => (
                                 <MenuItem key={index} value={name}>{name}</MenuItem>
                             ))}
                         </Select>
@@ -184,7 +211,7 @@ function AddModel({ mdl }) {
                             onChange={handleChange('color')}
                             required
                         >
-                            {colors.map((name, index) => (
+                            {modelExistingData.colors.map((name, index) => (
                                 <MenuItem key={index} value={name}>{name}</MenuItem>
                             ))}
                         </Select>
@@ -200,7 +227,7 @@ function AddModel({ mdl }) {
                             onChange={handleChange('size')}
                             required
                         >
-                            {sizes.map((name, index) => (
+                            {modelExistingData.sizes.map((name, index) => (
                                 <MenuItem key={index} value={name}>{name}</MenuItem>
                             ))}
                         </Select>

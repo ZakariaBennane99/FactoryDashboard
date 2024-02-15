@@ -4,7 +4,6 @@ import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
@@ -12,6 +11,8 @@ import AddColors from './AddColor';
 import PaletteIcon from '@mui/icons-material/Palette';
 import ColorizeIcon from '@mui/icons-material/Colorize';
 import DescriptionIcon from '@mui/icons-material/Description';
+import jwtService from '../../../../app/auth/services/jwtService'
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 function trimText(txt, maxLength) {
@@ -24,6 +25,8 @@ function trimText(txt, maxLength) {
 
 
 function Colors() {
+
+    const currentUserId = window.localStorage.getItem('userId')
 
     const [filteredColors, setFilteredColors] = useState(null);
 
@@ -54,7 +57,6 @@ function Colors() {
         // Use dangerouslySetInnerHTML to render the HTML string as real HTML
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     }
-    
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -85,21 +87,40 @@ function Colors() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getModelColors() {
             try {
-                const response = await axios.get('http://localhost:3050/order-colors');
-                console.log('The response', response)
-                const materialsArr = response.data.colors;
-                setColors(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/modelColors
+                // @description: get order colors
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "modelColors"
+                });
+                if (res) {
+                    setColors(res)
+                }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getModelColors();
     }, []);
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
     function handleAddingInternalOrder() {
         dispatch(openDialog({
@@ -131,7 +152,7 @@ function Colors() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={colors[i].colorsId} itemType='modelsColor' />
                 )
             }));
         }, 100);

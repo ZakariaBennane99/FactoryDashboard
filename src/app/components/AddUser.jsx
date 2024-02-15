@@ -252,7 +252,7 @@ function AddUser({ user }) {
 
 
 
-    /* TO BE UNCOMMENTEDIN PRODUCTION
+    /* TO BE UNCOMMENTED IN PRODUCTION
     // get existing userRoles and departments
     useEffect(() => {    
         async function getRolesAndDeparts() {

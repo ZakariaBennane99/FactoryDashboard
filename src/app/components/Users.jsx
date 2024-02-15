@@ -17,7 +17,7 @@ import ApartmentIcon from '@mui/icons-material/Apartment';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import { Switch, FormControlLabel } from '@mui/material';
-import jwtService from 'app/auth/services/jwtService/jwtService';
+import jwtService from '../../app/auth/services/jwtService'
 
 
 
@@ -147,7 +147,7 @@ function Users() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} itemType='user' />
+                    <Delete itemId={users[i].userId} itemType='user' />
                 )
             }));
         }, 100);
