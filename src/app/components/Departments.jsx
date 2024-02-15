@@ -127,10 +127,8 @@ function Departments() {
         setTimeout(() => {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
-                // you need to pass the user id to the 
-                // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType='department' />
                 )
             }));
         }, 100);

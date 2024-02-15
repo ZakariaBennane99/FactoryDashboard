@@ -1,8 +1,34 @@
 import React from 'react';
 import { useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import jwtService from '../auth/services/jwtService';
+
 
 function AddDepartment({ dprt }) {
+
+    const currentUserId = window.localStorage.getItem('userId')
+
+    const dispatch = useAppDispatch()
+
+    function showMsg(msg, status) {
+        // take the itemId, and delete the item
+    
+        // then close the dialog, and show a quick message
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
     const [managers, setManagers] = useState(['Chris Evans', 'Marly Manson', 'Tim Bergling', 'Hamid Abdelhamid',
 'Sam Kfouri', 'Omar Akil', 'Mohammed Atouani', 'Mouad Moutaouakil', 'Chris Tucker'])
@@ -14,25 +40,57 @@ function AddDepartment({ dprt }) {
         description: dprt ? dprt.description : ''
     });
 
-    console.log('The manager', dprt)
     const handleChange = (prop) => (event) => {
         setDepartment({ ...department, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
+    const handleUpdateDepart = async (event) => {
         event.preventDefault();
-        console.log(department);
+        try {
+            const res = await jwtService.updateItem({ 
+                itemType: 'department',
+                data: {
+                    data: department,
+                    currentUserId: currentUserId,
+                    itemId: department.departmentId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg('User has been successfully updated!', 'success');
+            }
+        } catch (_errors) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg('User update failed. Please try again.', 'error');
+        }
+
     };
 
+    const handleAddDepart = async (event) => {
+        event.preventDefault();
+        try {
+            const res = await jwtService.createItem({ 
+                itemType: 'department',
+                data: {
+                    data: department,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg('User has been successfully updated!', 'success');
+            }
+        } catch (_errors) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg('User update failed. Please try again.', 'error');
+        }
 
-    // get the list of the users from the backend
-    async function getMangers() {
-        const b = ''
-    }
+    };
 
+    
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={dprt ? handleUpdateDepart : handleAddDepart}>
                 <FormControl fullWidth margin="normal">
                     <TextField
                         label="Department Name"

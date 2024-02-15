@@ -2,8 +2,22 @@ import { useState } from 'react';
 import { FormControl, TextField, Box, InputLabel, Select, MenuItem,  } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import jwtService from '../auth/services/jwtService';
+
 
 function AddModel({ mdl }) {
+
+    const dispatch = useAppDispatch()
+
+    // this will host an object of arrays for orderIds, templateTypeIds, colors
+    // and sizes to be fetched from the backend
+    const [modelExistingData, setModelExistingData] = useState()
+
+    const currentUserId = window.localStorage.getItem('userId')
+
     const [model, setModel] = useState({
         orderId: mdl ? mdl.orderId : '',
         modelNumber: mdl ? mdl.modelId : null,
@@ -20,13 +34,69 @@ function AddModel({ mdl }) {
         setModel({ ...model, [prop]: event.target.value });
     };
 
-    const handleDateChange = (date) => {
-        setModel({ ...model, modelDate: date });
+    function showMsg(msg, status) {
+        // take the itemId, and delete the item
+    
+        // then close the dialog, and show a quick message
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    const handleAddModel = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/create/model
+            // @description: create a new model
+            const res = await jwtService.createItem({ 
+                itemType: 'model',
+                data: {
+                    data: model,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg('Model has been successfully created!', 'success')
+            }
+        } catch (_errors) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg('Model creation failed. Please try again.!', 'error')
+        }  
     };
 
-    const handleSubmit = (event) => {
+    const handleUpdateModel = async (event) => {
         event.preventDefault();
-        console.log(model);
+
+        try {
+            // @route: api/update/model
+            // @description: update an existing model
+            const res = await jwtService.updateItem({ 
+                itemType: 'model',
+                data: {
+                    data: model,
+                    currentUserId: currentUserId,
+                    itemId: model.modelId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg('Model has been successfully Updated!', 'success')
+            }
+        } catch (_errors) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg('Updating model failed. Please try again.!', 'error')
+        }  
+        
     };
 
     const orderIds = [
@@ -48,7 +118,7 @@ function AddModel({ mdl }) {
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={mdl ? handleUpdateModel : handleAddModel}>
 
                     <FormControl fullWidth margin="normal">
                         <InputLabel id="model-name-select-label">Order Id</InputLabel>

@@ -57,39 +57,11 @@ class JwtService extends FuseUtils.EventEmitter {
 	};
 
 	/**
-	 * Creates a new user account.
-	 */
-	createUser = (data, headers) =>
-		new Promise((resolve, reject) => {
-			// jwtServiceConfig.signUp to be changed to
-			// /api/auth/createNewUser
-			axios.post(jwtServiceConfig.signUp, data, headers).then(
-				(
-					response
-				) => {
-					if (response.data.user) {
-						// resolve with a success message and 201/200 code
-						_setSession(response.data.access_token);
-						resolve(response.data.user);
-					} else {
-						reject(response.data.error);
-						// send back the error + consistent error code: 404, 401..
-						// should return a msg for the error:
-						// 1. 'Server error'
-						// 2. 'You don't have permission to edit' (forbidden) 
-						// 3. 'User has been successfully created!'
-						// 4. 'Phone Number/Username/email/departement already in use!'
-					}
-				}
-			);
-	});
-
-	/**
 	 * Signs in with the provided email and password.
 	 */
 	signInWithEmailAndPassword = (email, password) =>
 		new Promise((resolve, reject) => {
-			axios  // jwtServiceConfig.signIn to be with api/auth/sign-in
+			axios  // jwtServiceConfig.signIn to be with api/auth/signIn
 				.get(jwtServiceConfig.signIn, {
 					data: {
 						email,
@@ -140,13 +112,37 @@ class JwtService extends FuseUtils.EventEmitter {
 		});
 
 	/**
-	 * Updates the user data.
+	 * Creates a new user account.
 	 */
-	updateUser = (data, headers) =>
-	    // jwtServiceConfig.updateUser to be changed to 
-		// api/auth/user/updateUser
+	createItem = (itemInfo, headers) =>
+	new Promise((resolve, reject) => {
+			axios.post(`api/create/${itemInfo.itemType}`, itemInfo.data, headers).then(
+				(
+					response
+				) => {
+					if (response.data.user) {
+						// resolve with a success message and 201/200 code
+						_setSession(response.data.access_token);
+						resolve(response.data.user);
+					} else {
+						reject(response.data.error);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error'
+						// 2. 'You don't have permission to edit' (forbidden) 
+						// 3. 'User has been successfully created!'
+						// 4. 'Phone Number/Username/email/departement already in use!'
+					}
+				}
+			);
+	});	
+
+	/**
+	 * Updates an item.
+	 */
+	updateItem = (itemInfo, headers) =>
 		new Promise((resolve, reject) => {
-			axios.put(jwtServiceConfig.updateUser, data, headers).then(
+			axios.put(`api/update/${itemInfo.itemType}`, itemInfo.data, headers).then(
 				(response) => {
 					if (response.data) {
 						resolve(response.data); // return a ok msg with a 201/200
@@ -192,7 +188,7 @@ class JwtService extends FuseUtils.EventEmitter {
 	addUserRole = (data) =>
 	new Promise((resolve, reject) => {
 		// Change the URL to the appropriate endpoint for adding roles to a user
-		axios.post(`/api/auth/user/addRole`, data)
+		axios.post(`/api/user/addRole`, data)
 			.then(response => {
 				if (response.data.success) {
 					// Resolve with a success message and appropriate status code
@@ -208,6 +204,55 @@ class JwtService extends FuseUtils.EventEmitter {
 				}
 			})
 	});
+
+
+	/**
+	 * Get items.
+	 */
+	getItems = (itemInfo, headers) =>
+	new Promise((resolve, reject) => {
+			axios.get(`http://localhost:3050/api/items/${itemInfo.itemType}`, headers).then(
+				(
+					response
+				) => {
+					if (response.data.items) {
+						// resolve with a success message and 201/200 code
+						resolve(response.data.items); // return an array of items
+					} else {
+						reject(response.data.error);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error! Please try again later.'
+						// 2. 'You don't have permission to get data.' (forbidden)
+					}
+				}
+			);
+	});	
+
+
+	/**
+	 * Get RolesAndDeparts
+	 */
+	getRolesAndDeparts = (data) =>
+	new Promise((resolve, reject) => {
+		axios.get(`/api/rolesAndDeparts`, data).then(
+			(
+				response
+			) => {
+				if (response.data) {
+					// resolve with 201/200 code
+					resolve(response.data); // return an object of two arrays: roles, and departs
+				} else {
+					reject(response.data.error);
+					// send back the error + consistent error code: 404, 401..
+					// should return a msg for the error:
+					// 1. 'Server error! Please try again later.'
+					// 2. 'You don't have permission to get data.' (forbidden)
+				}
+			}
+		);
+	});	
+
 
 	/**
 	 * Signs out the user.

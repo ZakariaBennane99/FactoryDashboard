@@ -38,7 +38,7 @@ function DeleteItem({ itemId, itemType }) {
                 currentUserId: currentUserId,
                 itemType: itemType,
                 itemId: itemId
-             });
+            });
             if (res) {
                 // the msg will be sent so you don't have to hardcode it
                 showMsg('User has been successfully created!', 'success')
