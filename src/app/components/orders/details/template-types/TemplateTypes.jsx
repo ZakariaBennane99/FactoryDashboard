@@ -137,10 +137,6 @@ function TemplateTypes() {
                     <span>Add Template Type</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Template Types" templateType="search" />
-                <button className="filter-btn">
-                    <img src="/assets/gen/filter.svg" /> 
-                    <span>Filter</span>
-                </button>
             </div>  
 
             <div className="main-content">

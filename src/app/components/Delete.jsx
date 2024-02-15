@@ -15,7 +15,6 @@ function DeleteItem({ itemId }) {
     async function deleteItem() {
         // take the itemId, and delete the item
 
-
         // then close the dialog, and show a quick message
         dispatch(closeDialog())
         setTimeout(()=> dispatch(

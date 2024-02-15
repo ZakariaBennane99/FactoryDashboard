@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem, TextField, Box, FormHelperText } from '@mui/material';
 
 
 function AddUser({ user }) { 
+
+    const [fileError, setFileError] = useState('');
 
     const [departments, setDepartments] = useState([
         'Engineering Office', 
@@ -83,7 +85,7 @@ function AddUser({ user }) {
         }
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         let formIsValid = true;
 
@@ -109,11 +111,42 @@ function AddUser({ user }) {
 
         if (formIsValid) {
             console.log('Form is valid, submitting data:', usr);
-            // Dispatch an action or make API call to submit data
+            // create a new user
+            try {
+                await jwtService.createUser({
+                    firstName: usr.firstName,
+                    lastName: usr.lastName,
+                    userName: usr.userName,
+                    password: usr.password,
+                    phoneNumber: usr.phoneNumber,
+                    email: usr.email,
+                    department: usr.department,
+                    userRole: usr.userRole
+                    // we need to find a way to handle the photo upload
+                });
+            } catch (_errors) {
+                
+            }
         } else {
             console.log('Form is invalid, please review errors.');
         }
     };
+    
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const validExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (validExtensions.includes(file.type)) {
+                console.log(file); 
+                // set the file to state or upload it
+                // setUser({...usr, profileImage: file});
+                setFileError(''); 
+            } else {
+                setFileError('Invalid file type. Only JPG, JPEG, and PNG files are allowed.');
+            }
+        }
+    }
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
@@ -230,7 +263,7 @@ function AddUser({ user }) {
                     />
                 </FormControl>
 
-                <FormControl fullWidth margin="normal" error={Boolean(errors.confirmPassword)} sx={{ mb: 3 }}>
+                <FormControl fullWidth margin="normal" error={Boolean(errors.confirmPassword)}>
                     <TextField
                         label="Confirm Password"
                         variant="outlined"
@@ -242,6 +275,21 @@ function AddUser({ user }) {
                         required
                     />
                 </FormControl>
+
+                <FormControl fullWidth margin="normal" error={Boolean(fileError)} sx={{ mb: 3 }}>
+                    <TextField
+                        label="User Photo"
+                        type="file"
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
+                        variant="outlined"
+                        onChange={handleFileChange}
+                        error={Boolean(fileError)}
+                    />
+                    {fileError && <FormHelperText error>{fileError}</FormHelperText>}
+                </FormControl>
+
 
                 <button type="submit" className="add-user-btn">{user ? 'Update User' : 'Add User'}</button>
             </form>

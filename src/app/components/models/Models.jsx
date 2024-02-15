@@ -217,7 +217,7 @@ function Models() {
                                     <div>
                                         <ConfirmationNumberIcon /> 
                                         <span className="model-date">
-                                            {model.modelId}
+                                            {model.modelNumber}
                                         </span>
                                     </div>
                                     <div>
@@ -319,7 +319,7 @@ function Models() {
                                         <ConfirmationNumberIcon /> 
                                         <EventIcon />
                                         <span className="model-date">
-                                            {highlightMatch(model.modelId, query)}
+                                            {highlightMatch(model.modelNumber, query)}
                                         </span>
                                     </div>
                                     <div>

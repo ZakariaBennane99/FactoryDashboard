@@ -6,7 +6,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 function AddModel({ mdl }) {
     const [model, setModel] = useState({
         orderId: mdl ? mdl.orderId : '',
-        modelId: mdl ? mdl.modelId : null,
+        modelNumber: mdl ? mdl.modelId : null,
         modelName: mdl ? mdl.modelName : 0,
         templateType: mdl ? mdl.templateType : '',
         color: mdl ? mdl.color : '',
@@ -68,11 +68,11 @@ function AddModel({ mdl }) {
 
                     <FormControl fullWidth margin="normal">
                         <TextField
-                            label="Model Id"
+                            label="Model Number"
                             variant="outlined"
-                            type="number"
-                            value={model.modelId}
-                            onChange={handleChange('modelId')}
+                            type="string"
+                            value={model.modelNumber}
+                            onChange={handleChange('modelNumber')}
                             required
                         />
                     </FormControl>

@@ -37,7 +37,7 @@
     border-radius: 3px;
 }
 
-.depart-card.material div svg:not(#delete-icon, #edit-icon) {
+.depart-card.material div svg:not(#delete-icon, #edit-icon, #material-reports) {
     margin-right: 15px;
     font-size: x-large;
 }

@@ -19,7 +19,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import ReportDate from './ReportDates'
+import ReportDates from './ReportDates'
 
 
 
@@ -135,7 +135,7 @@ function Materials() {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
                 children: ( 
-                    <ReportDate materialId={i} />
+                    <ReportDates materialId={i} materialName={materials[i].name} />
                 )
             }));
         }, 100);
@@ -272,7 +272,7 @@ function Materials() {
                                 <div className="depart-card dialog material">
                                     <div id="edit-container">
                                         <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-
+                                        <AccountTreeIcon id="material-reports" onClick={() => handleReports(index)} />
                                         <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
                                     </div>
                                 <div>

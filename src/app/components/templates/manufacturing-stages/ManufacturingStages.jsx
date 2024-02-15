@@ -143,10 +143,7 @@ function ManufacturingStages() {
                     <span>Add Manufacturing Stage</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Manufacturing Stages" type="search" />
-                <button className="filter-btn">
-                    <img src="/assets/gen/filter.svg" /> 
-                    <span>Filter</span>
-                </button>
+
             </div>  
 
             <div className="main-content">

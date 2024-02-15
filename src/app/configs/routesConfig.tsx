@@ -7,7 +7,6 @@ import SignInConfig from '../main/sign-in/SignInConfig';
 import SignUpConfig from '../main/sign-up/SignUpConfig';
 import SignOutConfig from '../main/sign-out/SignOutConfig';
 import Error404Page from '../main/404/Error404Page';
-import WarehousesConfig from '../main/stores/warehouses/WarehousesConfig'
 import DepartmentConfig from '../main/departments/DepartementsConfig';
 import UsersConfig from '../main/users/UsersConfig';
 import SuppliersConfig from '../main/stores/suppliers/WarehousesConfig';
@@ -34,21 +33,21 @@ import orderDetails from '../main/orders/orderDetails/orderDetails/OrderDetailsC
 import orderDetailColors from '../main/orders/orderDetails/colors/ColorsConfig'
 import orderDetailSizes from '../main/orders/orderDetails/sizes/SizesConfig'
 import orderDetailTemplateTypes from '../main/orders/orderDetails/templateTypes/TemplateTypesConfig'
-import tableConfig from '../../app/configs/tableConfig'
 import modelsConfig from '../main/orders/models/ModelsConfig'
-
-
+import materialReportsConfig from '../main/material-reports/MaterialReportsConfig'
+import taskConfig from '../main/tasks/TasksConfig'  
 
 
 const routeConfigs: FuseRouteConfigsType = [ 
 	UsersConfig, DepartmentConfig, SignOutConfig, SignInConfig, SignUpConfig,
-	...tableConfig, SuppliersConfig, MaterialsConfig, MaterialMovementsConfig,
+	SuppliersConfig, MaterialsConfig, MaterialMovementsConfig,
 	MaterialCategoriesConfig, InternalOrdersConfig, productCatalogues, 
 	productCataloguesCategoriesI, productCataloguesCategoriesII, productCataloguesDetails,
 	productCataloguesSeasons, productCataloguesTextiles, templatesComponents,
 	templatesManufacturingStages, templatesPatterns, templatesSizes, templatesTypes,
 	templates, orderColors, orderSizes, orders, orderDetails, orderDetailColors, 
-	orderDetailSizes, orderDetailTemplateTypes, modelsConfig 
+	orderDetailSizes, orderDetailTemplateTypes, modelsConfig, materialReportsConfig,
+	taskConfig 
 ];
 
 /**

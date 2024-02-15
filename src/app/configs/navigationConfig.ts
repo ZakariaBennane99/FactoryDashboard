@@ -12,10 +12,9 @@ i18next.addResourceBundle('ar', 'navigation', ar);
 const navigationConfig: FuseNavigationType = [
 	{
 		id: 'engineeringOffice',
-		title: 'engineeringOffice',
+		title: 'Engineering Office',
 		type: 'group',
 		icon: 'heroicons-outline:home',
-		translate: 'ENGINEERING-OFFICE',
 		children: [
 			{
 				id: 'dashboard',
@@ -27,11 +26,10 @@ const navigationConfig: FuseNavigationType = [
 			},
 			{
 				id: 'productCatalogues',
-				title: 'ProductCatalogue',
+				title: 'Product Catalogues',
 				type: 'collapse',
 				icon: 'heroicons-outline:puzzle',
 				url: 'product-catalogues',
-				translate: 'Product-Catalogues',
 				children: [
 					{
 						id: 'basic-properties',
@@ -220,7 +218,6 @@ const navigationConfig: FuseNavigationType = [
 				title: 'Store Management',
 				type: 'collapse',
 				icon: 'heroicons-outline:color-swatch',
-				url: '/store-management',
 				children: [
 					{
 						id: 'cf-warehouses',
@@ -247,10 +244,9 @@ const navigationConfig: FuseNavigationType = [
 			},
 			{
 				id: 'storeProcesses',
-				title: 'Store-Processes',
+				title: 'Store Processes',
 				type: 'collapse',
 				icon: 'heroicons-outline:switch-vertical',
-				translate: 'Store-Processes',
 				children: [
 					{
 						id: 'cf-materials',
@@ -267,6 +263,14 @@ const navigationConfig: FuseNavigationType = [
 						end: true
 					}
 				]
+			},
+			{
+				id: 'cf-iorders',
+				title: 'Material Reports',
+				type: 'item',
+				url: 'material-reports',
+				icon: 'heroicons-outline:document-text',
+				end: true
 			}
 		],
 	},

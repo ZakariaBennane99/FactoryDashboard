@@ -9,6 +9,8 @@ app.use(cors());
 
 app.options('*', cors()); 
 
+app.use(express.json());
+
 // Define a simple GET route
 app.get('/departments', (req, res) => {
   res.json({ departments: [
@@ -1434,39 +1436,301 @@ app.get('/models', (req, res) => {
 });
 
 
+// generate report
+app.post('/generate-report', (req, res) => {
 
-// generate reports
-app.get('/order-detail-sizes', (req, res) => {
-  res.json({
-    report: [
+  try {
+    const { materialId, from, to } = req.body;
+
+    const allReports = [
       {
-      internalOrdersId: 123,
-      movementId: 4312,
-      from: 'Department',
-      to: 'warehouse',
-      quantity: 23,
-      date: '12-01-1990'
-    },
-    {
-      internalOrdersId: 1234,
-      movementId: 432,
-      from: 'Department',
-      to: 'Department',
-      quantity: 239,
-      date: '12-02-1990'
-    },
-    {
-      internalOrdersId: 8394,
-      movementId: 9345,
-      from: 'Warehouse',
-      to: 'Department',
-      quantity: 2339,
-      date: '12-03-1990'
+        materialId: 'M001',
+        reports: [
+          {
+            internalOrdersId: 1001,
+            movementId: 5001,
+            from: 'Department A',
+            to: 'Warehouse X',
+            quantity: 120,
+            color: 'Blue',
+            date: '2020-01-15' // Jan 15, 2020
+          },
+          {
+            internalOrdersId: 1002,
+            movementId: 5002,
+            from: 'Warehouse X',
+            to: 'Department B',
+            quantity: 200,
+            color: 'Blue',
+            date: '2020-04-10' // Apr 10, 2020
+          }
+        ]
+      },
+      {
+        materialId: 'M002',
+        reports: [
+          {
+            internalOrdersId: 1003,
+            movementId: 5003,
+            from: 'Department C',
+            to: 'Warehouse Y',
+            quantity: 150,
+            color: 'Blue',
+            date: '2020-07-21' // Jul 21, 2020
+          },
+          {
+            internalOrdersId: 1004,
+            movementId: 5004,
+            from: 'Warehouse Y',
+            to: 'Department D',
+            quantity: 180,
+            color: 'Blue',
+            date: '2021-02-11' // Feb 11, 2021
+          }
+        ]
+      },
+      {
+        materialId: 'M003',
+        reports: [
+          {
+            internalOrdersId: 1005,
+            movementId: 5005,
+            from: 'Department E',
+            to: 'Warehouse Z',
+            quantity: 220,
+            color: 'Blue',
+            date: '2021-08-30' // Aug 30, 2021
+          },
+          {
+            internalOrdersId: 1006,
+            movementId: 5006,
+            from: 'Warehouse Z',
+            to: 'Department F',
+            quantity: 250,
+            color: 'Blue',
+            date: '2022-01-01' // Jan 1, 2022
+          }
+        ]
+      }
+    ];
+  
+    const materialReports = allReports.find(report => report.materialId === materialId);
+
+    const startDate = new Date(from);
+    const endDate = new Date(to);
+
+    const filteredReports = materialReports.reports.filter(report => {
+      const reportDate = new Date(report.date);
+      
+      // Convert to UTC dates for comparison
+      const reportDateUTC = Date.UTC(reportDate.getFullYear(), reportDate.getMonth(), reportDate.getDate());
+      const startDateUTC = Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+      const endDateUTC = Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
+      return reportDateUTC >= startDateUTC && reportDateUTC <= endDateUTC;
+    });
+
+    if (filteredReports.length === 0) {
+      return res.status(404).json({ msg: 'There is no report for these dates!' });
+    } else {
+      return res.json({ report: filteredReports });
     }
-  ]
-  });
+
+  } catch (error) {
+    console.log('THE ERROR', error)
+    console.error('Server Error:', error);
+    res.status(500).json({ msg: 'Internal Server Error' });
+  }
+
 });
 
+// generate reports
+app.post('/generate-reports', (req, res) => {
+
+  try {
+    const { materialIds, from, to } = req.body;
+
+    const allReports = [
+      {
+        materialId: 'M001',
+        reports: [
+          { 
+            materialName: 'Material 1',
+            internalOrdersId: 1001,
+            movementId: 5001,
+            from: 'Department A',
+            to: 'Warehouse X',
+            quantity: 120,
+            color: 'Blue',
+            date: '2020-01-15' // Jan 15, 2020
+          },
+          { 
+            materialName: 'Material 1',
+            internalOrdersId: 1002,
+            movementId: 5002,
+            from: 'Warehouse X',
+            to: 'Department B',
+            quantity: 200,
+            color: 'Blue',
+            date: '2020-04-10' // Apr 10, 2020
+          }
+        ]
+      },
+      {
+        materialId: 'M002',
+        reports: [
+          {
+            materialName: "Material 2",
+            internalOrdersId: 1003,
+            movementId: 5003,
+            from: 'Department C',
+            to: 'Warehouse Y',
+            quantity: 150,
+            color: 'Blue',
+            date: '2020-07-21' // Jul 21, 2020
+          },
+          {
+            materialName: "Material 2",
+            internalOrdersId: 1004,
+            movementId: 5004,
+            from: 'Warehouse Y',
+            to: 'Department D',
+            quantity: 180,
+            color: 'Blue',
+            date: '2021-02-11' // Feb 11, 2021
+          }
+        ]
+      },
+      {
+        materialId: 'M003',
+        reports: [
+          { 
+            materialName: "Material 3",
+            internalOrdersId: 1005,
+            movementId: 5005,
+            from: 'Department E',
+            to: 'Warehouse Z',
+            quantity: 220,
+            color: 'Blue',
+            date: '2021-08-30' // Aug 30, 2021
+          },
+          { 
+            materialName: "Material 3",
+            internalOrdersId: 1006,
+            movementId: 5006,
+            from: 'Warehouse Z',
+            to: 'Department F',
+            quantity: 250,
+            color: 'Blue',
+            date: '2022-01-01' // Jan 1, 2022
+          }
+        ]
+      }
+    ];
+
+    // Filter reports for the given materialIds
+    const materialReports = allReports.filter(report => materialIds.includes(report.materialId));
+
+    const startDate = new Date(from);
+    const endDate = new Date(to);
+
+    const filteredReports = materialReports.map(report => {
+      const reports = report.reports.filter(reportDetail => {
+        const reportDate = new Date(reportDetail.date);
+        
+        // Convert to UTC dates for comparison
+        const reportDateUTC = Date.UTC(reportDate.getFullYear(), reportDate.getMonth(), reportDate.getDate());
+        const startDateUTC = Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        const endDateUTC = Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
+        return reportDateUTC >= startDateUTC && reportDateUTC <= endDateUTC;
+      });
+
+      return {
+        materialId: report.materialId,
+        materialName: report.reports[0].materialName,
+        reports
+      };
+    }).filter(report => report.reports.length > 0);
+
+    if (filteredReports.length === 0) {
+      return res.status(404).json({ msg: 'There are no reports for these dates and material IDs!' });
+    } else {
+      return res.json({ reports: filteredReports });
+    }
+
+  } catch (error) {
+    console.log('THE ERROR', error)
+    console.error('Server Error:', error);
+    res.status(500).json({ msg: 'Internal Server Error' });
+  }
+
+});
+
+
+// order detail size
+app.get('/tasks', (req, res) => {
+  res.json({
+    tasks: [
+      {
+        taskName: "Finalize Fabric Selection",
+        dueDate: "2024-02-28T12:00:00Z",
+        status: "ONGOING",
+        priority: "HIGH",
+        assignedToDepartment: "Design",
+        createdByDepartment: "Product Management"
+      },
+      {
+        taskName: "Update Production Schedule",
+        dueDate: "2024-03-05T09:00:00Z",
+        status: "PENDING",
+        priority: "MEDIUM",
+        assignedToDepartment: "Production",
+        createdByDepartment: "Operations"
+      },
+      {
+        taskName: "Quality Check for Batch #34",
+        dueDate: "2024-03-10T16:00:00Z",
+        status: "PENDING",
+        priority: "HIGH",
+        assignedToDepartment: "Quality Control",
+        createdByDepartment: "Production"
+      },
+      {
+        taskName: "Inventory Reassessment",
+        dueDate: "2024-02-25T10:00:00Z",
+        status: "COMPLETED",
+        priority: "LOW",
+        assignedToDepartment: "Warehouse",
+        createdByDepartment: "Supply Chain"
+      },
+      {
+        taskName: "Staff Training on New Machinery",
+        dueDate: "2024-04-01T14:00:00Z",
+        status: "ONGOING",
+        priority: "HIGH",
+        assignedToDepartment: "Human Resources",
+        createdByDepartment: "Operations"
+      },
+      {
+        taskName: "Prepare Seasonal Marketing Plan",
+        dueDate: "2024-03-15T17:00:00Z",
+        status: "PENDING",
+        priority: "MEDIUM",
+        assignedToDepartment: "Marketing",
+        createdByDepartment: "Sales"
+      },
+      {
+        taskName: "Develop New Design Templates",
+        dueDate: "2024-03-20T11:00:00Z",
+        status: "PENDING",
+        priority: "HIGH",
+        assignedToDepartment: "Design",
+        createdByDepartment: "Product Management"
+      }
+    ]           
+  });
+});
 
 // Start the server
 app.listen(port, () => {

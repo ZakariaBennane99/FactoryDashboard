@@ -176,10 +176,7 @@ function InternalOrders() {
                     <span>Add Internal Order</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Internal Orders" type="search" />
-                <button className="filter-btn">
-                    <img src="/assets/gen/filter.svg" /> 
-                    <span>Filter</span>
-                </button>
+
             </div>  
 
             <div className="main-content">

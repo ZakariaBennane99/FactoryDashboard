@@ -147,10 +147,6 @@ function CategoriesI() {
                     <span>Add Category I</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Categories I" type="search" />
-                <button className="filter-btn">
-                    <img src="/assets/gen/filter.svg" /> 
-                    <span>Filter</span>
-                </button>
             </div>  
 
             <div className="main-content">

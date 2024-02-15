@@ -101,18 +101,30 @@ function UserMenu() {
 						</MenuItem>
 					</>
 				) : (
-					<MenuItem
-						component={NavLink}
-						to="/sign-out"
-						onClick={() => {
-							userMenuClose();
-						}}
-					>
-						<ListItemIcon className="min-w-40">
-							<FuseSvgIcon>heroicons-outline:logout</FuseSvgIcon>
-						</ListItemIcon>
-						<ListItemText primary="Sign out" />
-					</MenuItem>
+					<>
+						<MenuItem
+							component={NavLink}
+							to="/profile"
+							onClick={userMenuClose}
+						>
+							<ListItemIcon className="min-w-40">
+								<FuseSvgIcon>heroicons-outline:user-circle</FuseSvgIcon>
+							</ListItemIcon>
+							<ListItemText primary="Profile" />
+						</MenuItem>
+						<MenuItem
+							component={NavLink}
+							to="/sign-out"
+							onClick={() => {
+								userMenuClose();
+							}}
+						>
+							<ListItemIcon className="min-w-40">
+								<FuseSvgIcon>heroicons-outline:logout</FuseSvgIcon>
+							</ListItemIcon>
+							<ListItemText primary="Sign out" />
+						</MenuItem>
+					</>	
 				)}
 			</Popover>
 		</>

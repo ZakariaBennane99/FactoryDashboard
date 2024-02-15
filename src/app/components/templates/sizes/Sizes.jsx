@@ -153,10 +153,7 @@ function Sizes() {
                     <span>Add Template Size</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Sizes" type="search" />
-                <button className="filter-btn">
-                    <img src="/assets/gen/filter.svg" /> 
-                    <span>Filter</span>
-                </button>
+
             </div>  
 
             <div className="main-content">

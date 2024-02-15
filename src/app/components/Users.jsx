@@ -154,7 +154,7 @@ function Users() {
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingUser}>
+                <button className="add-btn users" onClick={handleAddingUser}>
                     <img src="/assets/gen/plus.svg" /> 
                     <span>Add User</span>
                 </button>
