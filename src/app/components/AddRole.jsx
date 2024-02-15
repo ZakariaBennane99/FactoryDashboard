@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import jwtService from '../auth/services/jwtService';
+
 
 function AddRole() {
     const [roleDetails, setRoleDetails] = useState({
@@ -7,13 +12,49 @@ function AddRole() {
         description: '',
     });
 
+    const dispatch = useAppDispatch()
+
     const handleChange = (prop) => (event) => {
         setRoleDetails({ ...roleDetails, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
+    function showMsg(msg, status) {
+        // take the itemId, and delete the item
+    
+        // then close the dialog, and show a quick message
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
         console.log(roleDetails);
+
+        try {
+            // @route: /api/auth/createNewUser
+            // @description: create new user using the request data
+            const res = await jwtService.addUserRole({ 
+                currentUserId: user.currentUserId,
+                data: roleDetails
+             });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg('User has been successfully created!', 'success')
+            }
+        } catch (_errors) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg('User creation failed. Please try again.!', 'error')
+        }
+
     };
 
     return (

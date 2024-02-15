@@ -1,8 +1,15 @@
 import { useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box, FormHelperText } from '@mui/material';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import jwtService from '../auth/services/jwtService';
+
 
 
 function AddUser({ user }) { 
+
+    const dispatch = useAppDispatch()
 
     const [fileError, setFileError] = useState('');
 
@@ -34,7 +41,8 @@ function AddUser({ user }) {
         phoneNumber: user ? user.phoneNumber : '',
         email: user ? user.email : '',
         department: user ? user.department : '',
-        userRole: user ? user.userRole : ''
+        userRole: user ? user.userRole : '',
+        profileImage: null
     });
 
     const [errors, setErrors] = useState({
@@ -85,7 +93,37 @@ function AddUser({ user }) {
         }
     };
 
-    const handleSubmit = async (event) => {
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const validExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (validExtensions.includes(file.type)) {
+                // set the file to state
+                setUser({...usr, profileImage: file});
+            } else {
+                setFileError('Invalid file type. Only JPG, JPEG, and PNG files are allowed.');
+            }
+        }
+    }
+
+    function showMsg(msg, status) {
+        // take the itemId, and delete the item
+    
+        // then close the dialog, and show a quick message
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    const handleAddUser = async (event) => {
         event.preventDefault();
         let formIsValid = true;
 
@@ -110,48 +148,111 @@ function AddUser({ user }) {
         setErrors(newErrors);
 
         if (formIsValid) {
-            console.log('Form is valid, submitting data:', usr);
-            // create a new user
+
+            // Create a FormData object
+            const formData = new FormData();
+            // Append the file to formData if it exists
+            if (usr.profileImage) {
+                formData.append('profileImage', usr.profileImage);
+            }
+        
+            // Append other user fields to formData
+            formData.append('firstName', usr.firstName);
+            formData.append('lastName', usr.lastName);
+            formData.append('userName', usr.userName);
+            formData.append('password', usr.password);
+            formData.append('phoneNumber', usr.phoneNumber);
+            formData.append('email', usr.email);
+            formData.append('department', usr.department);
+            formData.append('userRole', usr.userRole);
+
             try {
-                await jwtService.createUser({
-                    firstName: usr.firstName,
-                    lastName: usr.lastName,
-                    userName: usr.userName,
-                    password: usr.password,
-                    phoneNumber: usr.phoneNumber,
-                    email: usr.email,
-                    department: usr.department,
-                    userRole: usr.userRole
-                    // we need to find a way to handle the photo upload
-                });
+                // @route: /api/auth/createNewUser
+                // @description: create new user using the request data
+                const res = await jwtService.createUser({ 
+                    currentUserId: user.currentUserId,
+                    data: formData
+                 }, { 'Content-Type': 'multipart/form-data' });
+                if (res) {
+                    // the msg will be sent so you don't have to hardcode it
+                    showMsg('User has been successfully created!', 'success')
+                }
             } catch (_errors) {
-                
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg('User creation failed. Please try again.!', 'error')
             }
         } else {
             console.log('Form is invalid, please review errors.');
         }
     };
-    
 
-    const handleFileChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const validExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
-            if (validExtensions.includes(file.type)) {
-                console.log(file); 
-                // set the file to state or upload it
-                // setUser({...usr, profileImage: file});
-                setFileError(''); 
-            } else {
-                setFileError('Invalid file type. Only JPG, JPEG, and PNG files are allowed.');
+    const handleUpdateUser = async (event) => {
+        event.preventDefault();
+        let formIsValid = true;
+
+        // Check for fields and apply validations
+        let newErrors = {
+            userName: '', 
+            firstName: '',
+            lastName: '',
+            email: usr.email ? (validateEmail(usr.email) ? '' : 'Invalid email format.') : '',
+            phoneNumber: usr.phoneNumber ? (validateSyrianPhoneNumber(usr.phoneNumber) ? '' : 'Invalid Syrian phone number.') : '',
+            password: usr.password ? (validateStrongPassword(usr.password) ? '' : 'Password is not strong enough.') : '',
+            confirmPassword: (usr.password && usr.confirmPassword) ? (usr.password === usr.confirmPassword ? '' : 'Passwords do not match.') : '',
+            userRole: '',
+            department: ''
+        };
+
+        // Determine form validity
+        Object.values(newErrors).forEach(error => {
+            if (error) formIsValid = false;
+        });
+
+        setErrors(newErrors);
+
+        if (formIsValid) {
+
+            // Create a FormData object
+            const formData = new FormData();
+        
+            // Append the file to formData if it exists
+            if (usr.profileImage) {
+                formData.append('profileImage', usr.profileImage);
             }
+        
+            // Append other user fields to formData
+            formData.append('firstName', usr.firstName);
+            formData.append('lastName', usr.lastName);
+            formData.append('userName', usr.userName);
+            formData.append('password', usr.password);
+            formData.append('phoneNumber', usr.phoneNumber);
+            formData.append('email', usr.email);
+            formData.append('department', usr.department);
+            formData.append('userRole', usr.userRole);
+
+            try {
+                const res = await jwtService.updateUser({
+                    currentUserId: user.currentUserId,
+                    userId: user.id, 
+                    data: formData
+                }, { 'Content-Type': 'multipart/form-data' });
+                if (res) {
+                    // the msg will be sent so you don't have to hardcode it
+                    showMsg('User has been successfully updated!', 'success');
+                }
+            } catch (_errors) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg('User update failed. Please try again.', 'error');
+            }
+        } else {
+            console.log('Form is invalid, please review errors.');
         }
-    }
+    };
+
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
-
+            <form onSubmit={user ? handleUpdateUser : handleAddUser}>
                 <FormControl fullWidth margin="normal" error={Boolean(errors.userName)}>
                     <TextField
                         label="Username"

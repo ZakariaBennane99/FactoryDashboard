@@ -59,29 +59,37 @@ class JwtService extends FuseUtils.EventEmitter {
 	/**
 	 * Creates a new user account.
 	 */
-	createUser = (data) =>
+	createUser = (data, headers) =>
 		new Promise((resolve, reject) => {
-			axios.post(jwtServiceConfig.signUp, data).then(
+			// jwtServiceConfig.signUp to be changed to
+			// /api/auth/createNewUser
+			axios.post(jwtServiceConfig.signUp, data, headers).then(
 				(
 					response
 				) => {
 					if (response.data.user) {
+						// resolve with a success message and 201/200 code
 						_setSession(response.data.access_token);
 						resolve(response.data.user);
-						this.emit('onLogin', response.data.user);
 					} else {
 						reject(response.data.error);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error'
+						// 2. 'You don't have permission to edit' (forbidden) 
+						// 3. 'User has been successfully created!'
+						// 4. 'Phone Number/Username/email/departement already in use!'
 					}
 				}
 			);
-		});
+	});
 
 	/**
 	 * Signs in with the provided email and password.
 	 */
 	signInWithEmailAndPassword = (email, password) =>
 		new Promise((resolve, reject) => {
-			axios
+			axios  // jwtServiceConfig.signIn to be with api/auth/sign-in
 				.get(jwtServiceConfig.signIn, {
 					data: {
 						email,
@@ -92,6 +100,7 @@ class JwtService extends FuseUtils.EventEmitter {
 					(
 						response
 					) => {
+						// here everytihng will be returned by the backend
 						if (response.data.user) {
 							_setSession(response.data.access_token);
 							this.emit('onLogin', response.data.user);
@@ -132,10 +141,70 @@ class JwtService extends FuseUtils.EventEmitter {
 	/**
 	 * Updates the user data.
 	 */
-	updateUserData = (user) =>
-		axios.post(jwtServiceConfig.updateUser, {
-			user
+	updateUser = (data, headers) =>
+	    // jwtServiceConfig.updateUser to be changed to 
+		// api/auth/user/updateUser
+		new Promise((resolve, reject) => {
+			axios.put(jwtServiceConfig.updateUser, data, headers).then(
+				(response) => {
+					if (response.data) {
+						resolve(response.data); // return a ok msg with a 201/200
+					} else {
+						reject(response.data.error); 
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error'
+						// 2. 'You don't have permission to edit' (forbidden) 
+						// 3. 'User has been successfully updated!'
+						// 4. 'Phone Number/Username/email already in use!'
+					}
+				}
+			)
 		});
+
+    /**
+ 	 * Deletes a user.
+     */
+	deleteUser = (userId) =>
+	new Promise((resolve, reject) => {
+		// jwtServiceConfig.deleteUser to be changed
+		// api/auth/user/deleteUser
+		axios.delete(jwtServiceConfig.deleteUser, { userId })
+			.then(response => {
+				if (response.data) {
+					resolve(response.data); // send ok msg or 200/201
+				} else {
+					reject(response.data.error); 
+					// send back the error
+					// should return a msg for the error:
+					// 1. server error
+					// 2. you don't have permission to delete (forbidden) 
+				}
+			})
+	});
+
+	/**
+ 	 * Adds roles to a user account.
+ 	 */
+	addUserRole = (userId, roles) =>
+	new Promise((resolve, reject) => {
+		// Change the URL to the appropriate endpoint for adding roles to a user
+		axios.post(`/api/auth/user/${userId}/addRole`, { roles })
+			.then(response => {
+				if (response.data.success) {
+					// Resolve with a success message and appropriate status code
+					resolve(response.data.message); 
+					// 'The User Role has been successfully added!'
+				} else {
+					// Reject with the error message and a consistent error code
+					reject(response.data.error);
+					// Potential error messages:
+					// 1. 'Server error'
+					// 2. 'You don't have permission to add roles' (forbidden)
+					// 3. 'The user Role is already in use!' (another role with the same name exist)
+				}
+			})
+	});
 
 	/**
 	 * Signs out the user.
