@@ -36,8 +36,8 @@ function AddRole() {
     }
 
     const handleSubmit = async (event) => {
+        
         event.preventDefault();
-        console.log(roleDetails);
 
         try {
             // @route: /api/auth/createNewUser

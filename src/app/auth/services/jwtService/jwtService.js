@@ -103,6 +103,7 @@ class JwtService extends FuseUtils.EventEmitter {
 						// here everytihng will be returned by the backend
 						if (response.data.user) {
 							_setSession(response.data.access_token);
+							setUserId(response.data.userId)
 							this.emit('onLogin', response.data.user);
 							resolve(response.data.user);
 						} else {
@@ -113,7 +114,7 @@ class JwtService extends FuseUtils.EventEmitter {
 		});
 
 	/**
-	 * Signs in with the provided provider.
+	 * Signs in with the provided token.
 	 */
 	signInWithToken = () =>
 		new Promise((resolve, reject) => {
@@ -149,36 +150,38 @@ class JwtService extends FuseUtils.EventEmitter {
 				(response) => {
 					if (response.data) {
 						resolve(response.data); // return a ok msg with a 201/200
+						// 'User has been successfully updated!'
 					} else {
 						reject(response.data.error); 
 						// send back the error + consistent error code: 404, 401..
 						// should return a msg for the error:
 						// 1. 'Server error'
-						// 2. 'You don't have permission to edit' (forbidden) 
-						// 3. 'User has been successfully updated!'
-						// 4. 'Phone Number/Username/email already in use!'
+						// 2. 'You don't have permission to edit' (forbidden
+						// 3. 'Phone Number/Username/email already in use!'
 					}
 				}
 			)
 		});
 
     /**
- 	 * Deletes a user.
+ 	 * Deletes an item.
      */
-	deleteUser = (userId) =>
+	deleteItem = (itemInfo) =>
 	new Promise((resolve, reject) => {
-		// jwtServiceConfig.deleteUser to be changed
-		// api/auth/user/deleteUser
-		axios.delete(jwtServiceConfig.deleteUser, { userId })
+		axios.delete(`api/delete/${itemInfo.itemType}`, { 
+			currentUserId: itemInfo.currentUserId,
+			itemId: itemInfo.itemId
+		})
 			.then(response => {
 				if (response.data) {
 					resolve(response.data); // send ok msg or 200/201
+					// 'Item has been successfully deleted.'
 				} else {
 					reject(response.data.error); 
 					// send back the error
 					// should return a msg for the error:
 					// 1. server error
-					// 2. you don't have permission to delete (forbidden) 
+					// 2. you don't have permission to delete this item (forbidden)
 				}
 			})
 	});
@@ -186,22 +189,22 @@ class JwtService extends FuseUtils.EventEmitter {
 	/**
  	 * Adds roles to a user account.
  	 */
-	addUserRole = (userId, roles) =>
+	addUserRole = (data) =>
 	new Promise((resolve, reject) => {
 		// Change the URL to the appropriate endpoint for adding roles to a user
-		axios.post(`/api/auth/user/${userId}/addRole`, { roles })
+		axios.post(`/api/auth/user/addRole`, data)
 			.then(response => {
 				if (response.data.success) {
 					// Resolve with a success message and appropriate status code
 					resolve(response.data.message); 
-					// 'The User Role has been successfully added!'
+					// 'User Role has been successfully added!'
 				} else {
 					// Reject with the error message and a consistent error code
 					reject(response.data.error);
 					// Potential error messages:
 					// 1. 'Server error'
 					// 2. 'You don't have permission to add roles' (forbidden)
-					// 3. 'The user Role is already in use!' (another role with the same name exist)
+					// 3. 'User Role is already in use!' (another role with the same name exist, check with/without case sensitivity)
 				}
 			})
 	});
@@ -213,6 +216,7 @@ class JwtService extends FuseUtils.EventEmitter {
 		_setSession(null);
 		this.emit('onLogout', 'Logged out');
 	};
+
 }
 
 /**
@@ -259,6 +263,13 @@ function getAccessToken() {
  */
 function setAccessToken(access_token) {
 	return window.localStorage.setItem('jwt_access_token', access_token);
+}
+
+/**
+ * Sets the userId in the local storage.
+ */
+function setUserId(userId) {
+	return window.localStorage.setItem('userId', userId);
 }
 
 /**

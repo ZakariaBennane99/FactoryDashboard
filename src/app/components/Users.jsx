@@ -126,7 +126,7 @@ function Users() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType='user' />
                 )
             }));
         }, 100);

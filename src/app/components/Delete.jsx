@@ -5,28 +5,48 @@ import { useAppDispatch } from 'app/store';
 
 
 
-function DeleteItem({ itemId }) {
+function DeleteItem({ itemId, itemType }) {
+
+    const currentUserId = window.localStorage.getItem('userId')
 
     const dispatch = useAppDispatch();
 
 
-    // this function will call the backend to 
-    // delete the item
-    async function deleteItem() {
-        // take the itemId, and delete the item
-
+    function showMsg(msg, status) {
         // then close the dialog, and show a quick message
         dispatch(closeDialog())
         setTimeout(()=> dispatch(
             showMessage({
-                message: 'Item deleted successfully!', // text or html
+                message: msg, //'Item deleted successfully!', // text or html
                 autoHideDuration: 3000, // ms
                 anchorOrigin: {
                     vertical  : 'top', // top bottom
                     horizontal: 'center' // left center right
                 },
-                variant: 'success' // success error info warning null
+                variant: status // success error info warning null
             })), 100);
+    }
+
+
+    // this function will call the backend to 
+    // delete the item depending on the itemType
+    async function deleteItem() {
+        try {
+            // @route: /api/delete/{itemType}
+            // @description: delete an item
+            const res = await jwtService.deleteItem({ 
+                currentUserId: currentUserId,
+                itemType: itemType,
+                itemId: itemId
+             });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg('User has been successfully created!', 'success')
+            }
+        } catch (_errors) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg('User creation failed. Please try again.!', 'error')
+        }
     }
 
     return (
@@ -40,4 +60,4 @@ function DeleteItem({ itemId }) {
     )
 }
 
-export default DeleteItem;
+export default DeleteItem
