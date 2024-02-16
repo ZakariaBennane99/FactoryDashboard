@@ -58,13 +58,6 @@ const navigationConfig: FuseNavigationType = [
 								end: true
 							},
 							{
-								id: 't-templatepatterns',
-								title: 'Colors',
-								type: 'item',
-								url: 'orders/details/colors',
-								end: true
-							},
-							{
 								id: 'pc-productcatalogdetails',
 								title: 'Seasons',
 								type: 'item',
@@ -309,7 +302,7 @@ const navigationConfig: FuseNavigationType = [
 				id: 'actions',
 				title: 'Actions',
 				type: 'collapse',
-				icon: 'heroicons-outline:hand',
+				icon: 'heroicons-outline:switch-horizontal',
 				url: '/actions',
 				translate: 'Actions',
 				children: [

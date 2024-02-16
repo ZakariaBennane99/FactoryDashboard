@@ -80,7 +80,6 @@ function AddDepartment({ dprt }) {
                         value={department.description}
                         onChange={handleChange('description')}
                         variant="outlined"
-                        required
                     />
                 </FormControl>
 

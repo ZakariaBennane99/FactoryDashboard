@@ -165,7 +165,6 @@ function AddModel({ mdl }) {
                             type="string"
                             value={model.notes}
                             onChange={handleChange('notes')}
-                            required
                         />
                     </FormControl>
 

@@ -38,7 +38,6 @@ function AddProductCatalogue({  prdctCatalogue }) {
                         onChange={handleChange('description')}
                         multiline
                         rows={3}
-                        required
                     />
                 </FormControl>
 
