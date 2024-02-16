@@ -128,6 +128,8 @@ function Colors() {
         }, 100);
     }
 
+
+    
     return (
         <div className="parent-container">
 

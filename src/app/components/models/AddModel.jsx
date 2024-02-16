@@ -2,8 +2,35 @@ import { useState } from 'react';
 import { FormControl, TextField, Box, InputLabel, Select, MenuItem,  } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import jwtService from '../../../app/auth/services/jwtService';
+
 
 function AddModel({ mdl }) {
+
+    const dispatch = useAppDispatch()
+
+    // this will host an object of arrays for orderIds, templateTypeIds, colors
+    // and sizes to be fetched from the backend
+    const [modelExistingData, setModelExistingData] = useState({
+        orderIds: [
+            123, 41234, 12341, 2135
+        ],
+        templateTypeIds: [
+            123, 41234, 12341, 2135
+        ],
+        colors: [
+            "Red", "White", "Blue", "Black"
+        ],
+        sizes: [
+            "XL", "L", "M", "S"
+        ]
+    })
+
+    const currentUserId = window.localStorage.getItem('userId')
+
     const [model, setModel] = useState({
         orderId: mdl ? mdl.orderId : '',
         modelNumber: mdl ? mdl.modelId : null,
@@ -20,35 +47,105 @@ function AddModel({ mdl }) {
         setModel({ ...model, [prop]: event.target.value });
     };
 
-    const handleDateChange = (date) => {
-        setModel({ ...model, modelDate: date });
-    };
+    function showMsg(msg, status) {
+        // take the itemId, and delete the item
+    
+        // then close the dialog, and show a quick message
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
-    const handleSubmit = (event) => {
+    const handleAddModel = async (event) => {
         event.preventDefault();
-        console.log(model);
+
+        try {
+            // @route: api/create/model
+            // @description: create a new model
+            const res = await jwtService.createItem({ 
+                itemType: 'model',
+                data: {
+                    data: model,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        }  
     };
 
-    const orderIds = [
-        123, 41234, 12341, 2135
-    ]
+    const handleUpdateModel = async (event) => {
+        event.preventDefault();
 
-    const templateTypeIds = [
-        123, 41234, 12341, 2135
-    ]
+        try {
+            // @route: api/update/model
+            // @description: update an existing model
+            const res = await jwtService.updateItem({ 
+                itemType: 'model',
+                data: {
+                    data: model,
+                    currentUserId: currentUserId,
+                    itemId: model.modelId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg('Model has been successfully Updated!', 'success')
+            }
+        } catch (_errors) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg('Updating model failed. Please try again.!', 'error')
+        }  
+        
+    };
 
-    const colors = [
-        "Red", "White", "Blue", "Black"
-    ]
 
-    const sizes = [
-        "XL", "L", "M", "S"
-    ]
+        /* TO BE UNCOMMENTED IN PRODUCTION
+    // get existing Model Data
+    useEffect(() => {    
+        async function getModelData() {
+            try {
+                // @route: api/modelData
+                // @description: get Model Data <colors, sizes, orderIds, templateTypes>
+                const res = await jwtService.getModelData({ 
+                    currentUserId: currentUserId
+                });
+                if (res) {
+                    setModelExistingData({
+                        orderIds: res.orderIds,
+                        templateTypeIds: res.templateTypeIds,
+                        colors: res.colors,
+                        sizes: res.sizes
+                    })
+                }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getModelData();
+    }, []);*/
+
+
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={mdl ? handleUpdateModel : handleAddModel}>
 
                     <FormControl fullWidth margin="normal">
                         <InputLabel id="model-name-select-label">Order Id</InputLabel>
@@ -60,7 +157,7 @@ function AddModel({ mdl }) {
                             onChange={handleChange('orderId')}
                             required
                         >
-                            {orderIds.map((name, index) => (
+                            {modelExistingData.orderIds.map((name, index) => (
                                 <MenuItem key={index} value={name}>{name}</MenuItem>
                             ))}
                         </Select>
@@ -98,7 +195,7 @@ function AddModel({ mdl }) {
                             onChange={handleChange('templateType')}
                             required
                         >
-                            {templateTypeIds.map((name, index) => (
+                            {modelExistingData.templateTypeIds.map((name, index) => (
                                 <MenuItem key={index} value={name}>{name}</MenuItem>
                             ))}
                         </Select>
@@ -114,7 +211,7 @@ function AddModel({ mdl }) {
                             onChange={handleChange('color')}
                             required
                         >
-                            {colors.map((name, index) => (
+                            {modelExistingData.colors.map((name, index) => (
                                 <MenuItem key={index} value={name}>{name}</MenuItem>
                             ))}
                         </Select>
@@ -130,7 +227,7 @@ function AddModel({ mdl }) {
                             onChange={handleChange('size')}
                             required
                         >
-                            {sizes.map((name, index) => (
+                            {modelExistingData.sizes.map((name, index) => (
                                 <MenuItem key={index} value={name}>{name}</MenuItem>
                             ))}
                         </Select>

@@ -9,6 +9,8 @@ import jwtService from '../auth/services/jwtService';
 
 function AddUser({ user }) { 
 
+    const currentUserId = window.localStorage.getItem('userId')
+
     const dispatch = useAppDispatch()
 
     const [fileError, setFileError] = useState('');
@@ -28,9 +30,6 @@ function AddUser({ user }) {
         'Departments Head', 
         'Factory Manager'
     ]);
-
-    // Mockup for existing usernames from DB
-    const existingUsernames = ['johnDoe', 'janeDoe']; 
 
     const [usr, setUser] = useState({
         firstName: user ? user.firstName : '',
@@ -71,11 +70,7 @@ function AddUser({ user }) {
         setErrors(prev => ({ ...prev, [prop]: '' }));
 
         // Field-specific validations
-        if (prop === 'userName') {
-            if (existingUsernames.includes(value)) {
-                setErrors(prev => ({ ...prev, userName: 'Username is already taken.' }));
-            }
-        } else if (prop === 'email' && !validateEmail(value)) {
+        if (prop === 'email' && !validateEmail(value)) {
             setErrors(prev => ({ ...prev, email: 'Invalid email format.' }));
         } else if (prop === 'phoneNumber' && !validateSyrianPhoneNumber(value)) {
             setErrors(prev => ({ ...prev, phoneNumber: 'Invalid phone number.' }));
@@ -129,7 +124,7 @@ function AddUser({ user }) {
 
         // Check for empty fields and apply validations
         let newErrors = {
-            userName: usr.userName ? (existingUsernames.includes(usr.userName) ? 'Username is already taken.' : '') : 'Username is required.',
+            userName: usr.userName ? '' : 'Username is required.',
             firstName: usr.firstName ? '' : 'First name is required.',
             lastName: usr.lastName ? '' : 'Last name is required.',
             email: usr.email ? (validateEmail(usr.email) ? '' : 'Invalid email format.') : 'Email is required.',
@@ -167,11 +162,14 @@ function AddUser({ user }) {
             formData.append('userRole', usr.userRole);
 
             try {
-                // @route: /api/auth/createNewUser
+                // @route: api/update/user
                 // @description: create new user using the request data
-                const res = await jwtService.createUser({ 
-                    currentUserId: user.currentUserId,
-                    data: formData
+                const res = await jwtService.createItem({ 
+                    itemType: 'user',
+                    data: {
+                        data: formData,
+                        currentUserId: currentUserId
+                    }
                  }, { 'Content-Type': 'multipart/form-data' });
                 if (res) {
                     // the msg will be sent so you don't have to hardcode it
@@ -231,11 +229,14 @@ function AddUser({ user }) {
             formData.append('userRole', usr.userRole);
 
             try {
-                const res = await jwtService.updateUser({
-                    currentUserId: user.currentUserId,
-                    userId: user.id, 
-                    data: formData
-                }, { 'Content-Type': 'multipart/form-data' });
+                const res = await jwtService.updateItem({ 
+                    itemType: 'user',
+                    data: {
+                        data: formData,
+                        currentUserId: currentUserId,
+                        itemId: usr.userId
+                    }
+                 }, { 'Content-Type': 'multipart/form-data' });
                 if (res) {
                     // the msg will be sent so you don't have to hardcode it
                     showMsg('User has been successfully updated!', 'success');
@@ -248,6 +249,31 @@ function AddUser({ user }) {
             console.log('Form is invalid, please review errors.');
         }
     };
+
+
+
+    /* TO BE UNCOMMENTED IN PRODUCTION
+    // get existing userRoles and departments
+    useEffect(() => {    
+        async function getRolesAndDeparts() {
+            try {
+                // @route: api/rolesAndDeparts
+                // @description: get Roles & Departs
+                const res = await jwtService.getRolesAndDeparts({ 
+                    currentUserId: currentUserId
+                });
+                if (res) {
+                    setDepartments(res.departs)
+                    setUserRoles(res.roles)
+                }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getRolesAndDeparts();
+    }, []);*/
 
 
     return (

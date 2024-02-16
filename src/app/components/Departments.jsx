@@ -7,10 +7,12 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
+import { showMessage } from 'app/store/fuse/messageSlice';
 import AddDepartment from './AddDepartment';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from './Delete';
+import jwtService from '../../app/auth/services/jwtService'
 
 
 function trimText(txt, maxLength) {
@@ -25,6 +27,7 @@ function trimText(txt, maxLength) {
 function Departments() {
 
     // handling search and expansion
+    const currentUserId = window.localStorage.getItem('userId')
 
     const [filteredDeparts, setFilteredDeparts] = useState(null);
 
@@ -81,20 +84,42 @@ function Departments() {
         }
     }, [departs, query, isQueryFound]);
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
     useEffect(() => {
-        // get the departments from the backend
-        async function getDepartments() {
-            try {
-                const response = await axios.get('http://localhost:3050/departments');
-                const dprtsArr = response.data.departments;
-                setDeparts(dprtsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+        useEffect(() => {    
+            async function getDepartments() {
+                try {
+                    // @route: api/items/departments
+                    // @description: get departments
+                    const res = await jwtService.getItems({ 
+                        currentUserId: currentUserId,
+                        itemType: "departments"
+                    });
+                    if (res) {
+                        setDeparts(res)
+                    }
+                } catch (_error) {
+                    // the error msg will be sent so you don't have to hardcode it
+                    showMsg(_error, 'error')
+                }
             }
-        }
-        
-        getDepartments();
+            
+            getDepartments();
+        }, []);
     }, []);
 
 
@@ -127,16 +152,12 @@ function Departments() {
         setTimeout(() => {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
-                // you need to pass the user id to the 
-                // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={departs[i].departId} itemType='department' />
                 )
             }));
         }, 100);
     }
-
-
 
 
     return (

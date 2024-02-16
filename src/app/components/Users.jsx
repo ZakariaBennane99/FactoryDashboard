@@ -4,10 +4,10 @@ import TextField from '@mui/material/TextField';
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
+import { showMessage } from 'app/store/fuse/messageSlice';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import axios from 'axios';
 import AddUser from './AddUser';
 import AddRole from './AddRole'
 import EditIcon from '@mui/icons-material/Edit';
@@ -17,14 +17,16 @@ import ApartmentIcon from '@mui/icons-material/Apartment';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import { Switch, FormControlLabel } from '@mui/material';
+import jwtService from '../../app/auth/services/jwtService'
 
 
 
 
 function Users() {
+    
+    const currentUserId = window.localStorage.getItem('userId')
 
     const [filteredUsers, setFilteredUsers] = useState(null);
-
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
@@ -78,17 +80,36 @@ function Users() {
         }
     }, [users, query, isQueryFound]);
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
-    useEffect(() => {
-        // get the Userments from the backend
+    useEffect(() => {    
         async function getUsers() {
             try {
-                const response = await axios.get('http://localhost:3050/users');
-                console.log('The response', response)
-                const usersArr = response.data.users;
-                setUsers(usersArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/users
+                // @description: get users
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "users"
+                });
+                if (res) {
+                    setUsers(res)
+                }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
             }
         }
         
@@ -126,7 +147,7 @@ function Users() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={users[i].userId} itemType='user' />
                 )
             }));
         }, 100);
