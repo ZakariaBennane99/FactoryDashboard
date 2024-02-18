@@ -14,6 +14,9 @@ import AddProductCatalogue from './AddProductCatalogue';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../Delete';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 function trimText(txt, maxLength) {
     if (txt.length > maxLength) {
@@ -24,6 +27,8 @@ function trimText(txt, maxLength) {
 }
 
 function ProductCatalogues() {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredProductCatalogues, setFilteredProductCatalogues] = useState(null);
 
@@ -52,6 +57,20 @@ function ProductCatalogues() {
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     }  
     
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }      
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -82,15 +101,19 @@ function ProductCatalogues() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
         async function getProductCatalogues() {
             try {
-                const response = await axios.get('http://localhost:3050/product-catalogues');
-                console.log('The response', response)
-                const materialsArr = response.data.productCatalogues;
-                setProductCatalogues(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/productCatalogues
+                // @description: get productCatalogues
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "productCatalogues"
+                });
+                if (res) {
+                    setProductCatalogues(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -128,7 +151,7 @@ function ProductCatalogues() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={productCatalogues[i].productCatalogueId} itemType="productCatalogues" />
                 )
             }));
         }, 100);

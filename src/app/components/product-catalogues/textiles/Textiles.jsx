@@ -14,6 +14,8 @@ import AddTextile from './AddTextile';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
@@ -27,6 +29,8 @@ function trimText(txt, maxLength) {
 
 
 function Textiles() {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredTextiles, setFilteredTextiles] = useState(null);
 
@@ -76,6 +80,20 @@ function Textiles() {
         return result;
     }
     
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }    
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -106,15 +124,20 @@ function Textiles() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
+
         async function getTextiles() {
             try {
-                const response = await axios.get('http://localhost:3050/product-catalogue-textiles');
-                console.log('The response', response)
-                const textilesArr = response.data.textiles;
-                setTextiles(textilesArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/textiles
+                // @description: get textiles
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "textiles"
+                });
+                if (res) {
+                    setTextiles(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -152,7 +175,7 @@ function Textiles() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType='textiles' />
                 )
             }));
         }, 100);
