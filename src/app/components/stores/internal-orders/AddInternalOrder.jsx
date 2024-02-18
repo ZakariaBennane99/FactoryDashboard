@@ -2,8 +2,17 @@ import { useState } from 'react';
 import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
+
 
 function AddInternalOrder({ intrlOrder }) {
+
+    const currentUserId = window.localStorage.getItem('userId');
+
+    const [materialNames, setMaterialNames] = useState(null)
+
     const [internalOrder, setInternalOrder] = useState({
         expectedDelivery: intrlOrder ? new Date(intrlOrder.expectedDelivery) : null,
         priority: intrlOrder ? intrlOrder.priority : '',
@@ -19,6 +28,7 @@ function AddInternalOrder({ intrlOrder }) {
         'PENDING', 'APPROVED', 'REJECTED', 'FULFILLED',
         'CANCELLED', 'COMPLETED', 'ONGOING'
     ];
+
     // Mock materials array, replace with actual data if needed
     const materials = [
         'Material 1',
@@ -34,15 +44,97 @@ function AddInternalOrder({ intrlOrder }) {
         setInternalOrder({ ...internalOrder, expectedDelivery: date });
     };
 
-    const handleSubmit = (event) => {
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    const handleAddInternalOrders = async (event) => {
         event.preventDefault();
-        console.log(internalOrder);
+        
+        try {
+            // @route: api/create/internalOrders
+            // @description: create a new internal Order
+            const res = await jwtService.createItem({ 
+                itemType: 'internalOrders',
+                data: {
+                    data: internalOrder,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
     };
+
+    const handleUpdateInternalOrders = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/internalOrders
+            // @description: update an existing internal Order
+            const res = await jwtService.updateItem({ 
+                itemType: 'internalOrders',
+                data: {
+                    data: internalOrder,
+                    currentUserId: currentUserId,
+                    itemId: intrlOrder.internalOrdersId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
+    
+    /* TO BE UNCOMMENTED IN PRODUCTION
+    // get existing material Names
+    useEffect(() => {    
+        async function getMaterialNames() {
+            try {
+                // @route: api/materialNames
+                // @description: get Material Names 
+                // @response: an array named "materials" of existing material Names
+                const res = await jwtService.getMaterialNames({ 
+                    currentUserId: currentUserId
+                });
+                if (res) {
+                    setMaterialNames(res.materials)
+                }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getMaterialNames();
+    }, []);*/
+
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={intrlOrder ? handleUpdateInternalOrders : handleAddInternalOrders}>
                     <FormControl fullWidth margin="normal">
                         <DatePicker
                             label="Expected Delivery"
@@ -98,7 +190,7 @@ function AddInternalOrder({ intrlOrder }) {
                             onChange={handleChange('material')}
                             required
                         >
-                            {materials.map((material, index) => (
+                            {materialNames.map((material, index) => (
                                 <MenuItem key={index} value={material}>
                                     {material}
                                 </MenuItem>

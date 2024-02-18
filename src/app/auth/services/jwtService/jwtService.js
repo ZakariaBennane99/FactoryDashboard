@@ -297,6 +297,31 @@ class JwtService extends FuseUtils.EventEmitter {
 		);
 	});	
 
+
+	/**
+	 * Get the current material names.
+	 */
+	getMaterialNames = (data) =>
+	new Promise((resolve, reject) => {
+		axios.get(`/api/materialNames`, data).then(
+			(
+				response
+			) => {
+				if (response.data) {
+					// resolve with 201/200 code
+					resolve(response.data); // return an object of 4 arrays: orderIds, templateTypeIds, colors, and sizes
+				} else {
+					reject(response.data.error);
+					// send back the error + consistent error code: 404, 401..
+					// should return a msg for the error:
+					// 1. 'Server error! Please try again later.'
+					// 2. 'You don't have permission to get data.' (forbidden)
+				}
+			}
+		);
+	});	
+
+
 	/**
 	 * Signs out the user.
 	 */

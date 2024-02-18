@@ -19,16 +19,20 @@ import AddInternalOrder from './AddInternalOrder';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
 function InternalOrders() {
 
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [filteredMaterials, setFilteredMaterials] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [internalOrders, setMaterials] = useState([]);
+    const [internalOrders, setInternalOrders] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -80,19 +84,23 @@ function InternalOrders() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getInternalOrders() {
             try {
-                const response = await axios.get('http://localhost:3050/internal-orders');
-                console.log('The response', response)
-                const materialsArr = response.data.internalOrders;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/internalOrders
+                // @description: get Internal Orders
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "internalOrders"
+                });
+                if (res) {
+                    setInternalOrders(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getInternalOrders();
     }, []);
 
 
@@ -126,7 +134,7 @@ function InternalOrders() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={internalOrders[i].internalOrderId} itemType="internalOrders" />
                 )
             }));
         }, 100);
