@@ -7,13 +7,16 @@ import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import axios from 'axios';
 import CategoryIcon from '@mui/icons-material/Category';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AddMaterialCategory from './AddMaterialCategory';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
+
 
 
 function trimText(txt, maxLength) {
@@ -26,6 +29,8 @@ function trimText(txt, maxLength) {
 
 
 function MaterialCategories() {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredMaterialCategories, setFilteredMaterialCategories] = useState(null);
 
@@ -69,6 +74,21 @@ function MaterialCategories() {
         }
     }
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }  
+
     useEffect(() => {
         if (materialCategories.length > 0 && isQueryFound) {
             const filtered = materialCategories.filter((user) => {
@@ -84,15 +104,19 @@ function MaterialCategories() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
         async function getMaterialCategories() {
             try {
-                const response = await axios.get('http://localhost:3050/material-categories');
-                console.log('The response', response)
-                const materialsArr = response.data.materialCategories;
-                setMaterialCategories(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/materialCategories
+                // @description: get Material Categories 
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "materialCategories"
+                });
+                if (res) {
+                    setMaterialCategories(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -130,7 +154,7 @@ function MaterialCategories() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={materialCategories[i].materialCategoryId} itemType="materialCategories" />
                 )
             }));
         }, 100);

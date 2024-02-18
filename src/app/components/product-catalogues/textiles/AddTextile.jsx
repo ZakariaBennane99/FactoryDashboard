@@ -5,7 +5,6 @@ import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
-
 function AddTextile({ txtle }) {
 
     const currentUserId = window.localStorage.getItem('userId');

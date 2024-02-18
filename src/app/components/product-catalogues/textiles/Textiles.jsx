@@ -4,7 +4,6 @@ import './Textiles.css'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import { TextField, Box, Grid, Paper } from '@mui/material'
 import TextureIcon from '@mui/icons-material/Texture';
 import GrainIcon from '@mui/icons-material/Grain';
@@ -175,7 +174,7 @@ function Textiles() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} itemType='textiles' />
+                    <Delete itemId={textiles[i].textileId} itemType='textiles' />
                 )
             }));
         }, 100);

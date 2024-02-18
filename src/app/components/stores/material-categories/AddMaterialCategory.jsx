@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 function AddMaterial({ mtrlCat }) {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [materialCategory, setMaterial] = useState({
         name: mtrlCat ? mtrlCat.name : '',
@@ -12,14 +17,71 @@ function AddMaterial({ mtrlCat }) {
         setMaterial({ ...materialCategory, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    const handleAddMaterialCategories = async (event) => {
         event.preventDefault();
-        console.log(materialCategory);
+        
+        try {
+            // @route: api/create/materialCategories
+            // @description: create a new Material Category
+            const res = await jwtService.createItem({ 
+                itemType: 'materialCategories',
+                data: {
+                    data: materialCategory,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
+    const handleUpdateMaterialCategories = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/materialCategories
+            // @description: update existing material category
+            const res = await jwtService.updateItem({ 
+                itemType: 'materialCategories',
+                data: {
+                    data: materialCategory,
+                    currentUserId: currentUserId,
+                    itemId: mtrlCat.materialCategoriesId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
     };
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={mtrlCat ? handleUpdateMaterialCategories : handleAddMaterialCategories}>
                 <FormControl fullWidth margin="normal">
                     <TextField
                         label="Material Category Name"
