@@ -356,6 +356,64 @@ class JwtService extends FuseUtils.EventEmitter {
 		);
 	});	
 
+	/**
+	 * Generate a downloadable PDF link based on the data input 
+	 */
+	generatePDFReport = (data) =>
+	new Promise((resolve, reject) => {
+		axios.post(`/api/generatePDFReport`, data).then(
+			(
+				response
+			) => {
+				if (response.data) {
+					// resolve with 201/200 code
+					resolve(response.data); 
+					// return a downloadable PDF link based on the data input
+				} else {
+					reject(response.data.error);
+					// send back the error + consistent error code: 404, 401..
+					// should return a msg for the error:
+					// 1. 'Server error! Please try again later.'
+					// 2. 'You don't have permission to get data.' (forbidden)
+				}
+			}
+		);
+	});	
+
+
+	/**
+	 * Get the existing supplier names.
+	 */
+	getSupplierNames = (data) =>
+	new Promise((resolve, reject) => {
+		axios.post(`/api/supplierNames`, data).then(
+			(
+				response
+			) => {
+				if (response.data) {
+					// resolve with 201/200 code
+					resolve(response.data); 
+					// return an array of current suppliers, like the follow:
+					/*
+						[
+        					'Tartous Textile Solutions',
+        					'Raqqa Garment Makers',
+        					'Deir Ezzor Cloth Co.',
+        					'Aleppo Textiles Ltd.',
+        					'Damascus Fabrics Co.'
+    					]
+					*/ 
+				} else {
+					reject(response.data.error);
+					// send back the error + consistent error code: 404, 401..
+					// should return a msg for the error:
+					// 1. 'Server error! Please try again later.'
+					// 2. 'You don't have permission to get data.' (forbidden)
+				}
+			}
+		);
+	});	
+
 
 	/**
 	 * Signs out the user.

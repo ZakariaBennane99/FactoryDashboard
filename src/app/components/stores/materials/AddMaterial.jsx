@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
+
 
 function AddMaterial({ mtrl }) {
 
-    const [suppliers, setSuppliers] = useState([
-        'Tartous Textile Solutions',
-        'Raqqa Garment Makers',
-        'Deir Ezzor Cloth Co.',
-        'Aleppo Textiles Ltd.',
-        'Damascus Fabrics Co.'
-    ])
+    const currentUserId = window.localStorage.getItem('userId');
+
+    const [suppliers, setSuppliers] = useState([])
 
     const [material, setMaterial] = useState({
         name: mtrl ? mtrl.name : '',
@@ -23,14 +23,94 @@ function AddMaterial({ mtrl }) {
         setMaterial({ ...material, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    const handleAddMaterials = async (event) => {
         event.preventDefault();
-        console.log(material);
+        
+        try {
+            // @route: api/create/materials
+            // @description: create a new material
+            const res = await jwtService.createItem({ 
+                itemType: 'materials',
+                data: {
+                    data: material,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
     };
+
+    const handleUpdateMaterials = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/materials
+            // @description: update existing material
+            const res = await jwtService.updateItem({ 
+                itemType: 'materials',
+                data: {
+                    data: material,
+                    currentUserId: currentUserId,
+                    itemId: mtrl.materialsId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
+    /* TO BE UNCOMMENTED IN PRODUCTION
+    // get existing suppliers Names
+    useEffect(() => {    
+        async function getSuppliersNames() {
+            try {
+                // @route: api/supplierNames
+                // @description: get Supplier Names 
+                // @response: an array of existing supplier Names
+                const res = await jwtService.getSupplierNames({ 
+                    currentUserId: currentUserId
+                });
+                if (res) {
+                    setSuppliers(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getSuppliersNames();
+    }, []);*/
+
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={mtrl ? handleUpdateMaterials : handleAddMaterials}>
                 <FormControl fullWidth margin="normal">
                     <TextField
                         label="Material Name"

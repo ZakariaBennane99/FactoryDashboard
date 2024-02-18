@@ -35,19 +35,37 @@ function ReportDates({ materialId, materialName }) {
         }));
     }
 
-    function generatePDF(reportInfo) {
+    async function generatePDF() {
         // call the backend to generate the report 
-
+        setLoading(true); 
+        
+        try {
+            // @route: api/generatePDFReport
+            // @description: generate a downloadable PDF link for the data
+            const res = await jwtService.generatePDFReport({
+                currentUserId: currentUserId,
+                materialId,
+                from: dates.from,
+                to: dates.to
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // here open the link in a new window to get downloaded
+                // setData(res)
+            }
+            setLoading(false)
+        } catch (_error) {
+            showMsg(_error, 'error')
+            setLoading(false)
+        }
     }
     
     function formatDate(date) {
         return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
-
     const handleSubmit = async (event) => {
         event.preventDefault();
-        
+
         setLoading(true); 
         try {
             // @route: api/getReportData
