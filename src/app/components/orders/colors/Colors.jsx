@@ -23,7 +23,6 @@ function trimText(txt, maxLength) {
     }
 }
 
-
 function Colors() {
 
     const currentUserId = window.localStorage.getItem('userId')
@@ -122,7 +121,7 @@ function Colors() {
         })), 100);
     }
 
-    function handleAddingInternalOrder() {
+    function handleAddingColors() {
         dispatch(openDialog({
             children: ( 
                 <AddColors clr={false} />
@@ -158,19 +157,16 @@ function Colors() {
         }, 100);
     }
 
+
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingInternalOrder}>
+                <button className="add-btn" onClick={handleAddingColors}>
                     <img src="/assets/gen/plus.svg" /> 
                     <span>Add Color</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Colors" color="search" />
-                <button className="filter-btn">
-                    <img src="/assets/gen/filter.svg" /> 
-                    <span>Filter</span>
-                </button>
             </div>  
 
             <div className="main-content">

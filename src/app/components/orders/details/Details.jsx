@@ -4,7 +4,6 @@ import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../../components/Delete';
@@ -15,16 +14,20 @@ import PatternIcon from '@mui/icons-material/Pattern';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import LabelIcon from '@mui/icons-material/Label';
 import PlusOneIcon from '@mui/icons-material/PlusOne';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
 function Details() {
 
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [filteredDetails, setFilteredDetails] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [details, setMaterials] = useState([]);
+    const [details, setDetails] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -47,6 +50,20 @@ function Details() {
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     } 
     
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -77,19 +94,23 @@ function Details() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getOrderDetails() {
             try {
-                const response = await axios.get('http://localhost:3050/order-details');
-                console.log('The response', response)
-                const materialsArr = response.data.details;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/orderDetails
+                // @description: get Order Details
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "orderDetails"
+                });
+                if (res) {
+                    setDetails(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getOrderDetails();
     }, []);
 
 
@@ -123,7 +144,7 @@ function Details() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType='orderDetails' />
                 )
             }));
         }, 100);

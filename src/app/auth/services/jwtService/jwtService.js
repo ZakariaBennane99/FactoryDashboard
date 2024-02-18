@@ -112,7 +112,7 @@ class JwtService extends FuseUtils.EventEmitter {
 		});
 
 	/**
-	 * Creates a new user account.
+	 * Creates a new item.
 	 */
 	createItem = (itemInfo, headers) =>
 	new Promise((resolve, reject) => {
@@ -122,7 +122,6 @@ class JwtService extends FuseUtils.EventEmitter {
 				) => {
 					if (response.data.user) {
 						// resolve with a success message and 201/200 code
-						_setSession(response.data.access_token);
 						resolve(response.data.user); // '<itemInfo.itemType> has been successfully created!'
 					} else {
 						reject(response.data.error);

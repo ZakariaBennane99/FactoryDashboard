@@ -1,29 +1,93 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
+import jwtService from '../../../../../app/auth/services/jwtService'
+import { showMessage } from 'app/store/fuse/messageSlice';
 
-function AddTemplateType({ sze }) {
-    const [templateType, setTemplateType] = useState({
+
+function AddModelSize({ sze }) {
+
+    const currentUserId = window.localStorage.getItem('userId')
+
+    const [modelSize, setModelSize] = useState({
         orderDetailName: sze ? sze.orderDetailName : '',
         sizeName: sze ? sze.sizeName : ''
     });
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
     const handleChange = (prop) => (event) => {
-        setTemplateType({ ...templateType, [prop]: event.target.value });
+        setModelSize({ ...modelSize, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
+    const handleAddSize = async (event) => {
         event.preventDefault();
-        console.log(templateType);
+        
+        try {
+            // @route: api/create/modelsSize
+            // @description: create a new modelsSize
+            const res = await jwtService.createItem({ 
+                itemType: 'modelsSize',
+                data: {
+                    data: modelSize,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
     };
+
+    const handleUpdateSize = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/modelsSize
+            // @description: update models Size
+            const res = await jwtService.updateItem({ 
+                itemType: 'modelsSize',
+                data: {
+                    data: modelSize,
+                    currentUserId: currentUserId,
+                    itemId: sze.sizeId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={sze ? handleUpdateSize : handleAddSize}>
                 <FormControl fullWidth margin="normal">
                     <TextField
                         label="Order Detail Name"
                         variant="outlined"
-                        value={templateType.sizeName}
+                        value={modelSize.sizeName}
                         onChange={handleChange('orderDetailName')}
                         required
                     />
@@ -33,7 +97,7 @@ function AddTemplateType({ sze }) {
                     <TextField
                         label="Size Name"
                         variant="outlined"
-                        value={templateType.orderDetailName}
+                        value={modelSize.orderDetailName}
                         onChange={handleChange('sizeName')}
                         required
                     />
@@ -45,4 +109,4 @@ function AddTemplateType({ sze }) {
     );
 }
 
-export default AddTemplateType;
+export default AddModelSize;

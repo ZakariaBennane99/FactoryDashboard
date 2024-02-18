@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 function AddOrderDetails({ dtls }) {
+
+    const currentUserId = window.localStorage.getItem('userId')
+
     const [order, setOrder] = useState({
         orderNumber: dtls ? dtls.orderNumber : '',
         quantityDetails: dtls ? dtls.quantityDetails : '',
@@ -16,18 +22,75 @@ function AddOrderDetails({ dtls }) {
     const productCatalogues = ['Summer Collection 2024', 'Autumn Collection 2024', 'Winter Collection 2024'];
     const modelNames = ['Sunshine Tee', 'Rugged Denim', 'Breezy Sundress', 'Classic White Shirt', 'Winter Puffer', 'Stretch Yoga Pants', 'Cozy Knit'];
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
     const handleChange = (prop) => (event) => {
         setOrder({ ...order, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
+    const handleAddDetails = async (event) => {
         event.preventDefault();
-        console.log(order);
+        
+        try {
+            // @route: api/create/orderDetails
+            // @description: create a new orderDetails
+            const res = await jwtService.createItem({ 
+                itemType: 'orderDetails',
+                data: {
+                    data: order,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
+    const handleUpdateDetails = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/orderDetails
+            // @description: update order details
+            const res = await jwtService.updateItem({ 
+                itemType: 'orderDetails',
+                data: {
+                    data: order,
+                    currentUserId: currentUserId,
+                    itemId: dtls.orderId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
     };
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={dtls ? handleUpdateDetails : handleAddDetails}>
                 <FormControl fullWidth margin="normal">
                     <TextField
                         label="Order Number"

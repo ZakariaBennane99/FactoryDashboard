@@ -4,7 +4,6 @@ import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../../Delete';
@@ -12,15 +11,19 @@ import AddColor from './AddColor';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import PaletteIcon from '@mui/icons-material/Palette';
 import tinycolor from 'tinycolor2';
+import jwtService from '../../../../../app/auth/services/jwtService'
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 function Colors() {
+
+    const currentUserId = window.localStorage.getItem('userId')
 
     const [filteredColors, setFilteredColors] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [colors, setMaterials] = useState([]);
+    const [colors, setColors] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -74,21 +77,39 @@ function Colors() {
         }
     }, [colors, query, isQueryFound]);
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getCatalogueColors() {
             try {
-                const response = await axios.get('http://localhost:3050/detail-colors');
-                console.log('The response', response)
-                const materialsArr = response.data.colors;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/catalogueColors
+                // @description: get catalogue Colors
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "catalogueColors"
+                });
+                if (res) {
+                    setColors(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getCatalogueColors();
     }, []);
 
 
@@ -122,7 +143,7 @@ function Colors() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType='cataloguesColor' />
                 )
             }));
         }, 100);

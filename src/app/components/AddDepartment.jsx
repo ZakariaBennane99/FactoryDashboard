@@ -126,6 +126,7 @@ function AddDepartment({ dprt }) {
         getManagers();
     }, []);*/
 
+    // management, engineering, cutting, tailoring, printing, cleaning 
 
     
     return (
@@ -165,7 +166,7 @@ function AddDepartment({ dprt }) {
                         onChange={handleChange('category')}
                         required
                     >
-                        <MenuItem value={'Management'}>Management</MenuItem>
+                        <MenuItem value={'Management'}>Management</MenuItem> 
                         <MenuItem value={'Production'}>Production</MenuItem>
                     </Select>
                 </FormControl>

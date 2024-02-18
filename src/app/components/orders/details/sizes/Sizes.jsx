@@ -4,17 +4,20 @@ import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../../Delete';
 import AddSizes from './AddSizes';
 import ListIcon from '@mui/icons-material/List';
 import RulerIcon from '@mui/icons-material/Straighten';
+import jwtService from '../../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
 function Sizes() {
+
+    const currentUserId = window.localStorage.getItem('userId')
 
     const [filteredSizes, setFilteredSizes] = useState(null);
 
@@ -45,7 +48,21 @@ function Sizes() {
         // Use dangerouslySetInnerHTML to render the HTML string as real HTML
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     }
+
+    function showMsg(msg, status) {
     
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -76,19 +93,23 @@ function Sizes() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getModelSizes() {
             try {
-                const response = await axios.get('http://localhost:3050/order-detail-sizes');
-                console.log('The response', response)
-                const materialsArr = response.data.orderSizes;
-                setSizes(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/modelSizes
+                // @description: get modelSizes
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "modelSizes"
+                });
+                if (res) {
+                    setSizes(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getModelSizes();
     }, []);
 
 
@@ -122,11 +143,12 @@ function Sizes() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType='modelSizes' />
                 )
             }));
         }, 100);
     }
+
 
     return (
         <div className="parent-container">

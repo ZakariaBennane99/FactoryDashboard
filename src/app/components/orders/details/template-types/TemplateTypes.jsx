@@ -11,10 +11,15 @@ import Delete from '../../../Delete';
 import AddTemplateType from './AddTemplateType';
 import ListIcon from '@mui/icons-material/List';
 import StyleIcon from '@mui/icons-material/Style';
+import jwtService from '../../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 
 
 function TemplateTypes() {
+
+    const currentUserId = window.localStorage.getItem('userId')
 
     const [filteredTemplateTypes, setFilteredTemplateTypes] = useState(null);
 
@@ -61,6 +66,22 @@ function TemplateTypes() {
         }
     }
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    
     useEffect(() => {
         if (templateTypes.length > 0 && isQueryFound) {
             const filtered = templateTypes.filter((user) => {
@@ -76,19 +97,23 @@ function TemplateTypes() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getTemplateTypes() {
             try {
-                const response = await axios.get('http://localhost:3050/order-template-types');
-                console.log('The response', response)
-                const materialsArr = response.data.templateTypes;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/templateTypes
+                // @description: get Template Types
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "templateTypes"
+                });
+                if (res) {
+                    setSizes(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getTemplateTypes();
     }, []);
 
 
@@ -122,7 +147,7 @@ function TemplateTypes() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType='templateTypes' />
                 )
             }));
         }, 100);
