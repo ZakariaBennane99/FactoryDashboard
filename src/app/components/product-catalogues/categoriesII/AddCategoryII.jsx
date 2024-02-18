@@ -33,11 +33,6 @@ function AddCategoryII({ ctgrII }) {
         setCategoriesII({ ...categoryII, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        console.log(categoryII);
-    };
-
     const handleAddCategoryII = async (event) => {
         event.preventDefault();
         
