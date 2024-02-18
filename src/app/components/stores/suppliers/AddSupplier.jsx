@@ -48,7 +48,6 @@ function AddSupplier({ splier }) {
                         variant="outlined"
                         value={supplier.email}
                         onChange={handleChange('email')}
-                        required
                     />
                 </FormControl>
 

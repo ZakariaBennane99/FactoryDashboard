@@ -9,7 +9,7 @@ import SignOutConfig from '../main/sign-out/SignOutConfig';
 import Error404Page from '../main/404/Error404Page';
 import DepartmentConfig from '../main/departments/DepartementsConfig';
 import UsersConfig from '../main/users/UsersConfig';
-import SuppliersConfig from '../main/stores/suppliers/WarehousesConfig';
+import SuppliersConfig from '../main/stores/suppliers/SuppliersConfig';
 import MaterialsConfig from '../main/stores/materials/MaterialsConfig';
 import MaterialMovementsConfig from '../main/stores/MaterialMovements/MaterialMovementsConfig';
 import MaterialCategoriesConfig from '../main/stores/MaterialCategories/MaterialCategoriesConfig';
@@ -35,7 +35,8 @@ import orderDetailSizes from '../main/orders/orderDetails/sizes/SizesConfig'
 import orderDetailTemplateTypes from '../main/orders/orderDetails/templateTypes/TemplateTypesConfig'
 import modelsConfig from '../main/orders/models/ModelsConfig'
 import materialReportsConfig from '../main/material-reports/MaterialReportsConfig'
-import taskConfig from '../main/tasks/TasksConfig'  
+import taskConfig from '../main/tasks/TasksConfig'
+import WarehousesConfig from '../main/stores/warehouses/WarehousesConfig';
 
 
 const routeConfigs: FuseRouteConfigsType = [ 
@@ -47,7 +48,7 @@ const routeConfigs: FuseRouteConfigsType = [
 	templatesManufacturingStages, templatesPatterns, templatesSizes, templatesTypes,
 	templates, orderColors, orderSizes, orders, orderDetails, orderDetailColors, 
 	orderDetailSizes, orderDetailTemplateTypes, modelsConfig, materialReportsConfig,
-	taskConfig 
+	taskConfig, WarehousesConfig
 ];
 
 /**

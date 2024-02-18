@@ -57,22 +57,8 @@ function AddMaterial({ mtrl }) {
                         variant="outlined"
                         value={material.color}
                         onChange={handleChange('color')}
-                        required
                     />
                 </FormControl>
-
-                <FormControl fullWidth margin="normal">
-                    <TextField
-                        label="Description"
-                        variant="outlined"
-                        value={material.description}
-                        onChange={handleChange('description')}
-                        multiline
-                        rows={3}
-                        required
-                    />
-                </FormControl>
-
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <InputLabel id="supplier-select-label">Supplier</InputLabel>
                     <Select
@@ -89,6 +75,16 @@ function AddMaterial({ mtrl }) {
                             </MenuItem>
                         ))}
                     </Select>
+                </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        label="Description"
+                        variant="outlined"
+                        value={material.description}
+                        onChange={handleChange('description')}
+                        multiline
+                        rows={3}
+                    />
                 </FormControl>
 
                 <button type="submit" className="add-material-btn">{mtrl ? 'Update' : 'Add'} Material</button>

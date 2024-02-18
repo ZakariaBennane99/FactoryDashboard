@@ -66,7 +66,6 @@ function AddTemplate({ tmplt }) {
                         onChange={handleChange('Description')}
                         multiline
                         rows={3}
-                        required
                     />
                 </FormControl>
 

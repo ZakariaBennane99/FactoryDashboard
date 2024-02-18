@@ -154,7 +154,6 @@ function AddDetails({ dtl }) {
                         onChange={handleChange('description')}
                         multiline
                         rows={2}
-                        required
                     />
                 </FormControl>
 

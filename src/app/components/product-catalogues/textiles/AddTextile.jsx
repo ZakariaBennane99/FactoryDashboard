@@ -48,7 +48,6 @@ function AddTextile({ txtle }) {
                         variant="outlined"
                         value={textile.composition}
                         onChange={handleChange('composition')}
-                        required
                     />
                 </FormControl>
 
