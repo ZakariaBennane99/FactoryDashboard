@@ -7,7 +7,6 @@ import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import axios from 'axios';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import CategoryIcon from '@mui/icons-material/Category';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -19,7 +18,11 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import ReportDates from './ReportDates'
+import ReportDates from './ReportDates';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
+
 
 
 
@@ -33,6 +36,8 @@ function trimText(txt, maxLength) {
 
 
 function Materials() {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredMaterials, setFilteredMaterials] = useState(null);
 
@@ -89,17 +94,35 @@ function Materials() {
         }
     }, [materials, query, isQueryFound]);
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    } 
 
     useEffect(() => {
-        // get the Userments from the backend
         async function getMaterials() {
             try {
-                const response = await axios.get('http://localhost:3050/materials');
-                console.log('The response', response)
-                const materialsArr = response.data.materials;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/materials
+                // @description: get materials
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "materials"
+                });
+                if (res) {
+                    setMaterials(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -135,7 +158,7 @@ function Materials() {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
                 children: ( 
-                    <ReportDates materialId={i} materialName={materials[i].name} />
+                    <ReportDates materialId={materials[i].materialId} materialName={materials[i].name} />
                 )
             }));
         }, 100);
@@ -150,7 +173,7 @@ function Materials() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={materials[i].materialId} itemType="materials" />
                 )
             }));
         }, 100);

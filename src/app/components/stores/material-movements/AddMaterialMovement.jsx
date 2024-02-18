@@ -1,7 +1,16 @@
 import { useState } from 'react';
-import { FormControl, TextField, Box, Select, MenuItem, InputLabel, Button } from '@mui/material';
+import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
+
 
 function AddMaterialMovement({ mtrlMovement }) {
+
+    const currentUserId = window.localStorage.getItem('userId');
+
+    const [materialNames, setMaterialNames] = useState([])
+
     const [materialMovement, setMaterialMovement] = useState({
         materialName: mtrlMovement ? mtrlMovement.materialName : '',
         from: mtrlMovement ? mtrlMovement.from : '',
@@ -13,31 +22,107 @@ function AddMaterialMovement({ mtrlMovement }) {
         notes: mtrlMovement ? mtrlMovement.notes : ''
     });
 
-    const materials = [
-        'Cotton Fabric',
-        'Polyester Yarn',
-        'Woolen Thread',
-        // ... other materials
-    ];
-
     const fromOptions = ['Supplier', 'Department', 'Warehouse'];
     const toOptions = materialMovement.from === 'Department' ? ['Warehouse'] : ['Department', 'Warehouse'];
 
     const movementTypes = ['INCOMING', 'OUTGOING', 'TRANSFER', 'RETURN'];
-    const statuses = ['Rejected', 'Approved', 'Pending', 'Fulfilled', 'Cancelled', 'Completed', 'Ongoing'];
+    const statuses = ['REJECTED', 'APPROVED', 'PENDING', 'FULFILLED', 'CANCELLED', 'COMPLETED', 'ONGOING'];
 
     const handleChange = (prop) => (event) => {
         setMaterialMovement({ ...materialMovement, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+
+    const handleAddMaterialMovements = async (event) => {
         event.preventDefault();
-        console.log(materialMovement);
+        
+        try {
+            // @route: api/create/materialMovements
+            // @description: create a new material movement
+            const res = await jwtService.createItem({ 
+                itemType: 'materialMovements',
+                data: {
+                    data: materialMovement,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
     };
+
+    const handleUpdateMaterialMovements = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/materialMovements
+            // @description: update existing material movement
+            const res = await jwtService.updateItem({ 
+                itemType: 'materialMovements',
+                data: {
+                    data: materialMovement,
+                    currentUserId: currentUserId,
+                    itemId: mtrlMovement.materialMovementsId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
+
+    /* TO BE UNCOMMENTED IN PRODUCTION
+    // get existing material Names
+    useEffect(() => {    
+        async function getMaterialNames() {
+            try {
+                // @route: api/materialNames
+                // @description: get Material Names 
+                // @response: an array named "materials" of existing material Names
+                const res = await jwtService.getMaterialNames({ 
+                    currentUserId: currentUserId
+                });
+                if (res) {
+                    setMaterialNames(res.materials)
+                }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getMaterialNames();
+    }, []);*/
+
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={txtle ? handleUpdateMaterialMovements : handleAddMaterialMovements}>
                 <FormControl fullWidth margin="normal">
                     <InputLabel id="material-name-label">Material Name</InputLabel>
                     <Select
@@ -48,7 +133,7 @@ function AddMaterialMovement({ mtrlMovement }) {
                         onChange={handleChange('materialName')}
                         required
                     >
-                        {materials.map((material, index) => (
+                        {materialNames.map((material, index) => (
                             <MenuItem key={index} value={material}>
                                 {material}
                             </MenuItem>

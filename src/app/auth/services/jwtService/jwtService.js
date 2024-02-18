@@ -309,7 +309,42 @@ class JwtService extends FuseUtils.EventEmitter {
 			) => {
 				if (response.data) {
 					// resolve with 201/200 code
-					resolve(response.data); // return an object of 4 arrays: orderIds, templateTypeIds, colors, and sizes
+					resolve(response.data); // return an array of exsting material names
+				} else {
+					reject(response.data.error);
+					// send back the error + consistent error code: 404, 401..
+					// should return a msg for the error:
+					// 1. 'Server error! Please try again later.'
+					// 2. 'You don't have permission to get data.' (forbidden)
+				}
+			}
+		);
+	});	
+
+
+	/**
+	 * Get the data of the report based on the data. 
+	 */
+	getReportData = (data) =>
+	new Promise((resolve, reject) => {
+		axios.post(`/api/getReportData`, data).then(
+			(
+				response
+			) => {
+				if (response.data) {
+					// resolve with 201/200 code
+					resolve(response.data); 
+					// return an array of object with the following items:
+					/* e.g.
+					    materialName: 'Material 1',
+            			internalOrdersId: 1001,
+            			movementId: 5001,
+            			from: 'Department A',
+            			to: 'Warehouse X',
+            			quantity: 120,
+            			color: 'Blue',
+            			date: '2020-01-15' 
+					*/
 				} else {
 					reject(response.data.error);
 					// send back the error + consistent error code: 404, 401..

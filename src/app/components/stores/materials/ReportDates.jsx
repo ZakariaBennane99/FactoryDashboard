@@ -5,12 +5,16 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
 import { useAppDispatch } from 'app/store';
-import { Box, Button, CircularProgress, FormControl, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
-import jsPDF from 'jspdf';
+import { Box, Button, CircularProgress, FormControl, TextField, 
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
 function ReportDates({ materialId, materialName }) {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const dispatch = useAppDispatch();
 
@@ -31,55 +35,9 @@ function ReportDates({ materialId, materialName }) {
         }));
     }
 
-    function generatePDF(reportData) {
-        const pdf = new jsPDF('p', 'pt', 'a4');
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const titlePadding = 50; // Padding at the top for the title
-        const sidePadding = 30; // Padding on the sides
-        const startY = titlePadding + 30; // Starting Y position for the table
-        const lineHeight = 15; // Line height for table rows
-        const columnWidths = [95, 80, 95, 90, 60, 50, 70]; // Define column widths, ensure they add up to less than page width
-    
-        // Calculate start positions of each column based on widths
-        const columnStartPositions = columnWidths.map((width, index) => {
-            return columnWidths.slice(0, index).reduce((acc, val) => acc + val, sidePadding);
-        });
-    
-        // Title
-        const title = `Report For ${materialName}(${materialId}) From ${formatDate(dates.from)} To ${formatDate(dates.to)}`;
-        pdf.setFontSize(16);
-        pdf.setFont(undefined, 'bold');
-        pdf.text(title, pageWidth / 2, titlePadding, { align: 'center' });
-    
-        // Table headers
-        const headers = ["Internal Orders ID", "Movement ID", "From", "To", "Quantity", "Color", "Date"];
-        pdf.setFontSize(10);
-        pdf.setFont(undefined, 'bold');
-        headers.forEach((header, i) => {
-            pdf.text(header, columnStartPositions[i], startY);
-        });
-    
-        // Draw lines for the header
-        pdf.setDrawColor(0);
-        pdf.setLineWidth(0.1);
-        pdf.line(sidePadding, startY + 5, pageWidth - sidePadding, startY + 5); 
-    
-        // Table rows
-        let yPos = startY + 10;
-        pdf.setFont(undefined, 'normal');
-        reportData.forEach((item, index) => {
-            const { internalOrdersId, movementId, from, to, quantity, color, date } = item;
-            const row = [internalOrdersId, movementId, from, to, quantity, color, formatDate(date)];
-            row.forEach((text, i) => {
-                pdf.text(String(text), columnStartPositions[i], yPos);
-            });
-    
-            yPos += lineHeight;
-            pdf.line(sidePadding, yPos, pageWidth - sidePadding, yPos); 
-        });
-    
-        // Save the PDF
-        pdf.save(`Report_For_${materialName}(${materialId})_From_${formatDate(dates.from)}_To_${formatDate(dates.to)}.pdf`);
+    function generatePDF(reportInfo) {
+        // call the backend to generate the report 
+
     }
     
     function formatDate(date) {
@@ -89,27 +47,24 @@ function ReportDates({ materialId, materialName }) {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        
         setLoading(true); 
         try {
-            const response = await axios.post('http://localhost:3050/generate-report', {
+            // @route: api/getReportData
+            // @description: get the data for the report
+            const res = await jwtService.getReportData({
+                currentUserId: currentUserId,
                 materialId,
                 from: dates.from,
                 to: dates.to
-            }, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            const dt = response.data.report
-            // show the table first 
-            setData(dt)
-        } catch (error) {
-            console.log('THE ERROR', error)
-            if (error.response && error.response.status === 404) {
-                showMsg(`There is no report for ${materialName} on these dates!`, false)
-            } else {
-                showMsg('There was a server error! please try again.', true)
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                setData(res)
             }
+            setLoading(false)
+        } catch (_error) {
+            showMsg(_error, 'error')
+            setLoading(false)
         }
     };
 

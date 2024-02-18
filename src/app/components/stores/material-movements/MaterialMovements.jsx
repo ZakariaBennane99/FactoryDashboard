@@ -16,17 +16,21 @@ import AddMaterialMovement from './AddMaterialMovement';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
 
 function MaterialMovements() {
 
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [filteredMaterials, setFilteredMaterials] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [materialMovements, setMaterials] = useState([]);
+    const [materialMovements, setMaterialMovements] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -51,6 +55,21 @@ function MaterialMovements() {
         // Use dangerouslySetInnerHTML to render the HTML string as real HTML
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     }
+
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    } 
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -81,15 +100,19 @@ function MaterialMovements() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
         async function getMaterials() {
             try {
-                const response = await axios.get('http://localhost:3050/material-movements');
-                console.log('The response', response)
-                const materialsArr = response.data.materialMovements;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/materialMovements
+                // @description: get Material Movements
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "materialMovements"
+                });
+                if (res) {
+                    setMaterialMovements(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -151,7 +174,7 @@ function MaterialMovements() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={materialMovements[i].materialMovementId} itemType="materialMovements" />
                 )
             }));
         }, 100);
