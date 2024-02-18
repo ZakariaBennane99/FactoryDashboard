@@ -7,13 +7,15 @@ import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import axios from 'axios';
 import CategoryIcon from '@mui/icons-material/Category';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AddCategoryI from './AddCategoryI';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 
 function trimText(txt, maxLength) {
@@ -27,6 +29,8 @@ function trimText(txt, maxLength) {
 
 
 function CategoriesI() {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredCategoriesI, setFilteredCategoriesI] = useState(null);
 
@@ -55,7 +59,6 @@ function CategoriesI() {
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     }  
     
-
     function handleSearch(e) {
         const query = e.target.value;
         setQuery(query)
@@ -68,6 +71,21 @@ function CategoriesI() {
                 return; // Exit the function as we found the query
             }
         }
+    }
+
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
     }
 
     useEffect(() => {
@@ -85,15 +103,19 @@ function CategoriesI() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
         async function getCategoriesI() {
             try {
-                const response = await axios.get('http://localhost:3050/product-catalogues');
-                console.log('The response', response)
-                const materialsArr = response.data.productCatalogues;
-                setCategoriesI(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/categoriesI
+                // @description: get product categories I
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "categoriesI"
+                });
+                if (res) {
+                    setCategoriesI(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -131,7 +153,7 @@ function CategoriesI() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType="categoriesI" />
                 )
             }));
         }, 100);

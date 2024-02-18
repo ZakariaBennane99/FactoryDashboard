@@ -23,10 +23,15 @@ import AcUnitIcon from '@mui/icons-material/AcUnit';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import LocalFloristIcon from '@mui/icons-material/LocalFlorist';
+import jwtService from '../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 
 
 function Orders() {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredOrders, setFilteredOrders] = useState(null);
 
@@ -55,7 +60,6 @@ function Orders() {
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     } 
     
-
     function handleSearch(e) {
         const query = e.target.value;
         setQuery(query)
@@ -70,10 +74,24 @@ function Orders() {
         }
     }
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
     useEffect(() => {
         if (Orders.length > 0 && isQueryFound) {
-            const filtered = Orders.filter((user) => {
-                // Check if any field in the Userment matches the query
+            const filtered = orders.filter((user) => {
                 return Object.values(user).some(value =>
                     typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
                 );
@@ -81,23 +99,27 @@ function Orders() {
     
             setFilteredOrders(filtered);
         }
-    }, [Orders, query, isQueryFound]);
+    }, [orders, query, isQueryFound]);
 
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getOrders() {
             try {
-                const response = await axios.get('http://localhost:3050/orders');
-                console.log('The response', response)
-                const materialsArr = response.data.orders;
-                setOrders(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/orders
+                // @description: get orders
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "orders"
+                });
+                if (res) {
+                    setOrders(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getOrders();
     }, []);
 
 
@@ -131,7 +153,7 @@ function Orders() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType='orders' />
                 )
             }));
         }, 100);

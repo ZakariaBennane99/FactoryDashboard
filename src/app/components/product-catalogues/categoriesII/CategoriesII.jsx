@@ -14,6 +14,9 @@ import AddCategoryII from './AddCategoryII';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 
 function trimText(txt, maxLength) {
@@ -26,6 +29,8 @@ function trimText(txt, maxLength) {
 
 
 function CategoriesII() {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredCategoriesII, setFilteredCategoriesII] = useState(null);
 
@@ -82,17 +87,35 @@ function CategoriesII() {
         }
     }, [categoriesII, query, isQueryFound]);
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
     useEffect(() => {
-        // get the Userments from the backend
         async function getCategoriesII() {
             try {
-                const response = await axios.get('http://localhost:3050/product-catalogues');
-                console.log('The response', response)
-                const materialsArr = response.data.productCatalogues;
-                setCategoriesII(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/categoriesII
+                // @description: get product categories II
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "categoriesII"
+                });
+                if (res) {
+                    setCategoriesII(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -131,7 +154,7 @@ function CategoriesII() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType="categoriesII" />
                 )
             }));
         }, 100);
