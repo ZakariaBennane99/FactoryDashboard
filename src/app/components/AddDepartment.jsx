@@ -105,7 +105,7 @@ function AddDepartment({ dprt }) {
     }
 
     /* TO BE UNCOMMENTED IN PRODUCTION
-    // get existing managers
+    // get existing unassigned managers who have user roles other than 'Warehouse Manager'
     useEffect(() => {    
         async function getManagers() {
             try {
@@ -126,7 +126,7 @@ function AddDepartment({ dprt }) {
         getManagers();
     }, []);*/
 
-    // management, engineering, cutting, tailoring, printing, cleaning 
+    // privileges based off the categories: management, engineering, cutting, tailoring, printing, cleaning 
 
     
     return (

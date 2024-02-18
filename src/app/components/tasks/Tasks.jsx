@@ -7,7 +7,6 @@ import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import axios from 'axios';
 import AssignmentIcon from '@mui/icons-material/Assignment'; // task name
 import AccessTimeIcon from '@mui/icons-material/AccessTime'; // due date
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter'; // assign to
@@ -25,12 +24,16 @@ import {
     LocalShippingOutlined as FulfilledIcon,
     Loop as OngoingIcon
 } from '@mui/icons-material';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
 
 
 function Tasks() {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredTasks, setFilteredTasks] = useState(null);
 
@@ -58,6 +61,21 @@ function Tasks() {
         // Use dangerouslySetInnerHTML to render the HTML string as real HTML
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     } 
+
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }  
     
 
     function handleSearch(e) {
@@ -89,15 +107,19 @@ function Tasks() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
         async function getTasks() {
             try {
-                const response = await axios.get('http://localhost:3050/tasks');
-                console.log('The response', response)
-                const tasksArr = response.data.tasks;
-                setTasks(tasksArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/tasks
+                // @description: get a list of current tasks
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "tasks"
+                });
+                if (res) {
+                    setTasks(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -135,7 +157,7 @@ function Tasks() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={tasks[i].taskId} itemType="tasks" />
                 )
             }));
         }, 100);

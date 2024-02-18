@@ -84,8 +84,29 @@ function AddWarehouse({ wrhouse }) {
         } 
     };
 
+    /* TO BE UNCOMMENTED IN PRODUCTION
+    // get the names of manager who have the roles of "Warehouse Manager" 
+    // who haven't been assigned to any department 
+    useEffect(() => {    
+        async function getManagersNames() {
+            try {
+                // @route: api/managerNames
+                // @description: get Manager Names 
+                // @response: an array of existing manager Names
+                const res = await jwtService.getManagersNames({ 
+                    currentUserId: currentUserId
+                });
+                if (res) {
+                    setManagers(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getManagersNames();
+    }, []);*/
 
-    
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>

@@ -457,6 +457,46 @@ class JwtService extends FuseUtils.EventEmitter {
 
 
 	/**
+	 * Get existing department
+	 */
+	getDepartments = (data) =>
+	new Promise((resolve, reject) => {
+		axios.post(`/api/departments`, data).then(
+			(
+				response
+			) => {
+				if (response.data) {
+					// resolve with 201/200 code
+					resolve(response.data); 
+					// return an array of current suppliers, like the follow:
+					/*
+    					[
+    					    { id: 'departId', label: 'Design', value: 'Design' },
+    					    { id: 'departId', label: 'Production', value: 'Production' },
+    					    { id: 'departId', label: 'Quality Control', value: 'Quality Control' },
+    					    { id: 'departId', label: 'Warehouse', value: 'Warehouse' },
+    					    { id: 'departId', label: 'Human Resources', value: 'Human Resources' },
+    					    { id: 'departId', label: 'Marketing', value: 'Marketing' },
+    					    { id: 'departId', label: 'Sales', value: 'Sales' },
+    					    { id: 'departId', label: 'Operations', value: 'Operations' },
+    					    { id: 'departId', label: 'Product Management', value: 'Product Management' },
+    					    { id: 'departId', label: 'Supply Chain', value: 'Supply Chain' }
+    					]
+					*/ 
+				} else {
+					reject(response.data.error);
+					// send back the error + consistent error code: 404, 401..
+					// should return a msg for the error:
+					// 1. 'Server error! Please try again later.'
+					// 2. 'You don't have permission to get data.' (forbidden)
+				}
+			}
+		);
+	});	
+	
+
+
+	/**
 	 * Signs out the user.
 	 */
 	logout = () => {
