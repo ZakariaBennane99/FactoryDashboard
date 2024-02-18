@@ -15,20 +15,12 @@ function AddUser({ user }) {
 
     const [fileError, setFileError] = useState('');
 
-    const [departments, setDepartments] = useState([
-        'Engineering Office', 
-        'Finance Office', 
-        'Cutting Division I', 
-        'Cutting Division II', 
-        'Tailoring Division', 
-        'Printing'
-    ]);
-
     const [userRoles, setUserRoles] = useState([
         'Managerial Head', 
         'Production Manager', 
         'Departments Head', 
-        'Factory Manager'
+        'Factory Manager',
+        'Warehouse Manager'
     ]);
 
     const [usr, setUser] = useState({
@@ -255,15 +247,15 @@ function AddUser({ user }) {
     /* TO BE UNCOMMENTED IN PRODUCTION
     // get existing userRoles and departments
     useEffect(() => {    
-        async function getRolesAndDeparts() {
+        async function getRoles() {
             try {
-                // @route: api/rolesAndDeparts
-                // @description: get Roles & Departs
-                const res = await jwtService.getRolesAndDeparts({ 
+                // @route: api/roles
+                // @description: get User Roles
+                const res = await jwtService.getRoles({ 
                     currentUserId: currentUserId
                 });
                 if (res) {
-                    setDepartments(res.departs)
+                    setDepartments(res)
                     setUserRoles(res.roles)
                 }
             } catch (_error) {
@@ -272,7 +264,7 @@ function AddUser({ user }) {
             }
         }
         
-        getRolesAndDeparts();
+        getRoles();
     }, []);*/
 
 
@@ -328,25 +320,6 @@ function AddUser({ user }) {
                         {userRoles.map((usrRole, index) => (
                             <MenuItem key={index} value={usrRole}>
                                 {usrRole}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-
-                <FormControl fullWidth margin="normal" error={Boolean(errors.department)}>
-                    <InputLabel id="department-label">Department</InputLabel>
-                    <Select
-                        labelId="department-label"
-                        value={usr.department}
-                        label="Department"
-                        onChange={handleChange('department')}
-                        helperText={errors.department}
-                        error={Boolean(errors.department)}
-                        required
-                    >
-                        {departments.map((dept, index) => (
-                            <MenuItem key={index} value={dept}>
-                                {dept}
                             </MenuItem>
                         ))}
                     </Select>

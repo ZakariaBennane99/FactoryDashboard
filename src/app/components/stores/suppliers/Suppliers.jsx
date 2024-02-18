@@ -7,7 +7,6 @@ import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import axios from 'axios';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -16,32 +15,15 @@ import AddSupplier from './AddSupplier';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
-import { DataGrid } from '@mui/x-data-grid';
-import * as React from 'react';
-
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
 
 function Suppliers() {
 
-    const columns = [
-        { field: 'name', headerName: 'Name', width: 200 },
-        { field: 'address', headerName: 'Address', width: 300 },
-        { field: 'phone', headerName: 'Phone Number', width: 150 },
-        { field: 'email', headerName: 'Email', width: 250 },
-    ];
-      
-      
-    const rows = [
-        { id: 1, name: "Aleppo Textiles Ltd.", phone: "+963 1234 567", email: "contact@aleppotextiles.sy", address: "123 Industrial Zone, Aleppo, Syria" },
-        { id: 2, name: "Damascus Fabrics Co.", phone: "+963 9876 543", email: "info@damascusfabrics.sy", address: "456 Business District, Damascus, Syria" },
-        { id: 3, name: "Latakia Weaving Works", phone: "+963 3456 789", email: "sales@latakia-weaving.sy", address: "789 Seaside Avenue, Latakia, Syria" },
-        { id: 4, name: "Homs Cotton Suppliers", phone: "+963 2345 678", email: "support@homscotton.sy", address: "321 Cotton Drive, Homs, Syria" },
-        { id: 5, name: "Tartous Textile Solutions", phone: "+963 5432 109", email: "inquiries@tartoustextile.sy", address: "654 Harbor Road, Tartous, Syria" },
-        { id: 6, name: "Raqqa Garment Makers", phone: "+963 6789 012", email: "contact@raqqagarments.sy", address: "987 Fabric Lane, Raqqa, Syria" },
-        { id: 7, name: "Deir Ezzor Cloth Co.", phone: "+963 7890 345", email: "info@deirezzorcloth.sy", address: "210 Textile Avenue, Deir Ezzor, Syria" },
-    ];
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredSuppliers, setFilteredSuppliers] = useState(null);
 
@@ -85,6 +67,21 @@ function Suppliers() {
         }
     }
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }  
+
     useEffect(() => {
         if (suppliers.length > 0 && isQueryFound) {
             const filtered = suppliers.filter((user) => {
@@ -100,15 +97,19 @@ function Suppliers() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
         async function getSuppliers() {
             try {
-                const response = await axios.get('http://localhost:3050/suppliers');
-                console.log('The response', response)
-                const suppliersArr = response.data.suppliers;
-                setSuppliers(suppliersArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/suppliers
+                // @description: get a list of suppliers
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "suppliers"
+                });
+                if (res) {
+                    setSuppliers(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -146,7 +147,7 @@ function Suppliers() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={suppliers[i]} itemType="suppliers" />
                 )
             }));
         }, 100);

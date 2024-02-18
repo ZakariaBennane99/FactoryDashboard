@@ -7,7 +7,6 @@ import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import axios from 'axios';
 import PersonIcon from '@mui/icons-material/Person'
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
@@ -16,11 +15,15 @@ import StorageIcon from '@mui/icons-material/Storage';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
 
 function Warehouses() {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredWarehouses, setFilteredWarehouses] = useState(null);
 
@@ -52,6 +55,20 @@ function Warehouses() {
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     }
     
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -85,12 +102,17 @@ function Warehouses() {
         // get the Userments from the backend
         async function getWarehouses() {
             try {
-                const response = await axios.get('http://localhost:3050/warehouses');
-                console.log('The response', response)
-                const warehousesArr = response.data.warehouses;
-                setWarehouses(warehousesArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/warehouses
+                // @description: get a list of warehouses
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "warehouses"
+                });
+                if (res) {
+                    setWarehouses(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -129,7 +151,7 @@ function Warehouses() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={warehouses[i].warehouseId} itemType="warehouses" />
                 )
             }));
         }, 100);

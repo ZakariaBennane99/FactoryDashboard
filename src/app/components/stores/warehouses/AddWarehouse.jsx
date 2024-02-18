@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 function AddWarehouse({ wrhouse }) {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [managers, setManagers] = useState([
         'Moha Itani',
@@ -20,14 +25,71 @@ function AddWarehouse({ wrhouse }) {
         setWarehouse({ ...warehouse, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
+    function showMsg(msg, status) {
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    const handleAddWarehouses = async (event) => {
         event.preventDefault();
-        console.log(warehouse);
+        
+        try {
+            // @route: api/create/warehouses
+            // @description: create a new warehouse
+            const res = await jwtService.createItem({ 
+                itemType: 'warehouses',
+                data: {
+                    data: warehouse,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            showMsg(_error, 'error')
+        } 
     };
+
+    const handleUpdateWarehouses = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/warehouses
+            // @description: update an existing warehouse
+            const res = await jwtService.updateItem({ 
+                itemType: 'warehouses',
+                data: {
+                    data: warehouse,
+                    currentUserId: currentUserId,
+                    itemId: wrhouse.warehousesId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
+
+    
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={wrhouse ? handleUpdateWarehouses : handleAddWarehouses}>
                 <FormControl fullWidth margin="normal">
                     <TextField
                         label="Warehouse Name"

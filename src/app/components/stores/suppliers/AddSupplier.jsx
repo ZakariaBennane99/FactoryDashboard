@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
+
 
 function AddSupplier({ splier }) {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [supplier, setSupplier] = useState({
         name: splier ? splier.name : '',
@@ -14,14 +20,70 @@ function AddSupplier({ splier }) {
         setSupplier({ ...supplier, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    const handleAddSuppliers = async (event) => {
         event.preventDefault();
-        console.log(supplier);
+        
+        try {
+            // @route: api/create/suppliers
+            // @description: create a new supplier
+            const res = await jwtService.createItem({ 
+                itemType: 'suppliers',
+                data: {
+                    data: supplier,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            showMsg(_error, 'error')
+        } 
     };
+
+    const handleUpdateSuppliers = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/suppliers
+            // @description: update an existing supplier
+            const res = await jwtService.updateItem({ 
+                itemType: 'suppliers',
+                data: {
+                    data: supplier,
+                    currentUserId: currentUserId,
+                    itemId: splier.suppliersId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={splier ? handleUpdateSuppliers : handleAddSuppliers}>
                 <FormControl fullWidth margin="normal">
                     <TextField
                         label="Supplier Name"
