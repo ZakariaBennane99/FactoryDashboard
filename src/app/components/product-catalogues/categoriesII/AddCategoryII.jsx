@@ -56,7 +56,6 @@ function AddCategoryII({ ctgrII }) {
         } 
     };
 
-
     const handleUpdateCategoryII = async (event) => {
         event.preventDefault();
 

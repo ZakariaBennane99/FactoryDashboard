@@ -2,8 +2,14 @@ import { useState } from 'react';
 import { FormControl, TextField, Box, Button } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 function AddSeason({ seasn }) {
+
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [season, setSeason] = useState({
         seasonName: seasn ? seasn.seasonName : '',
         startDate: seasn ? new Date(seasn.startDate) : null,
@@ -23,15 +29,73 @@ function AddSeason({ seasn }) {
         setSeason({ ...season, endDate: date });
     };
 
-    const handleSubmit = (event) => {
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+
+    const handleAddSeason = async (event) => {
         event.preventDefault();
-        console.log(season);
+        
+        try {
+            // @route: api/create/season
+            // @description: create a new season
+            const res = await jwtService.createItem({ 
+                itemType: 'seasons',
+                data: {
+                    data: season,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
+    const handleUpdateSeason = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/season
+            // @description: update season
+            const res = await jwtService.updateItem({ 
+                itemType: 'seasons',
+                data: {
+                    data: season,
+                    currentUserId: currentUserId,
+                    itemId: seasn.seasonId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
     };
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={seasn ? handleUpdateSeason : handleAddSeason}>
                     <FormControl fullWidth margin="normal">
                         <TextField
                             label="Season Name"

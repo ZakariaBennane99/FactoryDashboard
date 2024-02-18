@@ -23,12 +23,14 @@ import WbSunnyIcon from '@mui/icons-material/WbSunny'; // summer
 import FilterDramaIcon from '@mui/icons-material/FilterDrama'; // autumn
 import LocalFloristIcon from '@mui/icons-material/LocalFlorist'; // Spring
 import DnsIcon from '@mui/icons-material/Dns';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
 function Details() {
 
-    // handling search and expansion
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredDetails, setFilteredDetails] = useState(null);
 
@@ -71,6 +73,21 @@ function Details() {
         }
     }
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
     useEffect(() => {
         if (details.length > 0 && isQueryFound) {
             const filtered = details.filter((detail) => {
@@ -87,14 +104,19 @@ function Details() {
 
 
     useEffect(() => {
-        // get the details from the backend
         async function getDetails() {
             try {
-                const response = await axios.get('http://localhost:3050/product-catalogue-details');
-                const dprtsArr = response.data.details;
-                setDetails(dprtsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/catalogueDetails
+                // @description: get product catalogue Details
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "catalogueDetails"
+                });
+                if (res) {
+                    setDetails(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -134,7 +156,7 @@ function Details() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType="catalogueDetails" />
                 )
             }));
         }, 100);

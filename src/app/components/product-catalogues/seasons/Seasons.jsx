@@ -16,6 +16,10 @@ import Delete from '../../Delete';
 import TodayIcon from '@mui/icons-material/Today';
 import EventIcon from '@mui/icons-material/Event';
 import DescriptionIcon from '@mui/icons-material/Description';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
+
 
 function trimText(txt, maxLength) {
     if (txt.length > maxLength) {
@@ -28,11 +32,13 @@ function trimText(txt, maxLength) {
 
 function Seasons() {
 
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [filteredSeasons, setFilteredSeasons] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [seasons, setMaterials] = useState([]);
+    const [seasons, setSeasons] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -55,6 +61,20 @@ function Seasons() {
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     } 
     
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -85,19 +105,23 @@ function Seasons() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getSeasons() {
             try {
-                const response = await axios.get('http://localhost:3050/product-catalogue-seasons');
-                console.log('The response', response)
-                const materialsArr = response.data.seasons;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/seasons
+                // @description: get seasons
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "seasons"
+                });
+                if (res) {
+                    setSeasons(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getSeasons();
     }, []);
 
 
@@ -131,7 +155,7 @@ function Seasons() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={i} itemType='seasons' />
                 )
             }));
         }, 100);

@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
+
 
 function AddDetails({ dtl }) {
+
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [details, setDetails] = useState({
         category1: dtl ? dtl.Category1 : '',
         category2: dtl ? dtl.Category2 : '',
@@ -14,19 +21,77 @@ function AddDetails({ dtl }) {
         description: dtl ? dtl.Description : ''
     });
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
     const handleChange = (prop) => (event) => {
         setDetails({ ...details, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
+
+    const handleAddCatalogueDetails = async (event) => {
         event.preventDefault();
-        console.log(details);
+        
+        try {
+            // @route: api/create/catalogueDetails
+            // @description: create a new catalogueDetails
+            const res = await jwtService.createItem({ 
+                itemType: 'catalogueDetails',
+                data: {
+                    data: catalogueDetails,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
     };
+
+    const handleUpdateCatalogueDetails = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/catalogueDetails
+            // @description: update catalogue details
+            const res = await jwtService.updateItem({ 
+                itemType: 'catalogueDetails',
+                data: {
+                    data: catalogueDetails,
+                    currentUserId: currentUserId,
+                    itemId: dtl.catalogueDetailsId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
-
+            <form onSubmit={dtl ? handleUpdateCatalogueDetails : handleAddCatalogueDetails}>
 
                 <FormControl fullWidth margin="normal">
                     <InputLabel id="product-catalogue-select-label">Product Catalogue</InputLabel>
@@ -40,7 +105,6 @@ function AddDetails({ dtl }) {
                     >
                         <MenuItem value="Jeans">Jeans</MenuItem>
                         <MenuItem value="Shorts">Shorts</MenuItem>
-                        {/* ... other subcategories */}
                     </Select>
                 </FormControl>
 

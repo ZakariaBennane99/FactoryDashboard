@@ -16,6 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
 
 
+
 function trimText(txt, maxLength) {
     if (txt.length > maxLength) {
         return txt.substring(0, maxLength) + '...'
