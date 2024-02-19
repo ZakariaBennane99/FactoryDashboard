@@ -13,6 +13,9 @@ import AddTemplate from './AddTemplate';
 import CategoryIcon from '@mui/icons-material/Category';
 import DescriptionIcon from '@mui/icons-material/Description';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
@@ -27,11 +30,13 @@ function trimText(txt, maxLength) {
 
 function Templates() {
 
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [filteredTemplates, setFilteredTemplates] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [templates, setMaterials] = useState([]);
+    const [templates, setTemplates] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -54,6 +59,20 @@ function Templates() {
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     } 
     
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    } 
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -84,19 +103,23 @@ function Templates() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getTemplates() {
             try {
-                const response = await axios.get('http://localhost:3050/templates');
-                console.log('The response', response)
-                const materialsArr = response.data.templates;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/templates
+                // @description: get a list of templates
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "templates"
+                });
+                if (res) {
+                    setTemplates(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getTemplates();
     }, []);
 
 
@@ -130,7 +153,7 @@ function Templates() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={templates[i].templateId} itemType="templates" />
                 )
             }));
         }, 100);

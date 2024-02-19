@@ -549,6 +549,30 @@ class JwtService extends FuseUtils.EventEmitter {
 		);
 	});	
 
+	/**
+	 * get the names of existing product catalogue details
+	 */
+	getProductCatalogueDetails = (data) =>
+	new Promise((resolve, reject) => {
+		axios.post(`/api/productCatalogueDetails`, data).then(
+			(
+				response
+			) => {
+				if (response.data) {
+					// resolve with 201/200 code
+					resolve(response.data); 
+					// return an array of product catalogue details
+				} else {
+					reject(response.data.error);
+					// send back the error + consistent error code: 404, 401..
+					// should return a msg for the error:
+					// 1. 'Server error! Please try again later.'
+					// 2. 'You don't have permission to get data.' (forbidden)
+				}
+			}
+		);
+	});	
+
 
 	/**
 	 * Signs out the user.
