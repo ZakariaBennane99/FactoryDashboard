@@ -37,6 +37,7 @@ import modelsConfig from '../main/orders/models/ModelsConfig'
 import materialReportsConfig from '../main/material-reports/MaterialReportsConfig'
 import taskConfig from '../main/tasks/TasksConfig'
 import WarehousesConfig from '../main/stores/warehouses/WarehousesConfig';
+import ProfileConfig from '../main/profile/ProfileConfig'
 
 
 const routeConfigs: FuseRouteConfigsType = [ 
@@ -48,7 +49,7 @@ const routeConfigs: FuseRouteConfigsType = [
 	templatesManufacturingStages, templatesPatterns, templatesSizes, templatesTypes,
 	templates, orderColors, orderSizes, orders, orderDetails, orderDetailColors, 
 	orderDetailSizes, orderDetailTemplateTypes, modelsConfig, materialReportsConfig,
-	taskConfig, WarehousesConfig
+	taskConfig, WarehousesConfig, ProfileConfig
 ];
 
 /**

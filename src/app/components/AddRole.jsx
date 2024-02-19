@@ -7,6 +7,9 @@ import jwtService from '../auth/services/jwtService';
 
 
 function AddRole() {
+
+    const currentUserId = window.localStorage.getItem('userId')
+
     const [roleDetails, setRoleDetails] = useState({
         roleName: '',
         description: '',
@@ -41,9 +44,9 @@ function AddRole() {
 
         try {
             // @route: /api/auth/createNewUser
-            // @description: create new user using the request data
+            // @description: create new user Role using the request data
             const res = await jwtService.addUserRole({ 
-                currentUserId: user.currentUserId,
+                currentUserId: currentUserId,
                 data: roleDetails
              });
             if (res) {
