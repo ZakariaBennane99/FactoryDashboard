@@ -4,7 +4,6 @@ import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../../components/Delete';
@@ -18,15 +17,20 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import ScissorsIcon from '@mui/icons-material/ContentCut'; 
 import ScaleIcon from '@mui/icons-material/Scale'
 import CheckroomIcon from '@mui/icons-material/Checkroom';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 
 function Sizes() {
+
+    const currentUserId = window.localStorage.getItem('userId');
 
     const [filteredSizes, setFilteredSizes] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [sizes, setMaterials] = useState([]);
+    const [sizes, setSizes] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -34,7 +38,7 @@ function Sizes() {
         if (!isQueryFound || !query) {
             return <span>{text}</span>;
         }
-    
+
         // Convert both text and query to string to ensure numbers are handled correctly
         const textString = String(text);
         const queryString = String(query);
@@ -46,10 +50,24 @@ function Sizes() {
         const regex = new RegExp(escapedQuery, 'gi');
         // Replace matches in the text with a highlighted span
         const highlightedText = textString.replace(regex, (match) => `<span class="highlight">${match}</span>`);
-    
         // Return the highlighted text as JSX
         // Use dangerouslySetInnerHTML to render the HTML string as real HTML
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
+    }
+
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
     }
 
     function handleSearch(e) {
@@ -81,19 +99,23 @@ function Sizes() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getSizes() {
             try {
-                const response = await axios.get('http://localhost:3050/template-sizes');
-                console.log('The response', response)
-                const materialsArr = response.data.sizes;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/templateSizes
+                // @description: get a list of template sizes
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "templateSizes"
+                });
+                if (res) {
+                    setSizes(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getSizes();
     }, []);
 
 
@@ -127,7 +149,7 @@ function Sizes() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={sizes[i].sizeId} itemType="templateSizes" />
                 )
             }));
         }, 100);

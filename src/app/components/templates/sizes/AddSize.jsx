@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box, Select, MenuItem, InputLabel, IconButton } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import jwtService from '../../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
+
+
 
 function AddTemplateSize({ sze }) {
+
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [templateSize, setTemplateSize] = useState({
         size: sze ? sze.size : '',
         template: sze ? sze.template : '',
@@ -15,24 +24,21 @@ function AddTemplateSize({ sze }) {
         description: sze ? sze.description : ''
     });
 
-    const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-    
-    const templates = [
+    const [templates, setTemplates] = useState([
         'Basic Tee',
         'Winter Sweater',
         'Sports Jacket',
-        // ... add other templates
-    ];
-    const materials = [
+    ])    
+    const [materials, setMaterials] = useState([
         'Cotton',
         'Polyester',
         'Wool',
-        // ... add other materials
-    ];
+    ])    
+    const [measurementNames, setMeasurementNames] = useState(['pcs', 'meters', 'kg'])
+    const [measurementUnits, setMeasurementUnits] = useState(['inches', 'cm'])
+    const [sizes, setSizes] = useState(['XS', 'S', 'M', 'L', 'XL', 'XXL'])
 
-    const unitsOfMeasure = ['pcs', 'meters', 'kg'];
     const templateSizeTypes = ['Cutting', 'Dressup'];
-    const measurementUnits = ['inches', 'cm'];
 
     const handleChange = (prop) => (event) => {
         setTemplateSize({ ...templateSize, [prop]: event.target.value });
@@ -72,14 +78,101 @@ function AddTemplateSize({ sze }) {
         });
     };
 
-    const handleSubmit = (event) => {
+
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    const handleAddSizes = async (event) => {
         event.preventDefault();
-        console.log(templateSize);
+        
+        try {
+            // @route: api/create/sizes
+            // @description: create a new template size
+            const res = await jwtService.createItem({ 
+                itemType: 'sizes',
+                data: {
+                    data: templateSize,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            showMsg(_error, 'error')
+        } 
     };
+
+    const handleUpdateSizes = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/sizes
+            // @description: update an existing template size
+            const res = await jwtService.updateItem({ 
+                itemType: 'sizes',
+                data: {
+                    data: templateSize,
+                    currentUserId: currentUserId,
+                    itemId: sze.sizesId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
+
+        
+    /* TO BE UNCOMMENTED IN PRODUCTION
+    // get the list of existing template data above
+    useEffect(() => {    
+        async function getTemplateData() {
+            try {
+                // @route: api/templateData
+                // @description: get the template data above each in an array
+                // and all of them should be in an object
+                // @response: return an object of two arrays 
+                const res = await jwtService.getTemplateData({ 
+                    currentUserId: currentUserId
+                });
+                if (res) {
+                    setMaterials(res.materials)
+                    setTemplates(res.templates)
+                    setSizes(res.sizes)
+                    setMeasurementNames(res.measurementNames)
+                    setMeasurementUnits(res.measurementUnits)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getTemplateData();
+    }, []);*/
+
+
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={sze ? handleUpdateSizes : handleAddSizes}>
             <FormControl fullWidth margin="normal">
                     <InputLabel id="size-select-label">Size</InputLabel>
                     <Select
@@ -147,7 +240,7 @@ function AddTemplateSize({ sze }) {
                                 onChange={handleMeasurementChange(index, 'measurementName')}
                                 required
                             >
-                                {unitsOfMeasure.map((name, i) => (
+                                {measurementNames.map((name, i) => (
                                     <MenuItem key={i} value={name}>
                                         {name}
                                     </MenuItem>

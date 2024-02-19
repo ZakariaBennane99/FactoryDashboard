@@ -4,13 +4,15 @@ import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../../components/Delete';
 import AddPattern from './AddPattern';
 import CategoryIcon from '@mui/icons-material/Category';
 import DescriptionIcon from '@mui/icons-material/Description';
+import jwtService from '../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 
 
@@ -25,11 +27,13 @@ function trimText(txt, maxLength) {
 
 function Patterns() {
 
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [filteredPatterns, setFilteredPatterns] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [patterns, setMaterials] = useState([]);
+    const [patterns, setPatterns] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -67,6 +71,21 @@ function Patterns() {
         }
     }
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }  
+
     useEffect(() => {
         if (patterns.length > 0 && isQueryFound) {
             const filtered = patterns.filter((user) => {
@@ -85,12 +104,17 @@ function Patterns() {
         // get the Userments from the backend
         async function getMaterials() {
             try {
-                const response = await axios.get('http://localhost:3050/template-patterns');
-                console.log('The response', response)
-                const materialsArr = response.data.patterns;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/patterns
+                // @description: get a list of patterns
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "patterns"
+                });
+                if (res) {
+                    setPatterns(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
@@ -128,11 +152,12 @@ function Patterns() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={patterns[i].patternId} itemType="patterns" />
                 )
             }));
         }, 100);
     }
+
 
     return (
         <div className="parent-container">

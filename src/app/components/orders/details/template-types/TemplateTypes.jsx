@@ -4,7 +4,6 @@ import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../../Delete';
@@ -14,6 +13,8 @@ import StyleIcon from '@mui/icons-material/Style';
 import jwtService from '../../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
 
+
+// THIS IS NOT THE TEMPLATE TYPES, BUT ORDERDETAILTEMPLATETYPES
 
 
 
@@ -25,7 +26,7 @@ function TemplateTypes() {
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [templateTypes, setMaterials] = useState([]);
+    const [templateTypes, setTemplateTypes] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -106,7 +107,7 @@ function TemplateTypes() {
                     itemType: "templateTypes"
                 });
                 if (res) {
-                    setSizes(res)
+                    setTemplateTypes(res)
                 }
             } catch (_error) {
                 showMsg(_error, 'error')

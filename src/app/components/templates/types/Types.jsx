@@ -4,14 +4,17 @@ import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../../components/Delete';
 import AddType from './AddType';
 import CategoryIcon from '@mui/icons-material/Category';
 import DescriptionIcon from '@mui/icons-material/Description';
+import jwtService from '../../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
+
+// THIS IS THE TRUE TEMPLATE TYPES
 
 
 function trimText(txt, maxLength) {
@@ -25,11 +28,13 @@ function trimText(txt, maxLength) {
 
 function Types() {
 
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [filteredTypes, setFilteredTypes] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [types, setMaterials] = useState([]);
+    const [types, setTypes] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -52,6 +57,20 @@ function Types() {
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     } 
     
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }  
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -82,19 +101,23 @@ function Types() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getTypes() {
             try {
-                const response = await axios.get('http://localhost:3050/template-types');
-                console.log('The response', response)
-                const materialsArr = response.data.types;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/types
+                // @description: get a list of types
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "types"
+                });
+                if (res) {
+                    setTypes(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getTypes();
     }, []);
 
 
@@ -128,7 +151,7 @@ function Types() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={types[i].typeId} itemType="types" />
                 )
             }));
         }, 100);
