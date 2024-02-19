@@ -4,7 +4,6 @@ import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../../components/Delete';
@@ -16,17 +15,20 @@ import InfoIcon from '@mui/icons-material/Info';
 import LayersIcon from '@mui/icons-material/Layers';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import TimelineIcon from '@mui/icons-material/Timeline';
-
+import jwtService from '../../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
 function ManufacturingStages() {
 
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [filteredTemplates, setFilteredTemplates] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [manufacturingStages, setMaterials] = useState([]);
+    const [manufacturingStages, setManufacturingStages] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -67,6 +69,21 @@ function ManufacturingStages() {
         }
     }
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }  
+
     useEffect(() => {
         if (manufacturingStages.length > 0 && isQueryFound) {
             const filtered = manufacturingStages.filter((user) => {
@@ -82,19 +99,23 @@ function ManufacturingStages() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
-        async function getMaterials() {
+        async function getManufacturingStages() {
             try {
-                const response = await axios.get('http://localhost:3050/manufacturing-stages');
-                console.log('The response', response)
-                const materialsArr = response.data.manufacturingStages;
-                setMaterials(materialsArr);
-            } catch (error) {
-                console.error('There was an error!', error);
+                // @route: api/items/manufacturingStages
+                // @description: get a list of Manufacturing Stages
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "manufacturingStages"
+                });
+                if (res) {
+                    setManufacturingStages(res)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
             }
         }
         
-        getMaterials();
+        getManufacturingStages();
     }, []);
 
 
@@ -128,7 +149,7 @@ function ManufacturingStages() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} />
+                    <Delete itemId={manufacturingStages[i].manufacturingStageId} itemType="manufacturingStages" />
                 )
             }));
         }, 100);

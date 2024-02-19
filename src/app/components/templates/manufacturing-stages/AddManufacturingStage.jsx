@@ -1,9 +1,16 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import jwtService from '../../../../../app/auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+
+
+
 
 function AddManufacturingStage({ mnfStage }) {
+
+    const currentUserId = window.localStorage.getItem('userId');
+
     const [manufacturingStage, setManufacturingStage] = useState({
         stageNumber: mnfStage ? mnfStage.stageNumber : '',
         stageName: mnfStage ? mnfStage.stageName : '',
@@ -14,24 +21,106 @@ function AddManufacturingStage({ mnfStage }) {
         department: mnfStage ? mnfStage.department : ''
     });
 
-    const templates = ['Basic Tee', 'Classic Jeans', 'Summer Dress'];
-    const departments = [
-        'Engineering Office', 'Finance Office', 'Accounting Office',
-        'Production Plant 1', 'Cutting Division'
-    ];
+    const [templates, setTemplates] = useState(['Basic Tee', 'Classic Jeans', 'Summer Dress'])
+    const [departments, setDepartments] = useState(['Engineering Office', 'Finance Office', 
+    'Accounting Office', 'Production Plant 1', 'Cutting Division'])
+
 
     const handleChange = (prop) => (event) => {
         setManufacturingStage({ ...manufacturingStage, [prop]: event.target.value });
     };
 
-    const handleSubmit = (event) => {
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
+
+    const handleAddManufacturingStages = async (event) => {
         event.preventDefault();
-        console.log(manufacturingStage);
+        
+        try {
+            // @route: api/create/manufacturingStages
+            // @description: create a new manufacturingStage
+            const res = await jwtService.createItem({ 
+                itemType: 'manufacturingStages',
+                data: {
+                    data: manufacturingStage,
+                    currentUserId: currentUserId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            showMsg(_error, 'error')
+        } 
     };
+
+
+    const handleUpdateManufacturingStages = async (event) => {
+        event.preventDefault();
+
+        try {
+            // @route: api/update/manufacturingStages
+            // @description: update an existing manufacturingStage
+            const res = await jwtService.updateItem({ 
+                itemType: 'manufacturingStages',
+                data: {
+                    data: manufacturingStage,
+                    currentUserId: currentUserId,
+                    itemId: mnfStage.manufacturingStagesId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
+
+    
+    /* TO BE UNCOMMENTED IN PRODUCTION
+    // get the list of existing departments and templates
+    useEffect(() => {    
+        async function getDepartmentsAndTemplates() {
+            try {
+                // @route: api/departmentsAndTemplates
+                // @description: get Departments and Templates
+                // @response: return an object of two arrays one named templates 
+				// the other, departments within which each elements has
+				// an id and it's name
+                const res = await jwtService.getDepartmentsAndTemplates({ 
+                    currentUserId: currentUserId
+                });
+                if (res) {
+                    setDepartments(res.departments)
+                    setTemplates(res.templates)
+                }
+            } catch (_error) {
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getDepartsAndTemplates();
+    }, []);*/
+
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={mnfStage ? handleUpdateManufacturingStages : handleAddManufacturingStages}>
 
                 <FormControl fullWidth margin="normal">
                     <InputLabel id="template-select-label">Template</InputLabel>
