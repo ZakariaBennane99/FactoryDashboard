@@ -15,7 +15,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import LayersIcon from '@mui/icons-material/Layers';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import TimelineIcon from '@mui/icons-material/Timeline';
-import jwtService from '../../../../../app/auth/services/jwtService';
+import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
 
 

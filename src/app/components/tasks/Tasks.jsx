@@ -24,7 +24,7 @@ import {
     LocalShippingOutlined as FulfilledIcon,
     Loop as OngoingIcon
 } from '@mui/icons-material';
-import jwtService from '../../../../app/auth/services/jwtService';
+import jwtService from '../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
 
 

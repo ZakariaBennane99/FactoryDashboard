@@ -4,8 +4,6 @@ import { TextField, Box, Grid, Paper } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
-import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../components/Delete';
@@ -13,8 +11,7 @@ import AddTemplate from './AddTemplate';
 import CategoryIcon from '@mui/icons-material/Category';
 import DescriptionIcon from '@mui/icons-material/Description';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import { closeDialog } from 'app/store/fuse/dialogSlice';
-import jwtService from '../../../../app/auth/services/jwtService';
+import jwtService from '../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
 
 

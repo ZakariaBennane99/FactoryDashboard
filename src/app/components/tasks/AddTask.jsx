@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import jwtService from '../../../../app/auth/services/jwtService';
+import jwtService from '../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
 
 

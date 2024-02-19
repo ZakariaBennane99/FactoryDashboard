@@ -51,7 +51,7 @@ function UserNavbarHeader() {
 				className="email whitespace-nowrap text-13 font-medium"
 				color="text.secondary"
 			>
-				{user.data.email}
+				{user.data.email}fuck
 			</Typography>
 		</Root>
 	);

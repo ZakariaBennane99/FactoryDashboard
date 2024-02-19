@@ -12,7 +12,6 @@ import AdjustFontSize from '../../shared-components/AdjustFontSize';
 import FullScreenToggle from '../../shared-components/FullScreenToggle';
 import LanguageSwitcher from '../../shared-components/LanguageSwitcher';
 import NotificationPanelToggleButton from '../../shared-components/notificationPanel/NotificationPanelToggleButton';
-import NavigationShortcuts from '../../shared-components/NavigationShortcuts';
 import NavigationSearch from '../../shared-components/NavigationSearch';
 import NavbarToggleButton from '../../shared-components/NavbarToggleButton';
 import UserMenu from '../../shared-components/UserMenu';
@@ -58,7 +57,6 @@ function ToolbarLayout1(props: ToolbarLayout1Props) {
 										<NavbarToggleButton className="mx-0 h-40 w-40 p-0" />
 									)}
 								</Hidden>
-
 								<Hidden lgUp>
 									<NavbarToggleButton className="mx-0 h-40 w-40 p-0 sm:mx-8" />
 								</Hidden>

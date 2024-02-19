@@ -4,23 +4,16 @@ import history from '@history';
 import { setInitialSettings } from 'app/store/fuse/settingsSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
 import settingsConfig from 'app/configs/settingsConfig';
-import { FuseSettingsConfigType } from '@fuse/core/FuseSettings/FuseSettings';
-import { AppDispatchType, RootStateType } from 'app/store/types';
-import { UserType } from 'app/store/user';
-import { PartialDeep } from 'type-fest';
-import { AxiosError } from 'axios/index';
 import jwtService from '../../auth/services/jwtService';
 import createAppAsyncThunk from '../createAppAsyncThunk';
-
-type AppRootStateType = RootStateType<userSliceType>;
 
 /**
  * Sets the user data in the Redux store and updates the login redirect URL if provided.
  */
-export const setUser = createAsyncThunk('user/setUser', (user: UserType) => {
+export const setUser = createAsyncThunk('user/setUser', (user) => {
 	/*
-    You can redirect the logged-in user to a specific route depending on his role
-    */
+     * You can redirect the logged-in user to a specific route depending on his role
+     */
 	if (user.loginRedirectUrl) {
 		settingsConfig.loginRedirectUrl = user.loginRedirectUrl; // for example 'apps/academy'
 	}
@@ -33,8 +26,8 @@ export const setUser = createAsyncThunk('user/setUser', (user: UserType) => {
  */
 export const updateUserSettings = createAppAsyncThunk(
 	'user/updateSettings',
-	async (settings: FuseSettingsConfigType, { dispatch, rejectWithValue, getState }) => {
-		const AppState = getState() as AppRootStateType;
+	async (settings, { dispatch, rejectWithValue, getState }) => {
+		const AppState = getState();
 		const { user } = AppState;
 
 		const isUserGuest = selectIsUserGuest(AppState);
@@ -43,20 +36,18 @@ export const updateUserSettings = createAppAsyncThunk(
 			return null;
 		}
 
-		const userRequestData = { data: { ...user.data, settings } } as UserType;
+		const userRequestData = { data: { ...user.data, settings } };
 
 		try {
 			const response = await jwtService.updateUserData(userRequestData);
 
 			dispatch(showMessage({ message: 'User settings saved with api' }));
 
-			return response.data as UserType;
+			return response.data;
 		} catch (error) {
-			const axiosError = error as AxiosError;
+			dispatch(showMessage({ message: error.message }));
 
-			dispatch(showMessage({ message: axiosError.message }));
-
-			return rejectWithValue(axiosError.message);
+			return rejectWithValue(error.message);
 		}
 	}
 );
@@ -66,8 +57,8 @@ export const updateUserSettings = createAppAsyncThunk(
  */
 export const updateUserShortcuts = createAppAsyncThunk(
 	'user/updateShortucts',
-	async (shortcuts: string[], { dispatch, getState, rejectWithValue }) => {
-		const AppState = getState() as AppRootStateType;
+	async (shortcuts, { dispatch, getState, rejectWithValue }) => {
+		const AppState = getState();
 		const { user } = AppState;
 
 		const isUserGuest = selectIsUserGuest(AppState);
@@ -76,20 +67,18 @@ export const updateUserShortcuts = createAppAsyncThunk(
 			return null;
 		}
 
-		const userRequestData = { data: { ...user.data, shortcuts } } as PartialDeep<UserType>;
+		const userRequestData = { data: { ...user.data, shortcuts } };
 
 		try {
 			const response = await jwtService.updateUserData(userRequestData);
 
 			dispatch(showMessage({ message: 'User shortcuts saved with api' }));
 
-			return response.data as UserType;
+			return response.data;
 		} catch (error) {
-			const axiosError = error as AxiosError;
+			dispatch(showMessage({ message: error.message }));
 
-			dispatch(showMessage({ message: axiosError.message }));
-
-			return rejectWithValue(axiosError.message);
+			return rejectWithValue(error.message);
 		}
 	}
 );
@@ -97,8 +86,8 @@ export const updateUserShortcuts = createAppAsyncThunk(
 /**
  * Logs the user out and resets the Redux store.
  */
-export const logoutUser = () => async (dispatch: AppDispatchType, getState: () => RootStateType) => {
-	const AppState = getState() as AppRootStateType;
+export const logoutUser = () => async (dispatch, getState) => {
+	const AppState = getState();
 
 	const isUserGuest = selectIsUserGuest(AppState);
 
@@ -118,10 +107,10 @@ export const logoutUser = () => async (dispatch: AppDispatchType, getState: () =
 /**
  * Updates the user's data in the Redux store and returns the updated user object.
  */
-export const updateUserData = createAppAsyncThunk<UserType, PartialDeep<UserType>>(
+export const updateUserData = createAppAsyncThunk(
 	'user/update',
 	async (userRequestData, { dispatch, rejectWithValue, getState }) => {
-		const AppState = getState() as AppRootStateType;
+		const AppState = getState();
 
 		const isUserGuest = selectIsUserGuest(AppState);
 
@@ -134,13 +123,11 @@ export const updateUserData = createAppAsyncThunk<UserType, PartialDeep<UserType
 
 			dispatch(showMessage({ message: 'User data saved with api' }));
 
-			return response.data as UserType;
+			return response.data;
 		} catch (error) {
-			const axiosError = error as AxiosError;
+			dispatch(showMessage({ message: error.message }));
 
-			dispatch(showMessage({ message: axiosError.message }));
-
-			return rejectWithValue(axiosError.message);
+			return rejectWithValue(error.message);
 		}
 	}
 );
@@ -148,7 +135,7 @@ export const updateUserData = createAppAsyncThunk<UserType, PartialDeep<UserType
 /**
  * The initial state of the user slice.
  */
-const initialState: UserType = {
+const initialState = {
 	role: [], // guest
 	data: {
 		displayName: 'John Doe',
@@ -182,18 +169,16 @@ export const userSlice = createSlice({
 
 export const { userLoggedOut } = userSlice.actions;
 
-export const selectUser = (state: AppRootStateType) => state.user;
+export const selectUser = (state) => state.user;
 
-export const selectUserRole = (state: AppRootStateType) => state.user.role;
+export const selectUserRole = (state) => state.user.role;
 
-export const selectIsUserGuest = (state: AppRootStateType) => {
+export const selectIsUserGuest = (state) => {
 	const { role } = state.user;
 
 	return !role || role.length === 0;
 };
 
-export const selectUserShortcuts = (state: AppRootStateType) => state.user.data.shortcuts;
-
-export type userSliceType = typeof userSlice;
+export const selectUserShortcuts = (state) => state.user.data.shortcuts;
 
 export default userSlice.reducer;

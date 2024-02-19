@@ -1,16 +1,25 @@
-import { Box } from '@mui/material';
+import { Box, TextField } from '@mui/material';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux'; 
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
-import { useAppDispatch } from 'app/store';
 
+function Profile() {
+    
+    const dispatch = useDispatch(); 
 
+    const [profile, setProfile] = useState({
+        firstName: 'John',
+        lastName: 'Doe',
+        password: 'password123',
+        confirmPassword: '',
+        photo: 'https://example.com/photo.jpg',
+    });
 
-function Profile({ userId }) {
-
-    const dispatch = useAppDispatch();
+    const [errors, setErrors] = useState({ password: '', confirmPassword: '' });
 
     function showMsg(msg, status) {
-        dispatch(closeDialog())
+        dispatch(closeDialog());
         setTimeout(() => dispatch(
             showMessage({
                 message: msg,
@@ -23,26 +32,109 @@ function Profile({ userId }) {
             })), 100);
     }
 
-    async function updateProfile() {
-        try {
-            // Assuming jwtService has a method for updating user profile
-            const res = await jwtService.updateProfile({ userId: userId });
-            if (res) {
-                showMsg('Profile updated successfully!', 'success')
-            }
-        } catch (_errors) {
-            showMsg('Profile update failed. Please try again.', 'error')
+    const validatePassword = () => {
+        let isValid = true;
+        if (profile.password.length < 8) {
+            setErrors(prevErrors => ({ ...prevErrors, password: 'Password must be at least 8 characters long!' }));
+            isValid = false;
+        } else if (!/\d/.test(profile.password) || !/[a-zA-Z]/.test(profile.password)) {
+            setErrors(prevErrors => ({ ...prevErrors, password: 'Password must contain at least one letter and one number!' }));
+            isValid = false;
+        } else {
+            setErrors(prevErrors => ({ ...prevErrors, password: '' }));
+        }
+        return isValid;
+    };
+
+    const validateConfirmPassword = () => {
+        if (profile.password !== profile.confirmPassword) {
+            setErrors(prevErrors => ({ ...prevErrors, confirmPassword: 'Passwords do not match!' }));
+            return false;
+        } else {
+            setErrors(prevErrors => ({ ...prevErrors, confirmPassword: '' }));
+            return true;
+        }
+    };
+
+    const handleChange = (event) => {
+        const { name, type, value, files } = event.target;
+        setProfile({
+            ...profile,
+            [name]: type === 'file' ? files[0] : value,
+        });
+
+        // Trigger validation for password and confirmPassword fields
+        if (name === 'password') {
+            validatePassword();
+            validateConfirmPassword(); 
+        } else if (name === 'confirmPassword') {
+            validateConfirmPassword();
+        }
+
+    };
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+
+        }
+    };
+
+    function handleUpdate() {
+        const isPasswordValid = validatePassword();
+        const isConfirmPasswordValid = validateConfirmPassword();
+        if (!isPasswordValid || !isConfirmPasswordValid) {
+            return; 
         }
     }
 
     return (
         <Box className="profile-box" sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '25px' }}>
-            <p>Profile Component Content Here</p>
-            <div className="button-container">
-                <button className="update-button" onClick={() => updateProfile()} >Update Profile</button>
+            <TextField
+                label="First Name"
+                name="firstName" 
+                variant="outlined"
+                value={profile.firstName}
+                onChange={handleChange}
+            />
+            <TextField
+                label="Last Name"
+                name="lastName"
+                variant="outlined"
+                value={profile.lastName}
+                onChange={handleChange}
+            />
+            <TextField
+                label="Password"
+                name="password"
+                type="password"
+                variant="outlined"
+                value={profile.password}
+                onChange={handleChange}
+                error={!!errors.password}
+                helperText={errors.password}
+            />
+            <TextField 
+                label="Confirm Password"
+                name="confirmPassword"
+                type="password"
+                variant="outlined"
+                value={profile.confirmPassword}
+                onChange={handleChange}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+            />
+            <div>
+                <img src={profile.photo} alt="Profile" style={{ width: 100, height: 100, objectFit: 'cover' }} />
+                <input
+                    type="file"
+                    name="photo" 
+                    onChange={handleFileChange}
+                />
             </div>
+            <button className='' onClick={handleUpdate}>Update</button>
         </Box>
     )
 }
 
-export default Profile
+export default Profile;

@@ -14,8 +14,9 @@ import AddProductCatalogue from './AddProductCatalogue';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../Delete';
-import jwtService from '../../../../app/auth/services/jwtService';
+import jwtService from '../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+
 
 
 function trimText(txt, maxLength) {

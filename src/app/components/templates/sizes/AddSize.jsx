@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FormControl, TextField, Box, Select, MenuItem, InputLabel, IconButton } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { closeDialog } from 'app/store/fuse/dialogSlice';
-import jwtService from '../../../../../app/auth/services/jwtService';
+import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
 
 
