@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
-import { closeDialog, openDialog } from 'app/store/fuse/dialogSlice';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
 
