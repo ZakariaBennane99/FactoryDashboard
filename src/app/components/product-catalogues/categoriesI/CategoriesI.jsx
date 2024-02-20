@@ -153,7 +153,7 @@ function CategoriesI() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} itemType="categoriesI" />
+                    <Delete itemId={categoriesI[i].categoryIId} itemType="categoriesI" />
                 )
             }));
         }, 100);

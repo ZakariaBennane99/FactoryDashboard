@@ -100,11 +100,11 @@ function TemplateTypes() {
     useEffect(() => {
         async function getTemplateTypes() {
             try {
-                // @route: api/items/templateTypes
-                // @description: get Template Types
+                // @route: api/items/orderDetailTemplatesType
+                // @description: get orderDetail TemplatesTypes
                 const res = await jwtService.getItems({ 
                     currentUserId: currentUserId,
-                    itemType: "templateTypes"
+                    itemType: "orderDetailTemplatesType"
                 });
                 if (res) {
                     setTemplateTypes(res)

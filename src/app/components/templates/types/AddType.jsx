@@ -39,8 +39,8 @@ function AddTemplateType({ typs }) {
         event.preventDefault();
         
         try {
-            // @route: api/create/types
-            // @description: create a new type
+            // @route: api/create/templateTypes
+            // @description: create a new template type
             const res = await jwtService.createItem({ 
                 itemType: 'types',
                 data: {
@@ -60,8 +60,8 @@ function AddTemplateType({ typs }) {
         event.preventDefault();
 
         try {
-            // @route: api/update/types
-            // @description: update an existing type
+            // @route: api/update/templateTypes
+            // @description: update an existing template Type type
             const res = await jwtService.updateItem({ 
                 itemType: 'types',
                 data: {

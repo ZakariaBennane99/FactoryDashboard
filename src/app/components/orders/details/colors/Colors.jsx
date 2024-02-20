@@ -143,7 +143,7 @@ function Colors() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} itemType='cataloguesColor' />
+                    <Delete itemId={colors[i].colorId} itemType='cataloguesColor' />
                 )
             }));
         }, 100);

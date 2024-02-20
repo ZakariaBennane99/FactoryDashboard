@@ -11,7 +11,11 @@ function AddInternalOrder({ intrlOrder }) {
 
     const currentUserId = window.localStorage.getItem('userId');
 
-    const [materialNames, setMaterialNames] = useState(null)
+    const [materialNames, setMaterialNames] = useState([
+        'Material 1',
+        'Material 2',
+        'Material 3',
+    ])
 
     const [internalOrder, setInternalOrder] = useState({
         expectedDelivery: intrlOrder ? new Date(intrlOrder.expectedDelivery) : null,
@@ -29,13 +33,7 @@ function AddInternalOrder({ intrlOrder }) {
         'CANCELLED', 'COMPLETED', 'ONGOING'
     ];
 
-    // Mock materials array, replace with actual data if needed
-    const materials = [
-        'Material 1',
-        'Material 2',
-        'Material 3',
-    ];
-
+    
     const handleChange = (prop) => (event) => {
         setInternalOrder({ ...internalOrder, [prop]: event.target.value });
     };

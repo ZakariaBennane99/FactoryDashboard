@@ -14,8 +14,6 @@ import jwtService from '../../../auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
 
 
-// THIS IS THE TRUE TEMPLATE TYPES
-
 
 function trimText(txt, maxLength) {
     if (txt.length > maxLength) {
@@ -103,8 +101,8 @@ function Types() {
     useEffect(() => {
         async function getTypes() {
             try {
-                // @route: api/items/types
-                // @description: get a list of types
+                // @route: api/items/templateTypes
+                // @description: get a list of template types
                 const res = await jwtService.getItems({ 
                     currentUserId: currentUserId,
                     itemType: "types"

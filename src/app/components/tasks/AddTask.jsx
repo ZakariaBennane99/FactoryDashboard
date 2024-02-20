@@ -119,7 +119,7 @@ function AddTask({ tsk }) {
   useEffect(() => {    
       async function getDepartments() {
           try {
-              // @route: api/managerNames
+              // @route: api/departments
               // @description: get Departments
               // @response: an array department objects
               const res = await jwtService.getDepartments({ 

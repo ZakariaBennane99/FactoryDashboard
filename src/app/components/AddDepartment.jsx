@@ -32,6 +32,8 @@ function AddDepartment({ dprt }) {
     const [managers, setManagers] = useState(['Chris Evans', 'Marly Manson', 'Tim Bergling', 'Hamid Abdelhamid',
 'Sam Kfouri', 'Omar Akil', 'Mohammed Atouani', 'Mouad Moutaouakil', 'Chris Tucker'])
 
+    const [categories, setCategories] = useState(['Management', 'Engineering', 'Cutting', 'Tailoring', 'Printing', 'Cleaning'])
+
     const [department, setDepartment] = useState({
         name: dprt ? dprt.name : '',
         manager: dprt ? dprt.manager : '',
@@ -86,23 +88,6 @@ function AddDepartment({ dprt }) {
 
     };
 
-    function showMsg(msg, status) {
-        // take the itemId, and delete the item
-    
-        // then close the dialog, and show a quick message
-        dispatch(closeDialog())
-        setTimeout(()=> dispatch(
-            showMessage({
-                message: msg, // text or html
-                autoHideDuration: 3000, // ms
-                anchorOrigin: {
-                    vertical  : 'top', // top bottom
-                    horizontal: 'center' // left center right
-                },
-                variant: status // success error info warning null
-        })), 100);
-    }
-
     /* TO BE UNCOMMENTED IN PRODUCTION
     // get existing unassigned managers who have user roles other than 'Warehouse Manager'
     useEffect(() => {    
@@ -124,8 +109,6 @@ function AddDepartment({ dprt }) {
         
         getManagers();
     }, []);*/
-
-    // privileges based off the categories: management, engineering, cutting, tailoring, printing, cleaning 
 
     
     return (
@@ -165,8 +148,11 @@ function AddDepartment({ dprt }) {
                         onChange={handleChange('category')}
                         required
                     >
-                        <MenuItem value={'Management'}>Management</MenuItem> 
-                        <MenuItem value={'Production'}>Production</MenuItem>
+                        {categories.map((category, index) => (
+                            <MenuItem key={index} value={category}>
+                                {category}
+                            </MenuItem>
+                        ))}
                     </Select>
                 </FormControl>
 

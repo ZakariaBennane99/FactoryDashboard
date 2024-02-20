@@ -101,7 +101,6 @@ function Patterns() {
 
 
     useEffect(() => {
-        // get the Userments from the backend
         async function getMaterials() {
             try {
                 // @route: api/items/patterns

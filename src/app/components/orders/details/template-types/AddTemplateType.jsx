@@ -36,10 +36,10 @@ function AddTemplateType({ tmplTypes }) {
         event.preventDefault();
         
         try {
-            // @route: api/create/templatesType
-            // @description: create a new templatesType
+            // @route: api/create/orderDetailTemplatesType
+            // @description: create a new orderDetail TemplatesType
             const res = await jwtService.createItem({ 
-                itemType: 'templatesType',
+                itemType: 'orderDetailTemplatesType',
                 data: {
                     data: templateType,
                     currentUserId: currentUserId
@@ -59,10 +59,10 @@ function AddTemplateType({ tmplTypes }) {
         event.preventDefault();
 
         try {
-            // @route: api/update/templatesType
-            // @description: update templates Size
+            // @route: api/update/orderDetailTemplatesType
+            // @description: update orderDetail TemplatesType
             const res = await jwtService.updateItem({ 
-                itemType: 'templatesType',
+                itemType: 'orderDetailTemplatesType',
                 data: {
                     data: modelSize,
                     currentUserId: currentUserId,

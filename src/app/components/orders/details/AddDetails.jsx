@@ -17,10 +17,11 @@ function AddOrderDetails({ dtls }) {
         modelQuantity: dtls ? dtls.modelQuantity : 0
     });
 
-    // Mock arrays, replace with actual data if needed
-    const templatePatterns = ['Basic Tee', 'Classic Jeans', 'Summer Dress'];
-    const productCatalogues = ['Summer Collection 2024', 'Autumn Collection 2024', 'Winter Collection 2024'];
-    const modelNames = ['Sunshine Tee', 'Rugged Denim', 'Breezy Sundress', 'Classic White Shirt', 'Winter Puffer', 'Stretch Yoga Pants', 'Cozy Knit'];
+    const [orderData, setOrderData] = useState({
+        templatePatterns: ['Basic Tee', 'Classic Jeans', 'Summer Dress'],
+        productCatalogues: ['Summer Collection 2024', 'Autumn Collection 2024', 'Winter Collection 2024'],
+        modelNames: ['Sunshine Tee', 'Rugged Denim', 'Breezy Sundress', 'Classic White Shirt', 'Winter Puffer', 'Stretch Yoga Pants', 'Cozy Knit']
+    })
 
     function showMsg(msg, status) {
     
@@ -88,6 +89,34 @@ function AddOrderDetails({ dtls }) {
         } 
     };
 
+
+    /* TO BE UNCOMMENTED IN PRODUCTION
+    // get order data: templatePatterns, productCatalogues, modelNames
+    useEffect(() => {    
+        async function getOrderData() {
+            try {
+                // @route: api/orderData
+                // @description: get order Data <templatePatterns, productCatalogues, modelNames>
+                const res = await jwtService.getOrderData({ 
+                    currentUserId: currentUserId
+                });
+                if (res) {
+                    setOrderData({
+                        templatePatterns: res.templatePatterns,
+                        productCatalogues: res.productCatalogues,
+                        modelNames: res.modelNames
+                    })
+                }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getOrderData();
+    }, []);*/
+
+
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
             <form onSubmit={dtls ? handleUpdateDetails : handleAddDetails}>
@@ -124,7 +153,7 @@ function AddOrderDetails({ dtls }) {
                         onChange={handleChange('templatePattern')}
                         required
                     >
-                        {templatePatterns.map((pattern, index) => (
+                        {orderData.templatePatterns.map((pattern, index) => (
                             <MenuItem key={index} value={pattern}>{pattern}</MenuItem>
                         ))}
                     </Select>
@@ -140,7 +169,7 @@ function AddOrderDetails({ dtls }) {
                         onChange={handleChange('productCatalogue')}
                         required
                     >
-                        {productCatalogues.map((catalogue, index) => (
+                        {orderData.productCatalogues.map((catalogue, index) => (
                             <MenuItem key={index} value={catalogue}>{catalogue}</MenuItem>
                         ))}
                     </Select>
@@ -156,7 +185,7 @@ function AddOrderDetails({ dtls }) {
                         onChange={handleChange('modelName')}
                         required
                     >
-                        {modelNames.map((name, index) => (
+                        {orderData.modelNames.map((name, index) => (
                             <MenuItem key={index} value={name}>{name}</MenuItem>
                         ))}
                     </Select>

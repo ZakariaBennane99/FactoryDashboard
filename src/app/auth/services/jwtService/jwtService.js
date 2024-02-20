@@ -286,7 +286,7 @@ class JwtService extends FuseUtils.EventEmitter {
 	 */
 	getModelData = (data) =>
 	new Promise((resolve, reject) => {
-		axios.get(`/api/modelData`, data).then(
+		axios.post(`/api/modelData`, data).then(
 			(
 				response
 			) => {
@@ -572,6 +572,31 @@ class JwtService extends FuseUtils.EventEmitter {
 			}
 		);
 	});	
+
+	/**
+	 * get the names of existing order data of the templatePatterns, the productCatalogues, and modelNames
+	 */
+	getOrderData = (data) =>
+	new Promise((resolve, reject) => {
+		axios.post(`/api/orderData`, data).then(
+			(
+				response
+			) => {
+				if (response.data) {
+					// resolve with 201/200 code
+					resolve(response.data); 
+					// return an object of arrays of: templatePatterns, productCatalogues, and modelNames
+				} else {
+					reject(response.data.error);
+					// send back the error + consistent error code: 404, 401..
+					// should return a msg for the error:
+					// 1. 'Server error! Please try again later.'
+					// 2. 'You don't have permission to get data.' (forbidden)
+				}
+			}
+		);
+	});	
+	
 
 
 	/**

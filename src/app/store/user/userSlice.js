@@ -87,6 +87,7 @@ export const updateUserShortcuts = createAppAsyncThunk(
  * Logs the user out and resets the Redux store.
  */
 export const logoutUser = () => async (dispatch, getState) => {
+	
 	const AppState = getState();
 
 	const isUserGuest = selectIsUserGuest(AppState);
