@@ -1,10 +1,16 @@
-import { Box, TextField } from '@mui/material';
-import { useState, useEffect } from 'react';
+import { Box, TextField, FormControl } from '@mui/material';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux'; 
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import './Profile.css';
+import './Departments.css';
+
 
 function Profile() {
+
+    const fileInputRef = React.createRef();
     
     const dispatch = useDispatch(); 
 
@@ -21,17 +27,20 @@ function Profile() {
     const [errors, setErrors] = useState({ password: '', confirmPassword: '' });
 
     function showMsg(msg, status) {
-        dispatch(closeDialog());
-        setTimeout(() => dispatch(
+        // take the itemId, and delete the item
+    
+        // then close the dialog, and show a quick message
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
             showMessage({
-                message: msg,
-                autoHideDuration: 3000,
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
                 anchorOrigin: {
-                    vertical: 'top',
-                    horizontal: 'center'
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
                 },
-                variant: status
-            })), 100);
+                variant: status // success error info warning null
+        })), 100);
     }
 
     const validatePassword = () => {
@@ -140,22 +149,46 @@ function Profile() {
                 }
             } catch (_error) {
                 // the error msg will be sent so you don't have to hardcode it
-                showMsg(_error, 'error')
+                showMsg('An error has happened! Please try again.', 'error')
             }
         }
         
         getProfiles();
     }, []);
 
+    const handleClick = () => {
+        fileInputRef.current.click();
+    };
 
     return (
         <Box className="profile-box" sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '25px' }}>
+
+            <div className="image-container">
+                <img src='https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?q=80&w=1776&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' 
+                 />
+                <FormControl fullWidth margin="normal" error={Boolean(fileError)} sx={{ mb: 3 }}>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        hidden
+                        onChange={handleFileChange}
+                        accept="image/jpeg,image/jpg,image/png" // Specify accept types if needed
+                    />
+                    <button className='add-user-btn' onClick={handleClick}>
+                        <CloudUploadIcon /> Upload Photo
+                    </button>
+                    {fileError && <FormHelperText error>{fileError}</FormHelperText>}
+                </FormControl>
+            </div>
+
             <TextField
                 label="First Name"
                 name="firstName" 
                 variant="outlined"
                 value={profile.firstName}
                 onChange={handleChange}
+                style={{ width: '100%' }}
+                sx={{ mb: 3 }}
             />
             <TextField
                 label="Last Name"
@@ -163,6 +196,8 @@ function Profile() {
                 variant="outlined"
                 value={profile.lastName}
                 onChange={handleChange}
+                style={{ width: '100%' }}
+                sx={{ mb: 3 }}
             />
             <TextField
                 label="Password"
@@ -173,6 +208,8 @@ function Profile() {
                 onChange={handleChange}
                 error={!!errors.password}
                 helperText={errors.password}
+                style={{ width: '100%' }}
+                sx={{ mb: 3 }}
             />
             <TextField 
                 label="Confirm Password"
@@ -183,22 +220,11 @@ function Profile() {
                 onChange={handleChange}
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword}
+                style={{ width: '100%' }}
+                sx={{ mb: 3 }}
             />
-            <FormControl fullWidth margin="normal" error={Boolean(fileError)} sx={{ mb: 3 }}>
-                <TextField
-                    label="User Photo"
-                    type="file"
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                    variant="outlined"
-                    onChange={handleFileChange}
-                    error={Boolean(fileError)}
-                />
-                {fileError && <FormHelperText error>{fileError}</FormHelperText>}
-            </FormControl>
 
-            <button className='' onClick={handleUpdate}>Update</button>
+            <button className='add-user-btn' onClick={handleUpdate}>Update</button>
         </Box>
     )
 }
