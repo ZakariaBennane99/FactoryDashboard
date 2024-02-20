@@ -1,5 +1,5 @@
 import { Box, TextField } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux'; 
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
@@ -8,12 +8,14 @@ function Profile() {
     
     const dispatch = useDispatch(); 
 
+    const [fileError, setFileError] = useState('');
+
     const [profile, setProfile] = useState({
         firstName: 'John',
         lastName: 'Doe',
         password: 'password123',
         confirmPassword: '',
-        photo: 'https://example.com/photo.jpg',
+        profileImage: 'https://example.com/photo.jpg',
     });
 
     const [errors, setErrors] = useState({ password: '', confirmPassword: '' });
@@ -76,17 +78,75 @@ function Profile() {
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-
+            const validExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (validExtensions.includes(file.type)) {
+                // set the file to state
+                setProfile({...profile, profileImage: file});
+            } else {
+                setFileError('Invalid file type. Only JPG, JPEG, and PNG files are allowed.');
+            }
         }
     };
 
-    function handleUpdate() {
+    async function handleUpdate() {
         const isPasswordValid = validatePassword();
         const isConfirmPasswordValid = validateConfirmPassword();
         if (!isPasswordValid || !isConfirmPasswordValid) {
             return; 
         }
+
+        // Create a FormData object
+        const formData = new FormData();
+        // Append the file to formData if it exists
+        if (profile.profileImage) {
+            formData.append('profileImage', usr.profileImage);
+        }
+    
+        // Append other user fields to formData
+        formData.append('firstName', usr.firstName);
+        formData.append('lastName', usr.lastName);
+        formData.append('password', usr.password);
+        try {
+            const res = await jwtService.updateItem({ 
+                itemType: 'user',
+                data: {
+                    data: formData,
+                    currentUserId: currentUserId,
+                    itemId: usr.userId
+                }
+             }, { 'Content-Type': 'multipart/form-data' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg('User has been successfully updated!', 'success');
+            }
+        } catch (_errors) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg('User update failed. Please try again.', 'error');
+        }
+
     }
+
+    useEffect(() => {    
+        async function getProfiles() {
+            try {
+                // @route: api/items/profiles
+                // @description: get profile based on currentUserId's privilege
+                const res = await jwtService.getItems({ 
+                    currentUserId: currentUserId,
+                    itemType: "profiles"
+                });
+                if (res) {
+                    setProfile(res)
+                }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
+            }
+        }
+        
+        getProfiles();
+    }, []);
+
 
     return (
         <Box className="profile-box" sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '25px' }}>
@@ -124,14 +184,20 @@ function Profile() {
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword}
             />
-            <div>
-                <img src={profile.photo} alt="Profile" style={{ width: 100, height: 100, objectFit: 'cover' }} />
-                <input
+            <FormControl fullWidth margin="normal" error={Boolean(fileError)} sx={{ mb: 3 }}>
+                <TextField
+                    label="User Photo"
                     type="file"
-                    name="photo" 
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                    variant="outlined"
                     onChange={handleFileChange}
+                    error={Boolean(fileError)}
                 />
-            </div>
+                {fileError && <FormHelperText error>{fileError}</FormHelperText>}
+            </FormControl>
+
             <button className='' onClick={handleUpdate}>Update</button>
         </Box>
     )

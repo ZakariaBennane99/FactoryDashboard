@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from 'react';
 import { Box, Button, CircularProgress, FormControl, TextField, Autocomplete, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import jsPDF from 'jspdf';
 import { useAppDispatch } from 'app/store';
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
@@ -51,35 +49,24 @@ function MaterialReports() {
         }));
     };
 
-    function showMsg(msg, isError) {
-        dispatch(closeDialog());
-        dispatch(showMessage({
-            message: msg, 
-            autoHideDuration: 3000, // ms
-            anchorOrigin: {
-                vertical: 'top', // top bottom
-                horizontal: 'center' // left center right
-            },
-            variant: isError ? 'error' : 'info' // success error info warning null
-        }));
-    }
-
     const handleSubmit = async (event) => {
         event.preventDefault();
         setLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:3050/generate-reports', {
+            // @route: api/getReportData
+            // @description: get the data for the report
+            const response = await jwtService.generatePDFReport({
                 materialIds: selectedMaterials.map(material => material.id),
                 from: dates.from,
                 to: dates.to
-            });
+            }, { 'Content-Type': 'application/json' });
             setReportData(response.data.reports);
             setLoading(false);
         } catch (error) {
             setLoading(false);
             if (error.response && error.response.status === 404) {
-                showMsg(`There is no reports for the chosen options!`, false)
+                showMsg(`There is are reports for the chosen options!`, false)
             } else {
                 showMsg('There was a server error! please try again.', true)
             }
@@ -90,42 +77,28 @@ function MaterialReports() {
         return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     };
 
-    const generatePDF = () => {
-        const pdf = new jsPDF('p', 'pt', 'a4');
-        let yPos = 20; // Initial vertical position
+    const generatePDF = async () => {
+        // call the backend to generate the report 
+        setLoading(true); 
 
-        reportData.forEach((materialReport, index) => {
-            if (index > 0) {
-                pdf.addPage();
-                yPos = 20; // Reset position for new page
+        try {
+            // @route: api/generatePDFReport
+            // @description: generate a downloadable PDF link for the data
+            const res = await jwtService.generatePDFReport({
+                currentUserId: currentUserId,
+                materialIds: selectedMaterials.map(material => material.id),
+                from: dates.from,
+                to: dates.to
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // here open the link in a new window to get downloaded
+                // setData(res)
             }
-
-            pdf.setFontSize(12);
-            pdf.text(20, yPos, materialReport.materialName);
-            yPos += 20;
-
-            materialReport.reports.forEach((row) => {
-                pdf.setFontSize(10);
-                pdf.text(20, yPos, `Internal Orders ID: ${row.internalOrdersId}`);
-                pdf.text(220, yPos, `Movement ID: ${row.movementId}`);
-                yPos += 10;
-                pdf.text(20, yPos, `From: ${row.from}`);
-                pdf.text(220, yPos, `To: ${row.to}`);
-                yPos += 10;
-                pdf.text(20, yPos, `Quantity: ${row.quantity}`);
-                pdf.text(220, yPos, `Color: ${row.color}`);
-                yPos += 10;
-                pdf.text(20, yPos, `Date: ${formatDate(row.date)}`);
-                yPos += 20; // Space before next entry
-
-                if (yPos > 750) { // Check to avoid drawing off the page
-                    pdf.addPage();
-                    yPos = 20;
-                }
-            });
-        });
-
-        pdf.save('All_Material_Reports.pdf');
+            setLoading(false)
+        } catch (_error) {
+            showMsg(_error, 'error')
+            setLoading(false)
+        }
     };
 
 
