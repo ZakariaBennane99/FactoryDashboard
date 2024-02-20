@@ -1,4 +1,4 @@
-import { Box, TextField, FormControl } from '@mui/material';
+import { Box, TextField, FormControl, FormHelperText } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux'; 
 import { closeDialog } from 'app/store/fuse/dialogSlice';
@@ -15,6 +15,8 @@ function Profile() {
     const dispatch = useDispatch(); 
 
     const [fileError, setFileError] = useState('');
+
+    const [profileImageUrl, setProfileImageUrl] = useState('')
 
     const [profile, setProfile] = useState({
         firstName: 'John',
@@ -89,8 +91,10 @@ function Profile() {
         if (file) {
             const validExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
             if (validExtensions.includes(file.type)) {
+                setFileError('')
                 // set the file to state
                 setProfile({...profile, profileImage: file});
+                setProfileImageUrl(URL.createObjectURL(file))
             } else {
                 setFileError('Invalid file type. Only JPG, JPEG, and PNG files are allowed.');
             }
@@ -159,25 +163,26 @@ function Profile() {
     const handleClick = () => {
         fileInputRef.current.click();
     };
+    
 
     return (
         <Box className="profile-box" sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '25px' }}>
 
             <div className="image-container">
-                <img src='https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?q=80&w=1776&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' 
+                <img src={ profileImageUrl ? profileImageUrl : 'https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?q=80&w=1776&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'} 
                  />
-                <FormControl fullWidth margin="normal" error={Boolean(fileError)} sx={{ mb: 3 }}>
+                <FormControl fullWidth margin="normal" error={Boolean(fileError)} sx={{ mb: 3 }} style={{ width: '50%' }}>
                     <input
                         ref={fileInputRef}
                         type="file"
                         hidden
                         onChange={handleFileChange}
-                        accept="image/jpeg,image/jpg,image/png" // Specify accept types if needed
+                        accept="image/jpeg,image/jpg,image/png" 
                     />
-                    <button className='add-user-btn' onClick={handleClick}>
-                        <CloudUploadIcon /> Upload Photo
+                    <button className='upload-photo-btn' onClick={handleClick}>
+                        <CloudUploadIcon /> <span>Upload Photo</span>
                     </button>
-                    {fileError && <FormHelperText error>{fileError}</FormHelperText>}
+                    {fileError && <FormHelperText style={{ width: '100%', textAlign: 'center' }} error>{fileError}</FormHelperText>}
                 </FormControl>
             </div>
 

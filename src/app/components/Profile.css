@@ -1,0 +1,27 @@
+.image-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.image-container img {
+    width: 150px; 
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.image-container .upload-photo-btn {
+    margin-left: 80px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    transition: all .17s;
+    padding: 8px 5px;
+    border-radius: 5px;
+}
+
+.image-container .upload-photo-btn:hover {
+    background-color: #dbe2f0;
+}
