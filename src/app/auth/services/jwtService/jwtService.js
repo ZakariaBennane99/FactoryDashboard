@@ -61,7 +61,9 @@ class JwtService extends FuseUtils.EventEmitter {
 	 */
 	signInWithEmailAndPassword = (email, password) =>
 		new Promise((resolve, reject) => {
-			axios  // jwtServiceConfig.signIn to be with api/auth/signIn
+			axios  
+			    // jwtServiceConfig.signIn to be with api/auth/signIn, 
+				// try to get the access_token too
 				.get(jwtServiceConfig.signIn, {
 					data: {
 						email,
@@ -76,6 +78,7 @@ class JwtService extends FuseUtils.EventEmitter {
 						if (response.data.user) {
 							_setSession(response.data.access_token);
 							setUserId(response.data.userId)
+							//
 							this.emit('onLogin', response.data.user);
 							resolve(response.data.user);
 						} else {

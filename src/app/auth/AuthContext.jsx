@@ -27,7 +27,7 @@ function AuthProvider(props) {
 
             /**
              * Sign in and retrieve user data with stored token
-             */
+             */ 
             jwtService
                 .signInWithToken()
                 .then((user) => {
@@ -39,6 +39,7 @@ function AuthProvider(props) {
         });
 
         jwtService.on('onLogin', (user) => {
+            
             success(user, 'Signed in');
         });
 

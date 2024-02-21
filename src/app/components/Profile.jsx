@@ -19,6 +19,7 @@ function Profile() {
     const [profileImageUrl, setProfileImageUrl] = useState('')
 
     const [profile, setProfile] = useState({
+        userId: '1243515423',
         firstName: 'John',
         lastName: 'Doe',
         password: 'password123',
@@ -112,20 +113,20 @@ function Profile() {
         const formData = new FormData();
         // Append the file to formData if it exists
         if (profile.profileImage) {
-            formData.append('profileImage', usr.profileImage);
+            formData.append('profileImage', profile.profileImage);
         }
     
         // Append other user fields to formData
-        formData.append('firstName', usr.firstName);
-        formData.append('lastName', usr.lastName);
-        formData.append('password', usr.password);
+        formData.append('firstName', profile.firstName);
+        formData.append('lastName', profile.lastName);
+        formData.append('password', profile.password);
         try {
             const res = await jwtService.updateItem({ 
                 itemType: 'user',
                 data: {
                     data: formData,
                     currentUserId: currentUserId,
-                    itemId: usr.userId
+                    itemId: profile.userId
                 }
              }, { 'Content-Type': 'multipart/form-data' });
             if (res) {
@@ -163,7 +164,7 @@ function Profile() {
     const handleClick = () => {
         fileInputRef.current.click();
     };
-    
+
 
     return (
         <Box className="profile-box" sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '25px' }}>
