@@ -38,12 +38,16 @@ function Models() {
         if (!isQueryFound || !query) {
             return <span>{text}</span>;
         }
+
+        text = String(text);
     
         // Escape special characters in the query for use in a RegExp
         const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
         // Create a RegExp object with global and case-insensitive flags
         const regex = new RegExp(escapedQuery, 'gi');
+
+        console.log('THE TEXT', text + '\n' + 'THE TEXT TYPE', typeof text)
     
         // Replace matches in the text with a highlighted span
         const highlightedText = text.replace(regex, (match) => `<span class="highlight">${match}</span>`);
@@ -57,8 +61,9 @@ function Models() {
         const query = e.target.value;
         setQuery(query)
         // check if the query exist
-        for (let i = 0; i < Models.length; i++) {
-            if (Object.values(Models[i]).some(value =>
+        console.log('THE MODELS', models)
+        for (let i = 0; i < models.length; i++) {
+            if (Object.values(models[i]).some(value =>
                 typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
             )) {
                 setIsQueryFound(true);
@@ -82,8 +87,8 @@ function Models() {
     }
 
     useEffect(() => {
-        if (Models.length > 0 && isQueryFound) {
-            const filtered = Models.filter((user) => {
+        if (models.length > 0 && isQueryFound) {
+            const filtered = models.filter((user) => {
                 // Check if any field in the Userment matches the query
                 return Object.values(user).some(value =>
                     typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
@@ -92,7 +97,7 @@ function Models() {
     
             setFilteredOrders(filtered);
         }
-    }, [Models, query, isQueryFound]);
+    }, [models, query, isQueryFound]);
 
 
     useEffect(() => {
@@ -105,11 +110,12 @@ function Models() {
                     itemType: "models"
                 });
                 if (res) {
-                    setModels(res)
+                    setModels(res.models)
                 }
-            } catch (_error) {
+            } catch (error) {
+                console.log('ThE ERROR', error)
                 // the error msg will be sent so you don't have to hardcode it
-                showMsg(_error, 'error')
+                showMsg(error, 'error')
             }
         }
         
@@ -193,7 +199,7 @@ function Models() {
                                     <div>
                                         <ConfirmationNumberIcon /> 
                                         <span className="model-date">
-                                            {model.modelNumber}
+                                            {model.modelId}
                                         </span>
                                     </div>
                                     <div>
@@ -295,7 +301,7 @@ function Models() {
                                         <ConfirmationNumberIcon /> 
                                         <EventIcon />
                                         <span className="model-date">
-                                            {highlightMatch(model.modelNumber, query)}
+                                            {highlightMatch(model.modelId, query)}
                                         </span>
                                     </div>
                                     <div>

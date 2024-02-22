@@ -38,6 +38,10 @@ import materialReportsConfig from '../main/material-reports/MaterialReportsConfi
 import taskConfig from '../main/tasks/TasksConfig'
 import WarehousesConfig from '../main/stores/warehouses/WarehousesConfig';
 import ProfileConfig from '../main/profile/ProfileConfig'
+import DashboardModels from '../main/dashboards/models/ModelsConfig';
+import DashboardOrders from '../main/dashboards/orders/OrdersConfig';
+
+
 
 
 const routeConfigs: FuseRouteConfigsType = [ 
@@ -49,7 +53,7 @@ const routeConfigs: FuseRouteConfigsType = [
 	templatesManufacturingStages, templatesPatterns, templatesSizes, templatesTypes,
 	templates, orderColors, orderSizes, orders, orderDetails, orderDetailColors, 
 	orderDetailSizes, orderDetailTemplateTypes, modelsConfig, materialReportsConfig,
-	taskConfig, WarehousesConfig, ProfileConfig
+	taskConfig, WarehousesConfig, ProfileConfig, DashboardModels, DashboardOrders
 ];
 
 /**

@@ -1351,7 +1351,10 @@ app.get('/order-detail-sizes', (req, res) => {
 
 
 // models
-app.get('/models', (req, res) => {
+app.get('/api/items/models', (req, res) => {
+
+  console.log('Within the app.get')
+
   res.json({
       models: [
         {
@@ -1731,6 +1734,103 @@ app.get('/tasks', (req, res) => {
     ]           
   });
 });
+
+
+// orders + order-details
+app.get('api/orders-details', (req, res) => {
+  res.json({
+      orders: [
+        {
+          orderNumber: 1001,
+          orderDate: "01-10-2024",
+          totalAmount: 1500.00,
+          status: "PENDING",
+          season: "Spring",
+          quantityDetails: "80 units of One Size",
+          templatePattern: "Knit Sweater",
+          productCatalogue: "Autumn Collection 2024",
+          // could be many models in an array
+          modelNames: ["Cozy Knit", "Stretch Yoga Pants", "Winter Puffer"],
+          modelQuantity: 80
+        },
+        {
+          orderNumber: 1002,
+          orderDate: "02-12-2024",
+          totalAmount: 2700.00,
+          status: "APPROVED",
+          season: "Spring",
+          quantityDetails: "60 units of size M, 40 units of size L",
+          templatePattern: "Yoga Pants",
+          productCatalogue: "Fitness Collection 2024",
+          modelNames: ["Stretch Yoga Pants", "Cozy Knit"],
+          modelQuantity: 100
+        },
+        {
+          orderNumber: 1003,
+          orderDate: "03-20-2024",
+          totalAmount: 3200.00,
+          status: "FULFILLED",
+          season: "Summer",
+          quantityDetails: "50 units of size XL, 70 units of size XXL",
+          templatePattern: "Puffer Jacket",
+          productCatalogue: "Winter Collection 2024",
+          modelNames: ["Winter Puffer"],
+          modelQuantity: 120
+        },
+        {
+          orderNumber: 1004,
+          orderDate: "04-25-2024",
+          totalAmount: 1100.00,
+          status: "CANCELLED",
+          season: "Summer",
+          quantityDetails: "30 units of size 40, 40 units of size 42",
+          templatePattern: "Formal Shirt",
+          productCatalogue: "Winter Collection 2024",
+          modelNames: ["Classic White Shirt"],
+          modelQuantity: 70
+        },
+        {
+          orderNumber: 1005,
+          orderDate: "05-30-2024",
+          totalAmount: 2900.00,
+          status: "COMPLETED",
+          season: "Autumn",
+          quantityDetails: "40 units of size S, 60 units of size M",
+          templatePattern: "Summer Dress",
+          productCatalogue: "Spring Collection 2024",
+          modelNames: ["Breezy Sundress", "Classic White Shirt"],
+          modelQuantity: 100
+        },
+        {
+          orderNumber: 1006,
+          orderDate: "04-06-2024",
+          totalAmount: 2100.00,
+          status: "ONGOING",
+          season: "Autumn",
+          quantityDetails: "100 units of size 32, 150 units of size 34",
+          templatePattern: "Classic Jeans",
+          productCatalogue: "Autumn Collection 2024",
+          modelNames: ["Rugged Denim", "Cozy Knit"],
+          modelQuantity: 250
+        },
+        {
+          orderNumber: 1007,
+          orderDate: "09-07-2024",
+          totalAmount: 1800.00,
+          status: "REJECTED",
+          season: "Winter",
+          quantityDetails: "50 units of size M, 30 units of size L",
+          templatePattern: "Basic Tee",
+          productCatalogue: "Summer Collection 2024",
+          modelNames: ["Sunshine Tee"],
+          modelQuantity: 80
+        }
+      ]               
+  });
+});
+
+
+// http://localhost:3050/orders-details
 
 // Start the server
 app.listen(port, () => {

@@ -17,12 +17,26 @@ const navigationConfig: FuseNavigationType = [
 		icon: 'heroicons-outline:home',
 		children: [
 			{
-				id: 'dashboard',
-				title: 'dashboard',
-				type: 'item',
+				id: 'dashboards',
+				title: 'dashboards',
+				type: 'collapse',
 				icon: 'heroicons-outline:speakerphone',
-				url: 'dashboard',
-				translate: 'Dashboard'
+				url: 'dashboards',
+				translate: 'Dashboards',
+				children: [
+					{
+						id: 'engineering.dashboards.orders',
+						title: 'Orders',
+						type: 'item',
+						url: 'dashboards/orders'
+					},
+					{
+						id: 'engineering.dashboards.models',
+						title: 'Models',
+						type: 'item',
+						url: 'dashboards/models'
+					}
+				]
 			},
 			{
 				id: 'productCatalogues',
@@ -275,12 +289,26 @@ const navigationConfig: FuseNavigationType = [
 		translate: 'MANAGER',
 		children: [
 			{
-				id: 'dashboards',
+				id: 'manager.dashboards.orders',
 				title: 'Dashboards',
-				type: 'item',
+				type: 'collapse',
 				icon: 'heroicons-outline:speakerphone',
-				url: '/dashboards',
-				translate: 'Dashboards'
+				url: 'dashboards',
+				translate: 'Dashboards',
+				children: [
+					{
+						id: 'manager.dashboards.orders',
+						title: 'Orders',
+						type: 'item',
+						url: 'dashboards/orders'
+					},
+					{
+						id: 'dashboards.models',
+						title: 'Models',
+						type: 'item',
+						url: 'dashboards/models'
+					}
+				]
 			},
 			{
 				id: 'users',

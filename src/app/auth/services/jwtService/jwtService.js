@@ -216,11 +216,11 @@ class JwtService extends FuseUtils.EventEmitter {
 				(
 					response
 				) => {
-					if (response.data.items) {
+					if (response.data) {
 						// resolve with a success message and 201/200 code
-						resolve(response.data.items); // return an array of items
+						resolve(response.data); // return an array of items
 					} else {
-						reject(response.data.error);
+						reject(response);
 						// send back the error + consistent error code: 404, 401..
 						// should return a msg for the error:
 						// 1. 'Server error! Please try again later.'
@@ -589,6 +589,32 @@ class JwtService extends FuseUtils.EventEmitter {
 					// resolve with 201/200 code
 					resolve(response.data); 
 					// return an object of arrays of: templatePatterns, productCatalogues, and modelNames
+				} else {
+					reject(response.data.error);
+					// send back the error + consistent error code: 404, 401..
+					// should return a msg for the error:
+					// 1. 'Server error! Please try again later.'
+					// 2. 'You don't have permission to get data.' (forbidden)
+				}
+			}
+		);
+	});	
+
+
+	/**
+	* get the orders + details for the Engineering, and the manager dashboards
+	*/
+	getOrdersDetails = (data) =>
+	new Promise((resolve, reject) => {
+		axios.post(`http://localhost:3050/api/ordersDetails`, data).then(
+			(
+				response
+			) => {
+				if (response.data) {
+					// resolve with 201/200 code
+					resolve(response.data); 
+					// return an object of arrays of orders + details (can combine both tables into one object
+					// within the same array)
 				} else {
 					reject(response.data.error);
 					// send back the error + consistent error code: 404, 401..
