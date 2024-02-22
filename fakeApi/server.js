@@ -1737,9 +1737,9 @@ app.get('/tasks', (req, res) => {
 
 
 // orders + order-details
-app.get('api/orders-details', (req, res) => {
+app.get('/api/item/ordersDetails', (req, res) => {
   res.json({
-      orders: [
+      ordersDetails: [
         {
           orderNumber: 1001,
           orderDate: "01-10-2024",
