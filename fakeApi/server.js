@@ -1743,6 +1743,8 @@ app.get('/api/item/ordersDetails', (req, res) => {
         {
           orderNumber: 1001,
           orderDate: "01-10-2024",
+          startDate: "01-02-2024",
+          endDate: "28-02-2024",
           totalAmount: 1500.00,
           status: "PENDING",
           season: "Spring",
@@ -1756,6 +1758,8 @@ app.get('/api/item/ordersDetails', (req, res) => {
         {
           orderNumber: 1002,
           orderDate: "02-12-2024",
+          startDate: "10-02-2024",
+          endDate: "03-03-2024",
           totalAmount: 2700.00,
           status: "APPROVED",
           season: "Spring",
@@ -1768,6 +1772,8 @@ app.get('/api/item/ordersDetails', (req, res) => {
         {
           orderNumber: 1003,
           orderDate: "03-20-2024",
+          startDate: "15-02-2024",
+          endDate: "01-03-2024",
           totalAmount: 3200.00,
           status: "FULFILLED",
           season: "Summer",
@@ -1780,6 +1786,8 @@ app.get('/api/item/ordersDetails', (req, res) => {
         {
           orderNumber: 1004,
           orderDate: "04-25-2024",
+          startDate: "15-02-2024",
+          endDate: "24-02-2024",
           totalAmount: 1100.00,
           status: "CANCELLED",
           season: "Summer",
@@ -1792,6 +1800,8 @@ app.get('/api/item/ordersDetails', (req, res) => {
         {
           orderNumber: 1005,
           orderDate: "05-30-2024",
+          startDate: "20-02-2024",
+          endDate: "05-03-2024",
           totalAmount: 2900.00,
           status: "COMPLETED",
           season: "Autumn",
@@ -1804,6 +1814,8 @@ app.get('/api/item/ordersDetails', (req, res) => {
         {
           orderNumber: 1006,
           orderDate: "04-06-2024",
+          startDate: "21-02-2024",
+          endDate: "25-02-2024",
           totalAmount: 2100.00,
           status: "ONGOING",
           season: "Autumn",
@@ -1816,6 +1828,8 @@ app.get('/api/item/ordersDetails', (req, res) => {
         {
           orderNumber: 1007,
           orderDate: "09-07-2024",
+          startDate: "17-02-2024",
+          endDate: "03-03-2024",
           totalAmount: 1800.00,
           status: "REJECTED",
           season: "Winter",

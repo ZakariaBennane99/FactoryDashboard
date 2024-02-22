@@ -16,6 +16,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import { showMessage } from 'app/store/fuse/messageSlice';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { CircularProgress } from '@mui/material';
 
 
 
@@ -30,9 +31,9 @@ function Orders() {
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
     const [orders, setOrders] = useState([]);
-    const [searchReq, searchReq] = useState({
-        from: '',
-        to: '',
+    const [searchReq, setSearchReq] = useState({
+        from: null,
+        to: null,
         query: ''
     })
     const [query, setQuery] = useState(null)
@@ -60,16 +61,24 @@ function Orders() {
 
     function handleSearch(e) {
         const query = e.target.value;
-        setQuery(query)
-        // check if the query exist
-        for (let i = 0; i < orders.length; i++) {
-            if (Object.values(orders[i]).some(value =>
+        const stringifiedQry = query.toString()
+        setQuery(stringifiedQry);
+    
+        const found = orders.some(order => 
+            Object.values(order).some(value => 
                 typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
-            )) {
-                setIsQueryFound(true);
-                return; // Exit the function as we found the query
-            }
+            )
+        );
+    
+        setIsQueryFound(found);
+    
+        if (!found) {
+            // If the search query is not available, perform a 
+            // post request to the backend using the searchReq
+            // then set the 'orders' to it
+            
         }
+
     }
 
     function showMsg(msg, status) {
@@ -123,6 +132,21 @@ function Orders() {
     }, []);
 
 
+    const handleFromDateChange = (newValue) => {
+        setSearchReq(prevState => ({
+            ...prevState,
+            from: newValue
+        }));
+    };
+
+    // Handler for the "To" DatePicker
+    const handleToDateChange = (newValue) => {
+        setSearchReq(prevState => ({
+            ...prevState,
+            to: newValue
+        }));
+    };
+
 
     return (
         <div className="parent-container">
@@ -131,17 +155,17 @@ function Orders() {
                 <div className="top-ribbon">
                     <FormControl fullWidth margin="normal">
                         <DatePicker
-                            label="Order Date"
-                            value={order.orderDate}
-                            onChange={handleDateChange}
+                            label="From"
+                            value={searchReq.from}
+                            onChange={handleFromDateChange}
                             renderInput={(params) => <TextField {...params} required />}
                         />
                     </FormControl>
                     <FormControl fullWidth margin="normal">
                         <DatePicker
-                            label="Order Date"
-                            value={order.orderDate}
-                            onChange={handleDateChange}
+                            label="To"
+                            value={searchReq.to}
+                            onChange={handleToDateChange}
                             renderInput={(params) => <TextField {...params} required />}
                         />
                     </FormControl>
@@ -359,7 +383,11 @@ function Orders() {
                         </div>
                       </Paper>
                     </Grid>
-                  )) : <div>Loading...</div>
+                  )) 
+                  : 
+                  <div className="progress-container">
+                    <CircularProgress />  
+                  </div>
                   }
                 </Grid>
             </Box>
