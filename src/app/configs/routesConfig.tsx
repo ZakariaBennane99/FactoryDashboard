@@ -40,6 +40,8 @@ import WarehousesConfig from '../main/stores/warehouses/WarehousesConfig';
 import ProfileConfig from '../main/profile/ProfileConfig'
 import DashboardModels from '../main/dashboards/models/ModelsConfig';
 import DashboardOrders from '../main/dashboards/orders/OrdersConfig';
+import Assignment from '../main/production/assignments/AssignmentsConfig';
+import TaskTracking from '../main/production/task-tracking/TaskTrackingConfig';
 
 
 
@@ -53,7 +55,8 @@ const routeConfigs: FuseRouteConfigsType = [
 	templatesManufacturingStages, templatesPatterns, templatesSizes, templatesTypes,
 	templates, orderColors, orderSizes, orders, orderDetails, orderDetailColors, 
 	orderDetailSizes, orderDetailTemplateTypes, modelsConfig, materialReportsConfig,
-	taskConfig, WarehousesConfig, ProfileConfig, DashboardModels, DashboardOrders
+	taskConfig, WarehousesConfig, ProfileConfig, DashboardModels, DashboardOrders,
+	Assignment, TaskTracking
 ];
 
 /**

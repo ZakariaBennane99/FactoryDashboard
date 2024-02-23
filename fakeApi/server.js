@@ -2061,7 +2061,8 @@ app.get('/tasks', (req, res) => {
         status: "ONGOING",
         priority: "HIGH",
         assignedToDepartment: "Design",
-        createdByDepartment: "Product Management"
+        createdByDepartment: "Product Management",
+        notes: "You need to select the final fabrics for the upcoming collection."
       },
       {
         taskName: "Update Production Schedule",
@@ -2069,7 +2070,8 @@ app.get('/tasks', (req, res) => {
         status: "PENDING",
         priority: "MEDIUM",
         assignedToDepartment: "Production",
-        createdByDepartment: "Operations"
+        createdByDepartment: "Operations",
+        notes: "Revise the production timeline based on the latest project updates."
       },
       {
         taskName: "Quality Check for Batch #34",
@@ -2077,7 +2079,8 @@ app.get('/tasks', (req, res) => {
         status: "PENDING",
         priority: "HIGH",
         assignedToDepartment: "Quality Control",
-        createdByDepartment: "Production"
+        createdByDepartment: "Production",
+        notes: "Perform a detailed quality check on Batch #34 before final packaging."
       },
       {
         taskName: "Inventory Reassessment",
@@ -2085,7 +2088,8 @@ app.get('/tasks', (req, res) => {
         status: "COMPLETED",
         priority: "LOW",
         assignedToDepartment: "Warehouse",
-        createdByDepartment: "Supply Chain"
+        createdByDepartment: "Supply Chain",
+        notes: "Reassess the inventory levels and update the stock records accordingly."
       },
       {
         taskName: "Staff Training on New Machinery",
@@ -2093,7 +2097,8 @@ app.get('/tasks', (req, res) => {
         status: "ONGOING",
         priority: "HIGH",
         assignedToDepartment: "Human Resources",
-        createdByDepartment: "Operations"
+        createdByDepartment: "Operations",
+        notes: "Conduct training sessions for staff on operating the new machinery safely and efficiently."
       },
       {
         taskName: "Prepare Seasonal Marketing Plan",
@@ -2101,7 +2106,8 @@ app.get('/tasks', (req, res) => {
         status: "PENDING",
         priority: "MEDIUM",
         assignedToDepartment: "Marketing",
-        createdByDepartment: "Sales"
+        createdByDepartment: "Sales",
+        notes: "Develop a comprehensive marketing plan for the upcoming season, including campaigns and promotions."
       },
       {
         taskName: "Develop New Design Templates",
@@ -2109,9 +2115,10 @@ app.get('/tasks', (req, res) => {
         status: "PENDING",
         priority: "HIGH",
         assignedToDepartment: "Design",
-        createdByDepartment: "Product Management"
+        createdByDepartment: "Product Management",
+        notes: "Create new design templates for the next collection, focusing on innovation and trends."
       }
-    ]           
+    ]                     
   });
 });
 
