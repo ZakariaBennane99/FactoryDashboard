@@ -23,6 +23,7 @@ import { selectFuseDialogState } from 'app/store/fuse/dialogSlice';
 import { useNavigate } from 'react-router-dom';
 import jwtService from '../../../auth/services/jwtService/jwtService';
 import Dialog from '@mui/material/Dialog';
+import ShowManStages from './ShowManStages'
 
 
 
@@ -170,16 +171,14 @@ function Models() {
     // will be brought here, then we will fetch it separatly and add it here 
 
     const getModelById = async (modelId) => {
-        console.log('WE ARE INSIDE THE GETMODELBYID')
         try {
             // @route: api/items/getModel
-            // @description: get mode from the modelId
+            // @description: get model from the modelId
             const res = await jwtService.getIModelById({ 
                 modelId: modelId
             });
             
             if (res.status === 201) {
-                console.log("THE DATA FROM THE BACKEND", res.data)
                 setSpecificModel(res.data)
             } else if (res.status === 404) {
                 setSpecificModel(null);
@@ -221,6 +220,24 @@ function Models() {
     useEffect(() => {
         console.log('THE SPECIFICMODE', specificModel)
     }, [])
+
+
+
+    function handleManufacturingStages(modelId, modelQuantity) {
+        // first close the current window
+        setSpecificModel(null);
+        navigate('/dashboards/models'); 
+        dispatch(closeDialog())
+        setTimeout(() => {
+            // Now open a new edit dialog with the selected user data
+            dispatch(openDialog({
+                children: ( 
+                    <ShowManStages modelId={modelId} quantity={modelQuantity} />
+                )
+            }));
+        }, 100);
+    }   
+
 
     return (
         <div className="parent-container">
@@ -266,7 +283,13 @@ function Models() {
                         aria-labelledby="model-dialog-title"
                         style={{ borderRadius: '8px' }}
                     >
-                    <div className="depart-card dialog Model">
+                        <div className="depart-card dialog Model">
+                            <button onClick={() => handleManufacturingStages(specificModel.modelId, specificModel.quantity)} 
+                                id="man-stages-btn" 
+                                className="add-user-btn"
+                            >
+                                Show Manufacturing Stages
+                            </button>
                             <div>
                                 <ConfirmationNumberIcon /> 
                                 <span className="model-name">
@@ -339,6 +362,12 @@ function Models() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog Model">
+                                    <button onClick={() => handleManufacturingStages(model.modelId, model.quantity)} 
+                                        id="man-stages-btn" 
+                                        className="add-user-btn"
+                                    >
+                                        Show Manufacturing Stages
+                                    </button>
                                     <div>
                                         <ConfirmationNumberIcon /> 
                                         <span className="model-name">
@@ -436,6 +465,12 @@ function Models() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog Model">
+                                    <button onClick={handleManufacturingStages(model.modelId, model.quantity)} 
+                                        id="man-stages-btn" 
+                                        className="add-user-btn"
+                                    >
+                                        Show Manufacturing Stages
+                                    </button>
                                     <div>
                                         <ConfirmationNumberIcon /> 
                                         <span className="model-name">

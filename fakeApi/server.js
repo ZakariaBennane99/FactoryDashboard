@@ -1695,6 +1695,129 @@ app.post('/api/items/getModel', (req, res) => {
 
 });
 
+// Get a tracking model tables
+app.post('/api/items/getModelTracking', (req, res) => {
+  
+  const { modelId } = req.body;
+
+  const modelTrackings = [
+    {
+        "quantityReceived": 68,
+        "quantityDelivered": 75,
+        "status": "Pending",
+        "modelId": 348,
+        "department": "Engineering"
+    },
+    {
+        "quantityReceived": 19,
+        "quantityDelivered": 98,
+        "status": "Pending",
+        "modelId": 351,
+        "department": "Manager"
+    },
+    {
+        "quantityReceived": 2,
+        "quantityDelivered": 41,
+        "status": "Pending",
+        "modelId": 347,
+        "department": "Manager"
+    },
+    {
+        "quantityReceived": 65,
+        "quantityDelivered": 48,
+        "status": "Pending",
+        "modelId": 351,
+        "department": "Engineering"
+    },
+    {
+        "quantityReceived": 50,
+        "quantityDelivered": 28,
+        "status": "Pending",
+        "modelId": 350,
+        "department": "Cleaning"
+    },
+    {
+        "quantityReceived": 77,
+        "quantityDelivered": 16,
+        "status": "Done",
+        "modelId": 346,
+        "department": "Cutting 1"
+    },
+    {
+        "quantityReceived": 16,
+        "quantityDelivered": 44,
+        "status": "Done",
+        "modelId": 351,
+        "department": "Manager"
+    },
+    {
+        "quantityReceived": 13,
+        "quantityDelivered": 4,
+        "status": "InProgress",
+        "modelId": 352,
+        "department": "Cutting 2"
+    },
+    {
+        "quantityReceived": 9,
+        "quantityDelivered": 48,
+        "status": "InProgress",
+        "modelId": 351,
+        "department": "Cleaning"
+    },
+    {
+        "quantityReceived": 65,
+        "quantityDelivered": 97,
+        "status": "Pending",
+        "modelId": 347,
+        "department": "Printing"
+    },
+    {
+        "quantityReceived": 5,
+        "quantityDelivered": 15,
+        "status": "Pending",
+        "modelId": 346,
+        "department": "Engineering"
+    },
+    {
+        "quantityReceived": 57,
+        "quantityDelivered": 77,
+        "status": "InProgress",
+        "modelId": 348,
+        "department": "Cutting 1"
+    },
+    {
+        "quantityReceived": 94,
+        "quantityDelivered": 38,
+        "status": "Pending",
+        "modelId": 347,
+        "department": "Cleaning"
+    },
+    {
+        "quantityReceived": 98,
+        "quantityDelivered": 64,
+        "status": "Pending",
+        "modelId": 351,
+        "department": "Tailoring"
+    },
+    {
+        "quantityReceived": 60,
+        "quantityDelivered": 48,
+        "status": "InProgress",
+        "modelId": 350,
+        "department": "Cleaning"
+    }
+  ]
+
+  const models = modelTrackings.filter(m => m.modelId.toString() === modelId.toString());
+
+  if (models.length > 0) {
+    res.status(201).json(models);
+  } else {
+    res.status(404).json({ message: "Model not found" });
+  }
+
+});
+
 
 // generate report
 app.post('/generate-report', (req, res) => {

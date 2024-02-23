@@ -257,6 +257,32 @@ class JwtService extends FuseUtils.EventEmitter {
 
 
 	/**
+	 * Get model by id.
+	 */
+	getModelTrackings = (payload) =>
+	new Promise((resolve, reject) => {
+			axios.post(`http://localhost:3050/api/items/getModelTracking`, {
+				modelId: payload.modelId
+				}).then(
+				(
+					response
+				) => {
+					if (response.data) {
+						// resolve with a success message and 201/200 code
+						resolve(response); // return an array of models
+					} else {
+						reject(response);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error! Please try again later.'
+						// 2. 'You don't have permission to get data.' (forbidden)
+					}
+				}
+			);
+	});
+
+
+	/**
 	 * Get User Roles.
 	 */
 	getRoles = (data) =>
