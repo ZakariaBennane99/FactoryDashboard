@@ -351,6 +351,28 @@ const navigationConfig: FuseNavigationType = [
 				]
 			}
 		],
+	},
+	{
+		id: 'productionDepartments',
+		title: 'production departments',
+		type: 'group',
+		icon: 'heroicons-outline:home',
+		children: [
+			{
+				id: 'task.tracking',
+				title: 'Task Tracking',
+				type: 'item',
+				icon: 'heroicons-outline:check-circle',
+				url: '/production-departments/task-tracking'
+			},
+			{
+				id: 'assignments',
+				title: 'Assignments',
+				type: 'item',
+				icon: 'heroicons-outline:clipboard-list',
+				url: '/production-departments/assignments'
+			}
+		],
 	}
 ];
 
