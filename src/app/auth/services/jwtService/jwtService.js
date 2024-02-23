@@ -43,7 +43,6 @@ class JwtService extends FuseUtils.EventEmitter {
 
 		if (!access_token) {
 			this.emit('onNoAccessToken');
-
 			return;
 		}
 
@@ -77,12 +76,12 @@ class JwtService extends FuseUtils.EventEmitter {
 						// here everytihng will be returned by the backend
 						if (response.data.user) {
 							_setSession(response.data.access_token);
-							setUserId(response.data.userId)
-							//
+							// to be implemented later on <response.data.user>
+							// category of the user
 							this.emit('onLogin', response.data.user);
 							resolve(response.data.user);
 						} else {
-							reject(response.data.error);
+							reject(response.data.message);
 						}
 					}
 				);
@@ -216,9 +215,35 @@ class JwtService extends FuseUtils.EventEmitter {
 				(
 					response
 				) => {
+					console.log('THE RESPONSEEEEEEEEE', response)
 					if (response.data) {
 						// resolve with a success message and 201/200 code
 						resolve(response.data); // return an array of items
+					} else {
+						reject(response);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error! Please try again later.'
+						// 2. 'You don't have permission to get data.' (forbidden)
+					}
+				}
+			);
+	});	
+
+	/**
+	 * Get model by id.
+	 */
+	getIModelById = (payload) =>
+	new Promise((resolve, reject) => {
+			axios.post(`http://localhost:3050/api/items/getModel`, {
+				modelId: payload.modelId
+				}).then(
+				(
+					response
+				) => {
+					if (response.data) {
+						// resolve with a success message and 201/200 code
+						resolve(response); // return the target model
 					} else {
 						reject(response);
 						// send back the error + consistent error code: 404, 401..
@@ -626,6 +651,28 @@ class JwtService extends FuseUtils.EventEmitter {
 		);
 	});	
 	
+		/**
+	 * Get items.
+	 */
+		getItems = (itemsInfo) =>
+		new Promise((resolve, reject) => {
+				axios.get(`http://localhost:3050/api/items/${itemsInfo.itemType}`, itemsInfo.currentUserId).then(
+					(
+						response
+					) => {
+						if (response.data) {
+							// resolve with a success message and 201/200 code
+							resolve(response.data); // return an array of items
+						} else {
+							reject(response);
+							// send back the error + consistent error code: 404, 401..
+							// should return a msg for the error:
+							// 1. 'Server error! Please try again later.'
+							// 2. 'You don't have permission to get data.' (forbidden)
+						}
+					}
+				);
+		});	
 
 
 	/**

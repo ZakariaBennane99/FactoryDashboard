@@ -192,7 +192,7 @@ function Orders() {
           default:
             return null; 
         }
-      }
+    }
 
     return (
         <div className="parent-container">

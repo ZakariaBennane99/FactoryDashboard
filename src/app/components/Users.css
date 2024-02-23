@@ -16,6 +16,11 @@
     width: 100%;
 }
 
+
+.parent-container .top-ribbon .search-user {
+    width: 70%;
+}
+
 .parent-container .top-ribbon .add-btn.users {
     width: 26%;
 }

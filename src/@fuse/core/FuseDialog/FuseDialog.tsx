@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from 'app/store';
  * with properties pulled from the redux store
  */
 function FuseDialog() {
+	
 	const dispatch = useAppDispatch();
 	const options = useAppSelector(selectFuseDialogProps);
 
@@ -21,6 +22,7 @@ function FuseDialog() {
 			{...options}
 		/>
 	);
+
 }
 
 export default FuseDialog;

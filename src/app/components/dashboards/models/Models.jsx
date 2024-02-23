@@ -1,11 +1,10 @@
-import '../Departments.css'
+import '../../Departments.css'
 import './Models.css'
-import { TextField, Box, Grid, Paper } from '@mui/material'
-import { useState, useEffect } from 'react';
+import { TextField, Box, Grid, Paper, FormControl } from '@mui/material'
+import { useState, useEffect, useRef } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search'
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -14,10 +13,16 @@ import RulerIcon from '@mui/icons-material/Straighten';
 import PlusOneIcon from '@mui/icons-material/PlusOne';
 import DescriptionIcon from '@mui/icons-material/Description';
 import { showMessage } from 'app/store/fuse/messageSlice';
-import Delete from '../Delete';
-import AddOrder from './AddModel';
 import EventIcon from '@mui/icons-material/Event';
-import jwtService from '../../../app/auth/services/jwtService'
+import { CircularProgress } from '@mui/material';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { useAppSelector } from 'app/store';
+import { useLocation } from 'react-router-dom';
+import { selectFuseDialogState } from 'app/store/fuse/dialogSlice';
+import { useNavigate } from 'react-router-dom';
+import jwtService from '../../../auth/services/jwtService/jwtService';
+import Dialog from '@mui/material/Dialog';
 
 
 
@@ -26,14 +31,28 @@ function Models() {
 
     const currentUserId = window.localStorage.getItem('userId')
 
+    const [specificModel, setSpecificModel] = useState(null);
+
+    const isFirstRender = useRef(true);
+
+    let location = useLocation();
+    let navigate = useNavigate();
+
     const [filteredOrders, setFilteredOrders] = useState(null);
+
+    const isDialogOpen = useAppSelector(selectFuseDialogState);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
     const [models, setModels] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
-   
+    const [searchReq, setSearchReq] = useState({
+        from: null,
+        to: null,
+        query: ''
+    })
+
     function highlightMatch(text, query) {
         if (!isQueryFound || !query) {
             return <span>{text}</span>;
@@ -59,17 +78,24 @@ function Models() {
 
     function handleSearch(e) {
         const query = e.target.value;
-        setQuery(query)
-        // check if the query exist
-        console.log('THE MODELS', models)
-        for (let i = 0; i < models.length; i++) {
-            if (Object.values(models[i]).some(value =>
+        const stringifiedQry = query.toString()
+        setQuery(stringifiedQry);
+    
+        const found = models.some(model => 
+            Object.values(model).some(value => 
                 typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
-            )) {
-                setIsQueryFound(true);
-                return; // Exit the function as we found the query
-            }
+            )
+        );
+    
+        setIsQueryFound(found);
+    
+        if (!found) {
+            // If the search query is not available, perform a 
+            // post request to the backend using the searchReq
+            // then set the 'orders' to it
+            
         }
+
     }
 
     function showMsg(msg, status) {
@@ -123,55 +149,182 @@ function Models() {
     }, []);
 
 
-    function handleAddingInternalOrder() {
-        dispatch(openDialog({
-            children: ( 
-                <AddOrder ordr={false} />
-            )
-        }))
-    }
-    
-    function handleEdit(i) {
-        // first close the current window
-        dispatch(closeDialog())
-        setTimeout(() => {
-            // Now open a new edit dialog with the selected user data
-            dispatch(openDialog({
-                children: ( 
-                    <AddOrder ordr={models[i]} />
-                )
-            }));
-        }, 100);
-    }
+    const handleFromDateChange = (newValue) => {
+        setSearchReq(prevState => ({
+            ...prevState,
+            from: newValue
+        }));
+    };
 
-    function handleDelete(i) {
-        // first close the current window
-        dispatch(closeDialog())
-        setTimeout(() => {
-            // Now open a new edit dialog with the selected user data
-            dispatch(openDialog({
-                // you need to pass the user id to the 
-                // component, so you can easily delete it
-                children: ( 
-                    <Delete itemId={models[i].modelId} itemType='model' />
-                )
-            }));
-        }, 100);
-    }
 
+    // Handler for the "To" DatePicker
+    const handleToDateChange = (newValue) => {
+        setSearchReq(prevState => ({
+            ...prevState,
+            to: newValue
+        }));
+    };
+
+
+    // If the user clicks on the link of the model, the DB id of the model
+    // will be brought here, then we will fetch it separatly and add it here 
+
+    const getModelById = async (modelId) => {
+        console.log('WE ARE INSIDE THE GETMODELBYID')
+        try {
+            // @route: api/items/getModel
+            // @description: get mode from the modelId
+            const res = await jwtService.getIModelById({ 
+                modelId: modelId
+            });
+            
+            if (res.status === 201) {
+                console.log("THE DATA FROM THE BACKEND", res.data)
+                setSpecificModel(res.data)
+            } else if (res.status === 404) {
+                setSpecificModel(null);
+                navigate('/models'); 
+            }
+        } catch (error) {
+            console.log('THE ERROR', error)
+            showMsg(error, 'error')
+        }
+    };
+
+
+    useEffect(() => {
+        const modelId = new URLSearchParams(location.search).get('modelId');
+        if (modelId) {
+            getModelById(modelId);
+        }
+    }, [location]);
+
+    useEffect(() => {
+
+        if (isFirstRender.current) {
+            // If it's the first render, do nothing but flip the flag
+            isFirstRender.current = false;
+            return;
+        }
+
+        if (!isDialogOpen && location.pathname.match(/\/dashboards\/models\/([^\/]+)/)?.[1]) {
+            navigate('/dashboards/models');
+        }
+    }, [isDialogOpen]);
+
+
+    const handleClose = () => {
+        setSpecificModel(null);
+        navigate('/dashboards/models'); 
+    };
+
+    useEffect(() => {
+        console.log('THE SPECIFICMODE', specificModel)
+    }, [])
 
     return (
         <div className="parent-container">
 
-            <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingInternalOrder}>
-                    <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Model</span>
-                </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Models" Model="search" />
-            </div>  
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <div className="top-ribbon">
+                    <FormControl fullWidth style={{ width: '18%', height: '100%' }}>
+                        <DatePicker
+                            className='datePicker'
+                            label="From"
+                            value={searchReq.from}
+                            onChange={handleFromDateChange}
+                            renderInput={(params) => <TextField {...params} required />}
+                        />
+                    </FormControl>
+                    <FormControl fullWidth style={{ width: '18%', height: '100%' }}>
+                        <DatePicker
+                            className="datePicker"
+                            label="To"
+                            value={searchReq.to}
+                            onChange={handleToDateChange}
+                            renderInput={(params) => <TextField {...params} required />}
+                        />
+                    </FormControl>
+                    <TextField
+                        className="search dash-search" 
+                        label="Search Orders"
+                        onChange={(e) => handleSearch(e)}  />
+                    <button className="search-btn">
+                        <SearchIcon />
+                        <span>Search</span>
+                    </button>
+                </div>  
+            </LocalizationProvider> 
+
 
             <div className="main-content">
+                {
+                    specificModel ? 
+                    <Dialog
+                        open={specificModel}
+                        onClose={handleClose}
+                        aria-labelledby="model-dialog-title"
+                        style={{ borderRadius: '8px' }}
+                    >
+                    <div className="depart-card dialog Model">
+                            <div>
+                                <ConfirmationNumberIcon /> 
+                                <span className="model-name">
+                                    {specificModel.modelName}
+                                </span>
+                            </div>
+                            <div>
+                                <ConfirmationNumberIcon /> 
+                                <span className="model-date">
+                                    {specificModel.modelId}
+                                </span>
+                            </div>
+                            <div>
+                                <NoteAddIcon /> 
+                                <span className="model-amount">
+                                    {specificModel.modelName}
+                                </span>
+                            </div>
+                            <div>
+                                <CategoryIcon /> 
+                                <span className="model-status">
+                                    {specificModel.templateType}
+                                </span>
+                            </div>
+                            <div>
+                                <PaletteIcon /> 
+                                <span className="model-date">
+                                    {specificModel.color}
+                                </span>
+                            </div>
+                            <div>
+                                <RulerIcon /> 
+                                <span className="model-status">
+                                    {specificModel.size}
+                                </span>
+                            </div>
+                            <div>
+                                <PlusOneIcon />
+                                <span className="model-date">
+                                    {specificModel.quantity}
+                                </span>
+                            </div>
+                            <div>
+                                <DescriptionIcon />
+                                <span className="model-status">
+                                    {specificModel.quantityDetails}
+                                </span>
+                            </div>
+                            <div>
+                                <DescriptionIcon />
+                                <span className="model-date">
+                                    {specificModel.notes}
+                                </span>
+                            </div>
+                        </div>
+                </Dialog>
+                    : ''
+                }
             <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
                   {models.length > 0 && !isQueryFound ? models.map((model, index) => (
@@ -186,10 +339,6 @@ function Models() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog Model">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
                                     <div>
                                         <ConfirmationNumberIcon /> 
                                         <span className="model-name">
@@ -245,7 +394,7 @@ function Models() {
                                         </span>
                                     </div>
                                 </div>
-                            )
+                            ),
                         }))
                       }}
                     >
@@ -287,10 +436,6 @@ function Models() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog Model">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
                                     <div>
                                         <ConfirmationNumberIcon /> 
                                         <span className="model-name">
@@ -377,7 +522,10 @@ function Models() {
                         </div>
                       </Paper>
                     </Grid>
-                  )) : <div>Loading...</div>
+                  )) :                   
+                  <div className="progress-container">
+                    <CircularProgress />  
+                  </div>
                   }
                 </Grid>
             </Box>

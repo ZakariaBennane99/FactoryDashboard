@@ -59,6 +59,7 @@ app.get('/departments', (req, res) => {
 ] });
 });
 
+
 // route for users
 app.get('/users', (req, res) => {
     res.json({ users: [
@@ -69,9 +70,9 @@ app.get('/users', (req, res) => {
             "password": "password123",
             "phoneNumber": "123-456-7890",
             "email": "hamid.abdel@example.com",
-            "category": "Production",
+            "category": "Production", 
             "department": "Tailoring Division",
-            "userRole": 'Production Manager',
+            "userRole": 'Tailoring',
             "active": false
         },
         { 
@@ -83,7 +84,7 @@ app.get('/users', (req, res) => {
             "email": "sam.kfouri@example.com",
             "category": "Production",
             "department": "Printing",
-            "userRole": 'Production Manager',
+            "userRole": 'Printing',
             "active": true
         },
         { 
@@ -95,7 +96,7 @@ app.get('/users', (req, res) => {
             "email": "omar.akil@example.com",
             "category": "Production",
             "department": "Cutting Division II",
-            "userRole": 'Production Manager',
+            "userRole": 'Cutting',
             "active": true
         },
         { 
@@ -107,7 +108,7 @@ app.get('/users', (req, res) => {
             "email": "mohammed.atouani@example.com",
             "category": "Production",
             "department": "Cutting Division I",
-            "userRole": 'Production Manager',
+            "userRole": 'Cutting',
             "active": true
         },
         { 
@@ -119,7 +120,7 @@ app.get('/users', (req, res) => {
             "email": "mouad.moutaouakil@example.com",
             "category": "Management",
             "department": "Finance Office",
-            "userRole": 'Managerial Head',
+            "userRole": 'Manager',
             "active": false
         },
         { 
@@ -131,7 +132,7 @@ app.get('/users', (req, res) => {
             "email": "chris.tucker@example.com",
             "category": "Management",
             "department": "Engineering Office",
-            "userRole": 'Managerial Head',
+            "userRole": 'Engineering',
             "active": true
         }
     ] });
@@ -1353,89 +1354,345 @@ app.get('/order-detail-sizes', (req, res) => {
 // models
 app.get('/api/items/models', (req, res) => {
 
-  console.log('Within the app.get')
+  res.json({
+    models: [
+      {
+        orderId: 1002,
+        modelId: 346,
+        modelName: "Vortex",
+        templateType: "Sportswear",
+        color: "Blue",
+        size: "M",
+        quantity: 150,
+        quantityDetails: "150 items ready for dispatch.",
+        notes: "Awaiting final inspection."
+      },
+      {
+        "orderId": 1003,
+        "modelId": 347,
+        "modelName": "Astra",
+        "templateType": "Formal Wear",
+        "color": "Black",
+        "size": "L",
+        "quantity": 95,
+        "quantityDetails": "95 items packaged for shipping.",
+        "notes": "To be dispatched to the retail outlet."
+      },
+      {
+        "orderId": 1004,
+        "modelId": 348,
+        "modelName": "Nebula",
+        "templateType": "Outerwear",
+        "color": "Grey",
+        "size": "S",
+        "quantity": 78,
+        "quantityDetails": "78 items in stock.",
+        "notes": "Stock replenished."
+      },
+      {
+        "orderId": 1005,
+        "modelId": 349,
+        "modelName": "Galaxy",
+        "templateType": "Evening Wear",
+        "color": "Red",
+        "size": "XS",
+        "quantity": 200,
+        "quantityDetails": "200 items ready for launch.",
+        "notes": "Launch event planned."
+      },
+      {
+        "orderId": 1006,
+        "modelId": 350,
+        "modelName": "Comet",
+        "templateType": "Beachwear",
+        "color": "Yellow",
+        "size": "XXL",
+        "quantity": 50,
+        "quantityDetails": "50 items to be displayed at the showroom.",
+        "notes": "For summer collection showcase."
+      },
+      {
+        "orderId": 1007,
+        "modelId": 351,
+        "modelName": "Orbit",
+        "templateType": "Business Casual",
+        "color": "Purple",
+        "size": "M",
+        "quantity": 110,
+        "quantityDetails": "110 items awaiting quality check.",
+        "notes": "Quality check scheduled for tomorrow."
+      },
+      {
+        "orderId": 1008,
+        "modelId": 352,
+        "modelName": "Eclipse",
+        "templateType": "Winter Wear",
+        "color": "White",
+        "size": "L",
+        "quantity": 135,
+        "quantityDetails": "135 items to be shipped to high-demand regions.",
+        "notes": "Priority shipping due to high demand."
+      }
+    ]
+  }
+  );
+
+});
+
+// SEARCH orders + order-details
+app.get('/api/items/ordersDetails', (req, res) => {
 
   res.json({
-      models: [
+      ordersDetails: [
         {
-          orderId: 1001,
-          modelId: 345,
-          modelName: "Svex",
-          templateType: "Casual Wear",
-          color: "Green",
-          size: "XL",
-          quantity: 123,
-          quantityDetails: "123 items to be shipped.",
-          notes: "Shipped to the warehouse."
+          orderNumber: 1001,
+          orderDate: "01-10-2024",
+          startDate: "01-02-2024",
+          endDate: "28-02-2024",
+          totalAmount: 1500.00,
+          status: "PENDING",
+          season: "Spring",
+          quantityDetails: "80 units of One Size",
+          templatePattern: "Knit Sweater",
+          productCatalogue: "Autumn Collection 2024",
+          // could be many models in an array
+          modelNames: [{
+            name: "Vortex", 
+            id: "346"
+          },
+          {
+            name: "Astra", 
+            id: "347"
+          },
+          {
+            name: "Nebula", 
+            id: "348"
+          }],
+          modelQuantity: 80
         },
         {
-          orderId: 1001,
-          modelId: 345,
-          modelName: "Svex",
-          templateType: "Casual Wear",
-          color: "Green",
-          size: "XL",
-          quantity: 123,
-          quantityDetails: "123 items to be shipped.",
-          notes: "Shipped to the warehouse."
+          orderNumber: 1002, //
+          orderDate: "02-12-2024", //
+          startDate: "10-02-2024", //
+          endDate: "03-03-2024", //
+          totalAmount: 2700.00, //
+          status: "APPROVED", //
+          season: "Spring", //
+          quantityDetails: "60 units of size M, 40 units of size L", //
+          templatePattern: "Yoga Pants",  //
+          productCatalogue: "Fitness Collection 2024", //
+          modelNames: [{
+            name: "Vortex", 
+            id: "346"
+          },
+          {
+            name: "Nebula", 
+            id: "348"
+          }], //
+          modelQuantity: 100 //
         },
         {
-          orderId: 1001,
-          modelId: 345,
-          modelName: "Svex",
-          templateType: "Casual Wear",
-          color: "Green",
-          size: "XL",
-          quantity: 123,
-          quantityDetails: "123 items to be shipped.",
-          notes: "Shipped to the warehouse."
+          orderNumber: 1003,
+          orderDate: "03-20-2024",
+          startDate: "15-02-2024",
+          endDate: "01-03-2024",
+          totalAmount: 3200.00,
+          status: "FULFILLED",
+          season: "Summer",
+          quantityDetails: "50 units of size XL, 70 units of size XXL",
+          templatePattern: "Puffer Jacket",
+          productCatalogue: "Winter Collection 2024",
+          modelNames: [{
+            name: "Orbit", 
+            id: "351"
+          }, {
+            name: "Eclipse", 
+            id: "352"
+          }],
+          modelQuantity: 120
         },
         {
-          orderId: 1001,
-          modelId: 345,
-          modelName: "Svex",
-          templateType: "Casual Wear",
-          color: "Green",
-          size: "XL",
-          quantity: 123,
-          quantityDetails: "123 items to be shipped.",
-          notes: "Shipped to the warehouse."
+          orderNumber: 1004,
+          orderDate: "04-25-2024",
+          startDate: "15-02-2024",
+          endDate: "24-02-2024",
+          totalAmount: 1100.00,
+          status: "CANCELLED",
+          season: "Summer",
+          quantityDetails: "30 units of size 40, 40 units of size 42",
+          templatePattern: "Formal Shirt",
+          productCatalogue: "Winter Collection 2024",
+          modelNames: [{
+            name: "Vortex", 
+            id: "346"
+          }, {
+            name: "Comet", 
+            id: "350"
+          }, {
+            name: "Galaxy",
+            id: "349"
+          }],
+          modelQuantity: 70
         },
         {
-          orderId: 1001,
-          modelId: 345,
-          modelName: "Svex",
-          templateType: "Casual Wear",
-          color: "Green",
-          size: "XL",
-          quantity: 123,
-          quantityDetails: "123 items to be shipped.",
-          notes: "Shipped to the warehouse."
+          orderNumber: 1005,
+          orderDate: "05-30-2024",
+          startDate: "20-02-2024",
+          endDate: "05-03-2024",
+          totalAmount: 2900.00,
+          status: "COMPLETED",
+          season: "Autumn",
+          quantityDetails: "40 units of size S, 60 units of size M",
+          templatePattern: "Summer Dress",
+          productCatalogue: "Spring Collection 2024",
+          modelNames: [{
+            name: "Astra", 
+            id: "347"
+          }, {
+            name: "Comet", 
+            id: "350"
+          }, {
+            name: "Eclipse", 
+            id: "352"
+          }],
+          modelQuantity: 100
         },
         {
-          orderId: 1001,
-          modelId: 345,
-          modelName: "Svex",
-          templateType: "Casual Wear",
-          color: "Green",
-          size: "XL",
-          quantity: 123,
-          quantityDetails: "123 items to be shipped.",
-          notes: "Shipped to the warehouse."
+          orderNumber: 1006,
+          orderDate: "04-06-2024",
+          startDate: "21-02-2024",
+          endDate: "25-02-2024",
+          totalAmount: 2100.00,
+          status: "ONGOING",
+          season: "Autumn",
+          quantityDetails: "100 units of size 32, 150 units of size 34",
+          templatePattern: "Classic Jeans",
+          productCatalogue: "Autumn Collection 2024",
+          modelNames: [
+            {
+              name: "Galaxy",
+              id: "349"
+            }
+          ],
+          modelQuantity: 250
         },
         {
-          orderId: 1001,
-          modelId: 345,
-          modelName: "Svex",
-          templateType: "Casual Wear",
-          color: "Green",
-          size: "XL",
-          quantity: 123,
-          quantityDetails: "123 items to be shipped.",
-          notes: "Shipped to the warehouse."
+          orderNumber: 1007,
+          orderDate: "09-07-2024",
+          startDate: "17-02-2024",
+          endDate: "03-03-2024",
+          totalAmount: 1800.00,
+          status: "REJECTED",
+          season: "Winter",
+          quantityDetails: "50 units of size M, 30 units of size L",
+          templatePattern: "Basic Tee",
+          productCatalogue: "Summer Collection 2024",
+          modelNames: [
+            {
+              name: "Orbit",
+              id: "351"
+            }
+          ],
+          modelQuantity: 80
         }
       ]               
   });
+});
+
+
+// Get a specific model
+app.post('/api/items/getModel', (req, res) => {
+  
+  const { modelId } = req.body;
+
+  const models = [
+    {
+      orderId: 1002,
+      modelId: 346,
+      modelName: "Vortex",
+      templateType: "Sportswear",
+      color: "Blue",
+      size: "M",
+      quantity: 150,
+      quantityDetails: "150 items ready for dispatch.",
+      notes: "Awaiting final inspection."
+    },
+    {
+      "orderId": 1003,
+      "modelId": 347,
+      "modelName": "Astra",
+      "templateType": "Formal Wear",
+      "color": "Black",
+      "size": "L",
+      "quantity": 95,
+      "quantityDetails": "95 items packaged for shipping.",
+      "notes": "To be dispatched to the retail outlet."
+    },
+    {
+      "orderId": 1004,
+      "modelId": 348,
+      "modelName": "Nebula",
+      "templateType": "Outerwear",
+      "color": "Grey",
+      "size": "S",
+      "quantity": 78,
+      "quantityDetails": "78 items in stock.",
+      "notes": "Stock replenished."
+    },
+    {
+      "orderId": 1005,
+      "modelId": 349,
+      "modelName": "Galaxy",
+      "templateType": "Evening Wear",
+      "color": "Red",
+      "size": "XS",
+      "quantity": 200,
+      "quantityDetails": "200 items ready for launch.",
+      "notes": "Launch event planned."
+    },
+    {
+      "orderId": 1006,
+      "modelId": 350,
+      "modelName": "Comet",
+      "templateType": "Beachwear",
+      "color": "Yellow",
+      "size": "XXL",
+      "quantity": 50,
+      "quantityDetails": "50 items to be displayed at the showroom.",
+      "notes": "For summer collection showcase."
+    },
+    {
+      "orderId": 1007,
+      "modelId": 351,
+      "modelName": "Orbit",
+      "templateType": "Business Casual",
+      "color": "Purple",
+      "size": "M",
+      "quantity": 110,
+      "quantityDetails": "110 items awaiting quality check.",
+      "notes": "Quality check scheduled for tomorrow."
+    },
+    {
+      "orderId": 1008,
+      "modelId": 352,
+      "modelName": "Eclipse",
+      "templateType": "Winter Wear",
+      "color": "White",
+      "size": "L",
+      "quantity": 135,
+      "quantityDetails": "135 items to be shipped to high-demand regions.",
+      "notes": "Priority shipping due to high demand."
+    }
+  ]
+
+  const model = models.find(m => m.modelId.toString() === modelId);
+
+  if (model) {
+    res.status(201).json(model);
+  } else {
+    res.status(404).json({ message: "Model not found" });
+  }
+
 });
 
 

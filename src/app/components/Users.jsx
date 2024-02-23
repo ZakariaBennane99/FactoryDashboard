@@ -9,7 +9,6 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import AddUser from './AddUser';
-import AddRole from './AddRole'
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from './Delete';
@@ -24,6 +23,7 @@ import jwtService from '../../app/auth/services/jwtService'
 
 function Users() {
     
+    // instead of the userId, you should get the userRole
     const currentUserId = window.localStorage.getItem('userId')
 
     const [filteredUsers, setFilteredUsers] = useState(null);
@@ -180,10 +180,6 @@ function Users() {
                     <span>Add User</span>
                 </button>
                 <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search-user" label="Search Users" type="search" />
-                <button className="filter-btn" onClick={handleAddingRole}>
-                    <img src="/assets/gen/plus.svg" />  
-                    <span>Add Role</span>
-                </button>
             </div>  
 
             <div className="main-content">

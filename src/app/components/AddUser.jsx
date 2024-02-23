@@ -16,13 +16,15 @@ function AddUser({ user }) {
     const [fileError, setFileError] = useState('');
 
     const [userRoles, setUserRoles] = useState([
-        'Managerial Head', 
-        'Production Manager', 
-        'Departments Head', 
-        'Factory Manager',
-        'Warehouse Manager'
+        'Cutting', 
+        'Tailoring', 
+        'Printing', 
+        'Quality Assurance',
+        'Engineering',
+        'Manager'
     ]);
 
+    // add another one category: Management and Production
     const [usr, setUser] = useState({
         firstName: user ? user.firstName : '',
         lastName: user ? user.lastName : '',
@@ -33,6 +35,7 @@ function AddUser({ user }) {
         email: user ? user.email : '',
         department: user ? user.department : '',
         userRole: user ? user.userRole : '',
+        category: user ? user.category : '',
         profileImage: null
     });
 

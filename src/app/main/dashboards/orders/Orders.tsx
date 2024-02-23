@@ -1,4 +1,4 @@
-import OrdersComp from '../../../components/orders/orders/orders';
+import OrdersComp from '../../../components/dashboards/orders/Orders';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import { useTranslation } from 'react-i18next';
 import { styled } from '@mui/material/styles';

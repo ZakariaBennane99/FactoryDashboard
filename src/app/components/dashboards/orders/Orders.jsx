@@ -1,30 +1,56 @@
-import '../Departments.css'
-import './Orders.css'
-import { TextField, Box, Grid, Paper } from '@mui/material'
+import '../../Departments.css'
+import './Order.css'
+import { TextField, Box, Grid, Paper, FormControl } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
-import NoteAddIcon from '@mui/icons-material/NoteAdd';
-import CategoryIcon from '@mui/icons-material/Category';
-import PaletteIcon from '@mui/icons-material/Palette';
-import RulerIcon from '@mui/icons-material/Straighten';
-import PlusOneIcon from '@mui/icons-material/PlusOne';
-import DescriptionIcon from '@mui/icons-material/Description';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Typography from '@mui/material/Typography';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import Link from '@mui/material/Link';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import EventIcon from '@mui/icons-material/Event';
+import DateRangeIcon from '@mui/icons-material/DateRange';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
+import PatternIcon from '@mui/icons-material/Pattern';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import LabelImportantIcon from '@mui/icons-material/LabelImportant';
+import GroupIcon from '@mui/icons-material/Group';
 import { showMessage } from 'app/store/fuse/messageSlice';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { CircularProgress } from '@mui/material';
-
-
+import jwtService from '../../../auth/services/jwtService';
+import SearchIcon from '@mui/icons-material/Search';
+import ProgBar from '../../OrderProgBar';
+import AcUnitIcon from '@mui/icons-material/AcUnit';
+import WbSunnyIcon from '@mui/icons-material/WbSunny';
+import FilterDramaIcon from '@mui/icons-material/FilterDrama';
+import LocalFloristIcon from '@mui/icons-material/LocalFlorist';
+import {
+    CheckCircleOutline as CompletedIcon,
+    HourglassEmpty as PendingIcon,
+    ThumbUpAltOutlined as ApprovedIcon,
+    CancelOutlined as CancelledIcon,
+    ErrorOutline as RejectedIcon,
+    LocalShippingOutlined as FulfilledIcon,
+    Loop as OngoingIcon
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid'
 
 
 
 function Orders() {
 
-    const currentUserId = window.localStorage.getItem('userId')
+    const currentUserId = window.localStorage.getItem('userId');
+
+    const navigate = useNavigate(); 
 
     const [filteredOrders, setFilteredOrders] = useState(null);
 
@@ -98,7 +124,6 @@ function Orders() {
     useEffect(() => {
         if (orders.length > 0 && isQueryFound) {
             const filtered = orders.filter((user) => {
-                // Check if any field in the Userment matches the query
                 return Object.values(user).some(value =>
                     typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
                 );
@@ -118,6 +143,7 @@ function Orders() {
                     currentUserId: currentUserId,
                     itemType: "ordersDetails"
                 });
+                console.log('THE RESPONSE', res)
                 if (res && res.ordersDetails) {
                     setOrders(res.ordersDetails)
                 }
@@ -147,31 +173,101 @@ function Orders() {
         }));
     };
 
+    function calculateOrderProgress(startDate, endDate) {
+        const convertDate = (dateString) => {
+            const parts = dateString.split("-");
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        };
+    
+        const start = convertDate(startDate).getTime();
+        const end = convertDate(endDate).getTime();
+        const now = new Date().getTime();
+    
+        if (now < start) return 0; // Order hasn't started
+        if (now > end) return 100; // Order has ended
+    
+        const totalDuration = end - start;
+        const elapsed = now - start;
+        const progress = (elapsed / totalDuration) * 100;
+    
+        return Math.round(progress); // whole number
+    }
+
+
+    function getSeasonIcon(season) {
+        switch (season.toUpperCase()) {
+          case 'WINTER':
+            return <AcUnitIcon />;
+          case 'SUMMER':
+            return <WbSunnyIcon />;
+          case 'AUTUMN':
+            return <FilterDramaIcon />;
+          case 'SPRING':
+            return <LocalFloristIcon />;
+          default:
+            return null; 
+        }
+    }
+
+
+    function getStatusIcon(status) {
+        switch (status) {
+            case 'PENDING':
+                return <PendingIcon color="action" />;
+            case 'APPROVED':
+                return <ApprovedIcon color="primary" />;
+            case 'REJECTED':
+                return <RejectedIcon color="error" />;
+            case 'FULFILLED':
+                return <FulfilledIcon color="secondary" />;
+            case 'CANCELLED':
+                return <CancelledIcon color="disabled" />;
+            case 'COMPLETED':
+                return <CompletedIcon color="success" />;
+            case 'ONGOING':
+                return <OngoingIcon color="info" />;
+            default:
+                return null; // or a default icon
+        }
+    };
+
+
+    const handleModelLinkClick = (modelId, e) => {
+        e.preventDefault(); 
+        dispatch(closeDialog())
+        navigate(`/dashboards/models?modelId=${modelId}`);
+    };
+
 
     return (
         <div className="parent-container">
 
             <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <div className="top-ribbon">
-                    <FormControl fullWidth margin="normal">
+                    <FormControl fullWidth style={{ width: '18%', height: '100%' }}>
                         <DatePicker
+                            className='datePicker'
                             label="From"
                             value={searchReq.from}
                             onChange={handleFromDateChange}
                             renderInput={(params) => <TextField {...params} required />}
                         />
                     </FormControl>
-                    <FormControl fullWidth margin="normal">
+                    <FormControl fullWidth style={{ width: '18%', height: '100%' }}>
                         <DatePicker
+                            className="datePicker"
                             label="To"
                             value={searchReq.to}
                             onChange={handleToDateChange}
                             renderInput={(params) => <TextField {...params} required />}
                         />
                     </FormControl>
-                    <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Orders" Order="search" />
-                    <button className="add-btn" onClick={handleAddingInternalOrder}>
-                        <img src="/assets/gen/plus.svg" /> 
+                    <TextField
+                        className="search dash-search" 
+                        label="Search Orders"
+                        onChange={(e) => handleSearch(e)}  />
+                    <button className="search-btn">
+                        <SearchIcon />
                         <span>Search</span>
                     </button>
                 </div>  
@@ -192,63 +288,108 @@ function Orders() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog Order">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
                                     <div>
-                                        <ConfirmationNumberIcon /> 
-                                        <span className="order-name">
-                                            {order.orderId}
+                                        <ProgBar value={calculateOrderProgress(order.startDate, order.endDate)} />
+                                    </div>
+                                    <div className="ord-num">
+                                        <ConfirmationNumberIcon />  
+                                        <span className="order-number">
+                                            {order.orderNumber}
                                         </span>
                                     </div>
                                     <div>
-                                        <ConfirmationNumberIcon /> 
+                                        <EventIcon />
                                         <span className="order-date">
-                                            {order.orderId}
+                                            {order.orderDate}
                                         </span>
                                     </div>
                                     <div>
-                                        <NoteAddIcon /> 
+                                        {getSeasonIcon(order.season)} 
+                                        <span className="order-season">
+                                            {order.season}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <DateRangeIcon /> 
+                                        <span className="order-startDate">
+                                            {order.startDate}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <DateRangeIcon /> 
+                                        <span className="order-endDate">
+                                            {order.endDate}
+                                        </span>
+                                    </div>
+                                    <div> 
+                                        <MonetizationOnIcon /> 
                                         <span className="order-amount">
-                                            {order.orderName}
+                                            {order.totalAmount}
                                         </span>
                                     </div>
                                     <div>
-                                        <CategoryIcon /> 
+                                        {getStatusIcon(order.status)}
                                         <span className="order-status">
-                                            {order.templateType}
+                                            {order.status}
                                         </span>
                                     </div>
                                     <div>
-                                        <PaletteIcon /> 
-                                        <span className="order-date">
-                                            {order.color}
+                                        {getSeasonIcon(order.season)}
+                                        <span className="order-season">
+                                            {order.season}
                                         </span>
                                     </div>
                                     <div>
-                                        <RulerIcon /> 
-                                        <span className="order-status">
-                                            {order.size}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <PlusOneIcon />
-                                        <span className="order-date">
-                                            {order.quantity}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="order-status">
+                                        <FormatListNumberedIcon />
+                                        <span className="order-quantityDetails">
                                             {order.quantityDetails}
                                         </span>
                                     </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="order-date">
-                                            {order.notes}
+                                    <div> 
+                                        <PatternIcon />
+                                        <span className="order-templatePattern">
+                                            {order.templatePattern}
                                         </span>
+                                    </div>
+                                    <div> 
+                                        <GroupIcon />
+                                        <span className="order-modelQuantity">
+                                            {order.modelQuantity}
+                                        </span>
+                                    </div>
+                                    <div> 
+                                        <MenuBookIcon />
+                                        <span className="order-productCatalogue">
+                                            {order.productCatalogue}
+                                        </span>
+                                    </div>
+                                    <div>  
+                                    <Accordion sx={{ marginTop: '10px', '& .MuiAccordionSummary-root': { height: '32px', minHeight: '0px', '& .MuiAccordionSummary-content': { margin: '0' } }, '& .MuiAccordionDetails-root': { paddingTop: 0 } }}>
+                                        <AccordionSummary
+                                            expandIcon={<ExpandMoreIcon />}
+                                            aria-controls="panel1a-content"
+                                            id="panel1a-header"
+                                            sx={{ height: '32px', '& .MuiIconButton-edgeEnd': { marginRight: '-8px' } }}
+                                        >
+                                            <Typography variant="body2">Model Names</Typography>
+                                        </AccordionSummary>
+                                        <AccordionDetails sx={{ padding: '0 16px 8px' }}>
+                                            <List dense>
+                                                {order.modelNames.map((modelName, index) => (
+                                                    <ListItem key={index} sx={{ padding: '4px 0' }}>
+                                                        <Link
+                                                            href={`http://localhost:3000/dashboards/models/${modelName.id}`}
+                                                            onClick={(e) => handleModelLinkClick(modelName.id, e) }
+                                                            underline="none"
+                                                            color="inherit"
+                                                        >
+                                                            {modelName.name}
+                                                        </Link>
+                                                    </ListItem>
+                                                ))}
+                                            </List>
+                                        </AccordionDetails>
+                                    </Accordion>
                                     </div>
                                 </div>
                             )
@@ -256,27 +397,24 @@ function Orders() {
                       }}
                     >
                         <div>
-                            <NoteAddIcon /> 
-                            <span className="order-amount">
-                                {order.orderName}
+                            <ProgBar value={calculateOrderProgress(order.startDate, order.endDate)} />
+                        </div>
+                        <div className="ord-num">
+                            <ConfirmationNumberIcon /> 
+                            <span className="order-number">
+                                {order.orderNumber}
                             </span>
                         </div>
                         <div>
-                            <CategoryIcon /> 
-                            <span className="order-status">
-                                {order.templateType}
-                            </span>
-                        </div>
-                        <div>
-                            <PaletteIcon /> 
+                            <EventIcon />
                             <span className="order-date">
-                                {order.color}
+                                {order.orderDate}
                             </span>
                         </div>
                         <div>
-                            <RulerIcon /> 
-                            <span className="order-status">
-                                {order.size}
+                            {getSeasonIcon(order.season)} 
+                            <span className="order-season">
+                                {order.season}
                             </span>
                         </div>
                       </Paper>
@@ -293,63 +431,85 @@ function Orders() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog Order">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
                                     <div>
-                                        <ConfirmationNumberIcon /> 
-                                        <span className="order-name">
-                                            {highlightMatch(order.orderId, query)}
+                                        <ProgBar value={calculateOrderProgress(order.startDate, order.endDate)} />
+                                    </div>
+                                    <div className="ord-num">
+                                        <ConfirmationNumberIcon />  
+                                        <span className="order-number">
+                                            {highlightMatch(order.orderNumber, query)}
                                         </span>
                                     </div>
                                     <div>
-                                        <ConfirmationNumberIcon /> 
                                         <EventIcon />
                                         <span className="order-date">
-                                            {highlightMatch(order.orderId, query)}
+                                            {highlightMatch(order.orderDate, query)}
                                         </span>
                                     </div>
                                     <div>
-                                        <NoteAddIcon /> 
+                                        {getSeasonIcon(order.season)} 
+                                        <span className="order-season">
+                                            {highlightMatch(order.season, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <DateRangeIcon /> 
+                                        <span className="order-startDate">
+                                            {highlightMatch(order.startDate, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <DateRangeIcon /> 
+                                        <span className="order-endDate">
+                                            {highlightMatch(order.endDate, query)}
+                                        </span>
+                                    </div>
+                                    <div> 
+                                        <MonetizationOnIcon /> 
                                         <span className="order-amount">
-                                            {highlightMatch(order.orderName, query)}
+                                            {highlightMatch(order.totalAmount, query)}
                                         </span>
                                     </div>
                                     <div>
-                                        <CategoryIcon /> 
+                                        {getStatusIcon(order.status)}
                                         <span className="order-status">
-                                            {highlightMatch(order.templateType, query)}
+                                            {highlightMatch(order.status, query)}
                                         </span>
                                     </div>
                                     <div>
-                                        <PaletteIcon /> 
-                                        <span className="order-date">
-                                            {highlightMatch(order.templateType, query)}
+                                        {getSeasonIcon(order.season)}
+                                        <span className="order-season">
+                                            {highlightMatch(order.season, query)}
                                         </span>
                                     </div>
                                     <div>
-                                        <RulerIcon /> 
-                                        <span className="order-status">
-                                            {highlightMatch(order.templateType, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <PlusOneIcon />
-                                        <span className="order-date">
-                                            {highlightMatch(order.quantity, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="order-status">
+                                        <FormatListNumberedIcon />
+                                        <span className="order-quantityDetails">
                                             {highlightMatch(order.quantityDetails, query)}
                                         </span>
                                     </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="order-date">
-                                            {highlightMatch(order.notes, query)}
+                                    <div> 
+                                        <PatternIcon />
+                                        <span className="order-templatePattern">
+                                            {highlightMatch(order.templatePattern, query)}
+                                        </span>
+                                    </div>
+                                    <div> 
+                                        <MenuBookIcon />
+                                        <span className="order-productCatalogue">
+                                            {highlightMatch(order.productCatalogue, query)}
+                                        </span>
+                                    </div>
+                                    <div> 
+                                        <LabelImportantIcon />
+                                        <span className="order-modelNames">
+                                            {order.modelNames.map((name) => highlightMatch(name, query)).join(', ')}
+                                        </span>
+                                    </div>
+                                    <div> 
+                                        <GroupIcon />
+                                        <span className="order-modelQuantity">
+                                            {highlightMatch(order.modelQuantity, query)}
                                         </span>
                                     </div>
                                 </div>
@@ -358,27 +518,24 @@ function Orders() {
                       }}
                     >
                         <div>
-                            <NoteAddIcon /> 
-                            <span className="order-amount">
-                                {highlightMatch(order.orderName, query)}
+                            <ProgBar value={calculateOrderProgress(order.startDate, order.endDate)} />
+                        </div>
+                        <div className="ord-num">
+                            <ConfirmationNumberIcon /> 
+                            <span className="order-number">
+                                {order.orderNumber}
                             </span>
                         </div>
                         <div>
-                            <CategoryIcon /> 
-                            <span className="order-status">
-                                {highlightMatch(order.templateType, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <PaletteIcon /> 
+                            <EventIcon />
                             <span className="order-date">
-                                {highlightMatch(order.color, query)}
+                                {order.orderDate}
                             </span>
                         </div>
                         <div>
-                            <RulerIcon /> 
-                            <span className="order-status">
-                                {highlightMatch(order.size, query)}
+                            {getSeasonIcon(order.season)} 
+                            <span className="order-season">
+                                {order.season}
                             </span>
                         </div>
                       </Paper>
