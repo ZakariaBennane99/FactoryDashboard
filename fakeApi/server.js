@@ -2051,8 +2051,7 @@ app.post('/generate-reports', (req, res) => {
 });
 
 
-// order detail size
-app.get('/tasks', (req, res) => {
+app.get('api/items/assignments', (req, res) => {
   res.json({
     tasks: [
       {
