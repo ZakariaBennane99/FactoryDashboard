@@ -1,0 +1,31 @@
+.depart-card.assignment {
+    height: 175px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.depart-card.assignment div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+.depart-card.assignment div .assignment-phone,
+.depart-card.assignment div .assignment-location,
+.depart-card.assignment div .assignment-email {
+    font-size: 1.2em;
+    word-break: break-all;
+}
+
+.depart-card.assignment div svg:not(#delete-icon, #edit-icon) {
+    margin-right: 15px;
+    font-size: x-large;
+}
+
+.dialog.assignment {
+    width: 350px;
+    height: 330px;
+}

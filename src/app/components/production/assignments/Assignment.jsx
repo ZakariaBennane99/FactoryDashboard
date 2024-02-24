@@ -119,7 +119,7 @@ function Assignments() {
                     itemType: "assignments"
                 });
                 if (res) {
-                    setAssignments(res)
+                    setAssignments(res.tasks)
                 }
             } catch (_error) {
                 showMsg(_error, 'error')
@@ -171,6 +171,20 @@ function Assignments() {
         }
     };
 
+    
+    const getPriorityColor = (priority) => {
+        switch (priority) {
+            case 'HIGH':
+                return 'error'; // red
+            case 'MEDIUM':
+                return 'warning'; // yellow
+            case 'LOW':
+                return 'success'; // green
+            default:
+                return 'default'; // default color
+        }
+    };  
+
 
     return (
         <div className="parent-container">
@@ -205,7 +219,7 @@ function Assignments() {
                                     <div>
                                         <AssignmentIcon /> 
                                         <span className="assignment-name">
-                                            {assignment.assignmentName}
+                                            {assignment.taskName}
                                         </span>
                                     </div>
                                     <div>
@@ -218,6 +232,12 @@ function Assignments() {
                                         {getStatusIcon(assignment.status)}
                                         <span className="assignment-status">
                                             {assignment.status}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <AccountTreeIcon />
+                                        <span className="assignment-assign-depart">
+                                            {assignment.createdByDepartment}
                                         </span>
                                     </div>
                                     <div>
@@ -239,6 +259,12 @@ function Assignments() {
                     >
                         <div>
                             <Chip id="chip-priority" label={assignment.priority} color={getPriorityColor(assignment.priority)} size="small" />
+                        </div>
+                        <div>
+                            <AssignmentIcon /> 
+                            <span className="assignment-name">
+                                {assignment.taskName}
+                            </span>
                         </div>
                         <div>
                             <AccessTimeIcon />
@@ -275,7 +301,7 @@ function Assignments() {
                                     <div>
                                         <AssignmentIcon /> 
                                         <span className="assignment-name">
-                                            {assignment.assignmentName}
+                                            {assignment.taskName}
                                         </span>
                                     </div>
                                     <div>
@@ -288,6 +314,12 @@ function Assignments() {
                                         {getStatusIcon(assignment.status)}
                                         <span className="assignment-status">
                                             {assignment.status}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <AccountTreeIcon />
+                                        <span className="assignment-assign-depart">
+                                            {assignment.createdByDepartment}
                                         </span>
                                     </div>
                                     <div>
@@ -311,9 +343,15 @@ function Assignments() {
                             <Chip id="chip-priority" label={assignment.priority} color={getPriorityColor(assignment.priority)} size="small" />
                         </div>
                         <div>
+                            <AssignmentIcon /> 
+                            <span className="assignment-name">
+                                {highlightMatch(assignment.taskName, query)}
+                            </span>
+                        </div>
+                        <div>
                             <AccessTimeIcon />
                             <span className="assignment-due">
-                                {highlightMatch(formatDate(assignment.dueDate) , query)}
+                                {highlightMatch(formatDate(assignment.dueDate), query)}
                             </span>
                         </div>
                         <div>

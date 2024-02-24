@@ -96,27 +96,29 @@ function EditAssignment({ task }) {
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-                <form onSubmit={task ? handleUpdateTasks : handleEditAssignments}>
-                  <FormControl fullWidth margin="normal" disabled>
+                <form onSubmit={handleUpdateTasks}>
+                  <FormControl fullWidth margin="normal">
                     <TextField
                       label="Task Name"
                       variant="outlined"
                       value={assignment.assignmentName}
                       onChange={handleChange('assignmentName')}
                       required
+                      disabled
                     />
                   </FormControl>
 
-                  <FormControl fullWidth margin="normal" disabled>
+                  <FormControl fullWidth margin="normal">
                         <DatePicker
                             label="Due Date"
                             value={assignment.dueDate}
                             onChange={handleDateChange}
                             renderInput={(params) => <TextField {...params} required />}
+                            disabled
                         />
                   </FormControl>
 
-                  <FormControl fullWidth margin="normal" disabled>
+                  <FormControl fullWidth margin="normal">
                     <InputLabel>Status</InputLabel>
                     <Select
                       value={assignment.status}

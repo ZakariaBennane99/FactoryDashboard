@@ -2052,7 +2052,8 @@ app.post('/generate-reports', (req, res) => {
 
 
 app.get('/api/items/assignments', (req, res) => {
-  res.json({
+  console.log('Inside the items')
+  return res.json({
     tasks: [
       {
         taskName: "Finalize Fabric Selection",
