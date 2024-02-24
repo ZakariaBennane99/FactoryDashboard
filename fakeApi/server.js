@@ -2051,7 +2051,7 @@ app.post('/generate-reports', (req, res) => {
 });
 
 
-app.get('api/items/assignments', (req, res) => {
+app.get('/api/items/assignments', (req, res) => {
   res.json({
     tasks: [
       {

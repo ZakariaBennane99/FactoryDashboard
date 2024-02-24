@@ -211,7 +211,7 @@ class JwtService extends FuseUtils.EventEmitter {
 	 */
 	getItems = (itemsInfo) =>
 	new Promise((resolve, reject) => {
-			axios.get(`http://localhost:3050/api/items/${itemsInfo.itemType}`).then(
+		axios.get(`http://localhost:3050/api/items/${itemsInfo.itemType}`).then(
 				(
 					response
 				) => {

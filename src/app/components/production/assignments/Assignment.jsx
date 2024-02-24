@@ -11,11 +11,22 @@ import AssignmentIcon from '@mui/icons-material/Assignment'; // assignment name
 import AccessTimeIcon from '@mui/icons-material/AccessTime'; // due date
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter'; // assign to
 import AccountTreeIcon from '@mui/icons-material/AccountTree'; // assigned by
-import EditAssignments from './EditAssignments';
+import EditAssignments from './EditAssignment';
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import jwtService from '../../../app/auth/services/jwtService';
+import jwtService from '../../../auth/services/jwtService/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import {
+    CheckCircleOutline as CompletedIcon,
+    HourglassEmpty as PendingIcon,
+    ThumbUpAltOutlined as ApprovedIcon,
+    CancelOutlined as CancelledIcon,
+    ErrorOutline as RejectedIcon,
+    LocalShippingOutlined as FulfilledIcon,
+    Loop as OngoingIcon
+} from '@mui/icons-material';
+import NoteIcon from '@mui/icons-material/Note';
+import { CircularProgress } from '@mui/material';
+
 
 
 
@@ -126,7 +137,7 @@ function Assignments() {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
                 children: ( 
-                    <EditAssignment task={assignments[i]} />
+                    <EditAssignments task={assignments[i]} />
                 )
             }));
         }, 100);
@@ -139,6 +150,26 @@ function Assignments() {
         return new Intl.DateTimeFormat('en-US', options).format(date);
     }
 
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'PENDING':
+                return <PendingIcon color="action" />;
+            case 'APPROVED':
+                return <ApprovedIcon color="primary" />;
+            case 'REJECTED':
+                return <RejectedIcon color="error" />;
+            case 'FULFILLED':
+                return <FulfilledIcon color="secondary" />;
+            case 'CANCELLED':
+                return <CancelledIcon color="disabled" />;
+            case 'COMPLETED':
+                return <CompletedIcon color="success" />;
+            case 'ONGOING':
+                return <OngoingIcon color="info" />;
+            default:
+                return null; // or a default icon
+        }
+    };
 
 
     return (
@@ -167,7 +198,6 @@ function Assignments() {
                                 <div className="depart-card dialog assignment">
                                     <div id="edit-container">
                                         <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
                                     </div>
                                     <div>
                                         <Chip id="chip-priority" label={assignment.priority} color={getPriorityColor(assignment.priority)} size="small" />
@@ -197,9 +227,9 @@ function Assignments() {
                                         </span>
                                     </div>
                                     <div>
-                                        <AccountTreeIcon />
-                                        <span className="assignment-assign-depart">
-                                            {assignment.createdByDepartment}
+                                        <NoteIcon />
+                                        <span className="assignment-nots">
+                                            {assignment.notes}
                                         </span>
                                     </div>
                                 </div>
@@ -214,12 +244,6 @@ function Assignments() {
                             <AccessTimeIcon />
                             <span className="assignment-due">
                                 {formatDate(assignment.dueDate) }
-                            </span>
-                        </div>
-                        <div>
-                            <BusinessCenterIcon />
-                            <span className="assignment-assigned-depart">
-                                {assignment.assignedToDepartment}
                             </span>
                         </div>
                         <div>
@@ -244,7 +268,6 @@ function Assignments() {
                                 <div className="depart-card dialog assignment">
                                     <div id="edit-container">
                                         <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
                                     </div>
                                     <div>
                                         <Chip id="chip-priority" label={assignment.priority} color={getPriorityColor(assignment.priority)} size="small" />
@@ -252,31 +275,31 @@ function Assignments() {
                                     <div>
                                         <AssignmentIcon /> 
                                         <span className="assignment-name">
-                                            {highlightMatch(assignment.assignmentName, query)}
+                                            {assignment.assignmentName}
                                         </span>
                                     </div>
                                     <div>
                                         <AccessTimeIcon />
                                         <span className="assignment-due">
-                                            {highlightMatch(formatDate(assignment.dueDate) , query)}
+                                            {formatDate(assignment.dueDate) }
                                         </span>
                                     </div>
                                     <div>
                                         {getStatusIcon(assignment.status)}
                                         <span className="assignment-status">
-                                            {highlightMatch(assignment.status, query)}
+                                            {assignment.status}
                                         </span>
                                     </div>
                                     <div>
                                         <BusinessCenterIcon />
                                         <span className="assignment-assigned-depart">
-                                            {highlightMatch(assignment.assignedToDepartment, query)}
+                                            {assignment.assignedToDepartment}
                                         </span>
                                     </div>
                                     <div>
-                                        <AccountTreeIcon />
-                                        <span className="assignment-assign-depart">
-                                            {highlightMatch(assignment.createdByDepartment, query)}
+                                        <NoteIcon />
+                                        <span className="assignment-nots">
+                                            {assignment.notes}
                                         </span>
                                     </div>
                                 </div>
@@ -294,12 +317,6 @@ function Assignments() {
                             </span>
                         </div>
                         <div>
-                            <BusinessCenterIcon />
-                            <span className="assignment-assigned-depart">
-                                {highlightMatch(assignment.assignedToDepartment, query)}
-                            </span>
-                        </div>
-                        <div>
                             <AccountTreeIcon />
                             <span className="assignment-assign-depart">
                                 {highlightMatch(assignment.createdByDepartment, query)}
@@ -307,7 +324,11 @@ function Assignments() {
                         </div>
                       </Paper>
                     </Grid>
-                  )) : <div>Loading...</div>
+                  )) 
+                  :
+                  <div className="progress-container">
+                    <CircularProgress />  
+                  </div> 
                   }
                 </Grid>
             </Box>

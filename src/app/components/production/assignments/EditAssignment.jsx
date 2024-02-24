@@ -2,26 +2,27 @@ import { useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import jwtService from '../../../app/auth/services/jwtService';
+import jwtService from '../../../auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
 
 
 
-function AddTask({ tsk }) {
+function EditAssignment({ task }) {
 
   const currentUserId = window.localStorage.getItem('userId');
 
-    const [task, setTask] = useState({
-        taskName: tsk.taskName,
-        dueDate: new Date(tsk.dueDate) : null,
-        status: tsk ? tsk.status : '',
-        priority: tsk ? tsk.priority : '',
-        assignedToDepartment: tsk ? tsk.assignedToDepartment : '',
-        createdByDepartment: tsk ? tsk.createdByDepartment : ''
+    const [assignment, setTask] = useState({
+        assignmentName: task.taskName,
+        dueDate: new Date(task.dueDate),
+        status: task.status,
+        priority: task.priority,
+        assignedToDepartment: task.assignedToDepartment,
+        createdByDepartment: task.createdByDepartment,
+        notes: task.notes
     });
 
     const handleChange = (prop) => (event) => {
-        setTask({ ...task, [prop]: event.target.value });
+        setTask({ ...assignment, [prop]: event.target.value });
     };
 
     const departments = [
@@ -38,8 +39,7 @@ function AddTask({ tsk }) {
     ]
 
     const statuses = [
-        'PENDING', 'APPROVED', 'REJECTED', 'FULFILLED',
-        'CANCELLED', 'COMPLETED', 'ONGOING'
+        'REJECTED', 'COMPLETED', 'ONGOING'
     ];
 
     const priorities = [
@@ -49,7 +49,7 @@ function AddTask({ tsk }) {
     ]
 
     const handleDateChange = (date) => {
-        setInternalOrder({ ...task, dueDate: date });
+        setInternalOrder({ ...assignment, dueDate: date });
     };
 
 
@@ -66,82 +66,60 @@ function AddTask({ tsk }) {
               },
               variant: status // success error info warning null
       })), 100);
-  }
+    }
 
-  const handleAddTasks = async (event) => {
-      event.preventDefault();
-      
-      try {
-          // @route: api/create/tasks
-          // @description: create a new task
-          const res = await jwtService.createItem({ 
-              itemType: 'tasks',
-              data: {
-                  data: task,
-                  currentUserId: currentUserId
-              }
-           }, { 'Content-Type': 'application/json' });
-          if (res) {
-              showMsg(res, 'success')
-          }
-      } catch (_error) {
-          showMsg(_error, 'error')
-      } 
-  };
-
-  const handleUpdateTasks = async (event) => {
-      event.preventDefault();
-
-      try {
-          // @route: api/update/tasks
-          // @description: update an existing task
-          const res = await jwtService.updateItem({ 
-              itemType: 'tasks',
-              data: {
-                  data: task,
-                  currentUserId: currentUserId,
-                  itemId: tsk.taskId
-              }
-           }, { 'Content-Type': 'application/json' });
-          if (res) {
-              // the msg will be sent so you don't have to hardcode it
-              showMsg(res, 'success')
-          }
-      } catch (_error) {
-          // the error msg will be sent so you don't have to hardcode it
-          showMsg(_error, 'error')
-      } 
-  };
+    const handleUpdateTasks = async (event) => {
+        event.preventDefault();
+  
+        try {
+            // @route: api/update/assignments
+            // @description: update an existing assignment
+            const res = await jwtService.updateItem({ 
+                itemType: 'assignments',
+                data: {
+                    data: assignment,
+                    itemId: task.taskId
+                }
+             }, { 'Content-Type': 'application/json' });
+            if (res) {
+                // the msg will be sent so you don't have to hardcode it
+                showMsg(res, 'success')
+            }
+        } catch (_error) {
+            // the error msg will be sent so you don't have to hardcode it
+            showMsg(_error, 'error')
+        } 
+    };
 
 
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
-                <form onSubmit={tsk ? handleUpdateTasks : handleAddTasks}>
-                  <FormControl fullWidth margin="normal">
+                <form onSubmit={task ? handleUpdateTasks : handleEditAssignments}>
+                  <FormControl fullWidth margin="normal" disabled>
                     <TextField
                       label="Task Name"
                       variant="outlined"
-                      value={task.taskName}
-                      onChange={handleChange('taskName')}
+                      value={assignment.assignmentName}
+                      onChange={handleChange('assignmentName')}
                       required
                     />
                   </FormControl>
 
-                  <FormControl fullWidth margin="normal">
+                  <FormControl fullWidth margin="normal" disabled>
                         <DatePicker
                             label="Due Date"
-                            value={task.dueDate}
+                            value={assignment.dueDate}
                             onChange={handleDateChange}
                             renderInput={(params) => <TextField {...params} required />}
                         />
                   </FormControl>
 
-                  <FormControl fullWidth margin="normal">
+                  <FormControl fullWidth margin="normal" disabled>
                     <InputLabel>Status</InputLabel>
                     <Select
-                      value={task.status}
+                      value={assignment.status}
                       label="Status"
                       onChange={handleChange('status')}
                       required
@@ -152,10 +130,10 @@ function AddTask({ tsk }) {
                     </Select>
                   </FormControl>
                     
-                  <FormControl fullWidth margin="normal">
+                  <FormControl fullWidth margin="normal" disabled>
                     <InputLabel>Priority</InputLabel>
                     <Select
-                      value={task.priority}
+                      value={assignment.priority}
                       label="Priority"
                       onChange={handleChange('priority')}
                       required
@@ -166,10 +144,10 @@ function AddTask({ tsk }) {
                     </Select>
                   </FormControl>
                     
-                  <FormControl fullWidth margin="normal">
+                  <FormControl fullWidth margin="normal" disabled>
                     <InputLabel>Assigned To Department</InputLabel>
                     <Select
-                      value={task.assignedToDepartment}
+                      value={assignment.assignedToDepartment}
                       label="Assigned To Department"
                       onChange={handleChange('assignedToDepartment')}
                       required
@@ -180,10 +158,10 @@ function AddTask({ tsk }) {
                     </Select>
                   </FormControl>
                     
-                  <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
+                  <FormControl fullWidth margin="normal" sx={{ mb: 3 }} disabled>
                     <InputLabel>Created By Department</InputLabel>
                     <Select
-                      value={task.createdByDepartment}
+                      value={assignment.createdByDepartment}
                       label="Created By Department"
                       onChange={handleChange('createdByDepartment')}
                       required
@@ -193,9 +171,19 @@ function AddTask({ tsk }) {
                       ))}
                     </Select>
                   </FormControl>
+
+                  <FormControl fullWidth margin="normal">
+                    <TextField
+                      label="Notes"
+                      variant="outlined"
+                      value={assignment.notes}
+                      onChange={handleChange('notes')}
+                      required
+                    />
+                  </FormControl>
                     
                   <button type="submit" className="add-depart-btn">
-                    {tsk ? 'Update' : 'Add'} Task
+                    Update Task
                   </button>
                 </form>
             </Box>
@@ -203,4 +191,4 @@ function AddTask({ tsk }) {
     );
 }
 
-export default AddTask;
+export default EditAssignment;
