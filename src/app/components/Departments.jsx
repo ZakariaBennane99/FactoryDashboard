@@ -98,27 +98,25 @@ function Departments() {
         })), 100);
     }
 
-    useEffect(() => {
-        useEffect(() => {    
-            async function getDepartments() {
-                try {
-                    // @route: api/items/departments
-                    // @description: get departments
-                    const res = await jwtService.getItems({ 
-                        currentUserId: currentUserId,
-                        itemType: "departments"
-                    });
-                    if (res) {
-                        setDeparts(res)
-                    }
-                } catch (_error) {
-                    // the error msg will be sent so you don't have to hardcode it
-                    showMsg(_error, 'error')
+    useEffect(() => {    
+        async function getDepartments() {
+            try {
+                // @route: api/items/departments
+                // @description: get departments
+                const res = await jwtService.getItems({
+                    itemType: "departments"
+                });
+                console.log('THE DATA', res)
+                if (res) {
+                    setDeparts(res)
                 }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
             }
-            
-            getDepartments();
-        }, []);
+        }
+        
+        getDepartments();
     }, []);
 
 

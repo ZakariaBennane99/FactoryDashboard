@@ -12,8 +12,8 @@ app.options('*', cors());
 app.use(express.json());
 
 // Define a simple GET route
-app.get('/departments', (req, res) => {
-  res.json({ departments: [
+app.get('/api/items/departments', (req, res) => {
+  res.json([
     { 
         "id": 1, 
         "category": "Management", 
@@ -56,13 +56,13 @@ app.get('/departments', (req, res) => {
         "manager": "Chris Tucker", 
         "description": "Prints the tailored clothes accroding to the given instructions."
     }
-] });
+  ]);
 });
 
 
 // route for users
-app.get('/users', (req, res) => {
-    res.json({ users: [
+app.get('/api/items/users', (req, res) => {
+    res.json([
         { 
             "firstName": "Hamid",
             "lastName": "Abdelhamid",
@@ -135,12 +135,12 @@ app.get('/users', (req, res) => {
             "userRole": 'Engineering',
             "active": true
         }
-    ] });
+    ]);
 });
 
 // route for warehouses
-app.get('/warehouses', (req, res) => {
-    res.json({ warehouses: [
+app.get('/api/items/warehouses', (req, res) => {
+    res.json([
       { 
           "id": 1, 
           "location": "Acharfiah II", 
@@ -183,13 +183,13 @@ app.get('/warehouses', (req, res) => {
           "name": "Factory VI",
           "capacity": 34
       }
-  ] });
+  ] );
 });
 
 
 // route for suppliers
-app.get('/suppliers', (req, res) => {
-    res.json({ suppliers: [
+app.get('/api/items/suppliers', (req, res) => {
+    res.json([
         {
             id: 1,
             name: "Aleppo Textiles Ltd.",
@@ -239,12 +239,12 @@ app.get('/suppliers', (req, res) => {
             email: "info@deirezzorcloth.sy",
             address: "210 Textile Avenue, Deir Ezzor, Syria"
         }
-    ] });
+    ]);
 });
 
 // materials
-app.get('/materials', (req, res) => {
-    res.json({ materials: [
+app.get('/api/items/materials', (req, res) => {
+    res.json([
         {
             id: 1,
             name: "Cotton Fabric",
@@ -301,12 +301,12 @@ app.get('/materials', (req, res) => {
             description: "Light and airy fabric, ideal for summer clothing due to its cooling properties.",
             supplier: "Deir Ezzor Cloth Co."
         }
-    ] });
+    ]);
 });
 
 // material-categories
-app.get('/material-categories', (req, res) => {
-    res.json({ materialCategories: [
+app.get('/api/items/material-categories', (req, res) => {
+    res.json([
         {
             name: 'Cotton',
             description: 'Cotton is a soft, fluffy staple fiber that grows in a boll, or protective case.'
@@ -335,12 +335,12 @@ app.get('/material-categories', (req, res) => {
             name: 'Linen',
             description: 'Linen is a textile made from the fibers of the flax plant. Linen is labor-intensive.'
         }
-    ] });
+    ]);
 });
 
 // internal Orders
-app.get('/internal-orders', (req, res) => {
-    res.json({ internalOrders: [
+app.get('/api/items/internal-orders', (req, res) => {
+    res.json( [
         {
           expectedDelivery: '2024-02-10',
           priority: 'HIGH',
@@ -413,13 +413,13 @@ app.get('/internal-orders', (req, res) => {
           specifics: 'Soft suede',
           notes: 'For autumn collection'
         }
-      ] });
+      ]);
 });
 
 
 // internal materialMovements
-app.get('/material-movements', (req, res) => {
-    res.json({ materialMovements: [
+app.get('/api/items/material-movements', (req, res) => {
+    res.json([
         {
             materialName: 'Cotton Fabric',
             from: 'Supplier',
@@ -490,13 +490,13 @@ app.get('/material-movements', (req, res) => {
             status: 'Cancelled',
             notes: 'Order cancelled by supplier'
         }
-    ] });
+    ]);
 });
   
 
 // product catalogues
-app.get('/product-catalogues', (req, res) => {
-    res.json({ productCatalogues: [
+app.get('/api/items/productCatalogues', (req, res) => {
+    res.json([
         {
             name: 'Cotton Fabric',
             description: 'This category includes various grades of cotton fabric.'
@@ -525,13 +525,13 @@ app.get('/product-catalogues', (req, res) => {
             name: 'Linen Fabric',
             description: 'This category includes our linen fabric, valued for its.'
         }
-    ]  });
+    ]);
 });
 
 
 // product catalogues textiles
-app.get('/product-catalogue-textiles', (req, res) => {
-    res.json({ textiles: [
+app.get('/api/items/textiles', (req, res) => {
+    res.json([
         {
             textileName: 'Basic Cotton',
             textileType: 'Cotton',
@@ -574,14 +574,13 @@ app.get('/product-catalogue-textiles', (req, res) => {
             composition: '100% Linen',
             description: 'High-quality linen known for its natural luster and strength, perfect for luxury linen garments and home textiles.'
         }
-    ]
-     });
+    ]);
 });
 
 
 // product catalogues details
-app.get('/product-catalogue-details', (req, res) => {
-    res.json({ details: [
+app.get('/api/items/catalogueDetails', (req, res) => {
+    res.json( [
         {
             "ProductCatalogId": "PC101",
             "Category1": "Outerwear",
@@ -673,14 +672,13 @@ app.get('/product-catalogue-details', (req, res) => {
             "Grammage": 180,
             "Description": "Stylish sun hat to provide shade on sunny days."
         }
-    ] });
+    ]);
 });
 
 
 // product catalogue seasons mock-up data
-app.get('/product-catalogue-seasons', (req, res) => {
-    res.json({
-        seasons: [
+app.get('/api/items/seasons', (req, res) => {
+    res.json([
             {
                 seasonName: "Winter",
                 startDate: "01-12-2023",
@@ -723,14 +721,12 @@ app.get('/product-catalogue-seasons', (req, res) => {
                 endDate: "31-03-2024",
                 description: "Layers and vibrant colors to welcome the new season."
             }
-        ]
-    });
+        ]);
 });
 
 // product templates
-app.get('/templates', (req, res) => {
-    res.json({
-        templates: [
+app.get('/api/items/templates', (req, res) => {
+    res.json([
             {
               productCatalogueDetail: "Cotton Fabric",
               templateName: "Basic Tee",
@@ -773,15 +769,13 @@ app.get('/templates', (req, res) => {
               description: "A synthetic blend top template optimized for workout and gym sessions.",
               fileName: "activewear_top_template.png"
             }
-          ]
-    });
+          ]);
 });
 
 
 // product templates sizs
-app.get('/template-sizes', (req, res) => {
-    res.json({
-        sizes: [
+app.get('/api/items/templateSizes', (req, res) => {
+    res.json([
             {
               size: 'S',
               template: 'Basic Tee',
@@ -886,15 +880,13 @@ app.get('/template-sizes', (req, res) => {
                 }
               ]
             }
-          ]
-    });
+          ]);
 });
 
 
 // product templates sizs
-app.get('/manufacturing-stages', (req, res) => {
-    res.json({
-        manufacturingStages: [
+app.get('/api/items/manufacturingStages', (req, res) => {
+    res.json( [
             {
               stageNumber: 1,
               stageName: "Design Concept",
@@ -958,15 +950,13 @@ app.get('/manufacturing-stages', (req, res) => {
               template: "Basic Tee",
               department: "Production Plant 1"
             }
-        ]
-    });
+        ]);
 });
 
 
 // template patterns
-app.get('/template-patterns', (req, res) => {
-    res.json({
-        patterns:[
+app.get('/api/items/patterns', (req, res) => {
+    res.json([
             {
               templatePatternName: "Basic Tee",
               description: "A simple and versatile t-shirt design suitable for casual wear."
@@ -995,15 +985,13 @@ app.get('/template-patterns', (req, res) => {
               templatePatternName: "Knit Sweater",
               description: "A cozy sweater made from knitted fabric, perfect for cooler weather."
             }
-        ]          
-    });
+        ]);
 });
 
 
 // template types
-app.get('/template-types', (req, res) => {
-    res.json({
-        types: [
+app.get('/api/items/types', (req, res) => {
+    res.json( [
             {
               templateTypeName: "Casual Wear",
               description: "Relaxed and informal clothing suitable for everyday use."
@@ -1032,14 +1020,12 @@ app.get('/template-types', (req, res) => {
               templateTypeName: "Beachwear",
               description: "Lightweight and comfortable clothing suitable for beach activities and summer wear."
             }
-          ]         
-    });
+          ] );
 });
 
 // orders
-app.get('/orders', (req, res) => {
-  res.json({
-      orders: [
+app.get('/api/items/orders', (req, res) => {
+  res.json([
         {
           orderNumber: 1001,
           orderDate: "01-10-2024",
@@ -1089,15 +1075,13 @@ app.get('/orders', (req, res) => {
           status: "REJECTED",
           season: "Winter"
         }
-      ]               
-  });
+      ]);
 });
 
 
 // orders
-app.get('/order-details', (req, res) => {
-  res.json({
-      details: [
+app.get('/api/items/orderDetails', (req, res) => {
+  res.json([
         {
           orderNumber: 1001,
           quantityDetails: "50 units of size M, 30 units of size L",
@@ -1154,15 +1138,13 @@ app.get('/order-details', (req, res) => {
           modelName: "Cozy Knit",
           modelQuantity: 80
         }
-      ]               
-  });
+      ]);
 });
 
 
 // ordersDetailColors
-app.get('/detail-colors', (req, res) => {
-  res.json({
-      colors : [
+app.get('/api/items/catalogueColors', (req, res) => {
+  res.json([
         {
           orderId: 2001,
           colorName: "Red"
@@ -1191,15 +1173,13 @@ app.get('/detail-colors', (req, res) => {
           orderId: 2007,
           colorName: "Purple"
         }
-      ]               
-  });
+      ]);
 });
 
 
 // order colors
-app.get('/order-colors', (req, res) => {
-  res.json({
-      colors : [
+app.get('/api/items/modelColors', (req, res) => {
+  res.json( [
         {
           colorName: "Red",
           colorCode: "#FF0000",
@@ -1235,15 +1215,13 @@ app.get('/order-colors', (req, res) => {
           colorCode: "#800080",
           description: "A rich color often associated with royalty, luxury, and ambition."
         }
-      ]              
-  });
+      ]);
 });
 
 
 // order colors
-app.get('/order-sizes', (req, res) => {
-  res.json({
-      sizes : [
+app.get('/api/items/order-sizes', (req, res) => {
+  res.json([
         {
           sizeName: "Small",
           description: "A size suitable for those who prefer a tighter, more snug fit."
@@ -1272,15 +1250,13 @@ app.get('/order-sizes', (req, res) => {
           sizeName: "Custom",
           description: "A bespoke size tailored to the specific measurements of the wearer."
         }
-      ]            
-  });
+      ]);
 });
 
 
 // order template types
-app.get('/order-template-types', (req, res) => {
-  res.json({
-      templateTypes : [
+app.get('/api/items/orderDetailTemplatesType', (req, res) => {
+  res.json([
         {
           orderDetailName: "Order Detail 1",
           templateTypeName: "Basic Tee"
@@ -1309,15 +1285,13 @@ app.get('/order-template-types', (req, res) => {
           orderDetailName: "Order Detail 7",
           templateTypeName: "Knit Sweater"
         }
-      ]           
-  });
+      ]);
 });
 
 
 // order detail size
-app.get('/order-detail-sizes', (req, res) => {
-  res.json({
-      orderSizes : [
+app.get('/api/items/order-detail-sizes', (req, res) => {
+  res.json( [
         {
           orderDetailName: "Order Detail 1",
           sizeName: "Small"
@@ -1346,16 +1320,14 @@ app.get('/order-detail-sizes', (req, res) => {
           orderDetailName: "Order Detail 7",
           sizeName: "Custom"
         }
-      ]         
-  });
+      ]);
 });
 
 
 // models
 app.get('/api/items/models', (req, res) => {
 
-  res.json({
-    models: [
+  res.json([
       {
         orderId: 1002,
         modelId: 346,
@@ -1434,7 +1406,6 @@ app.get('/api/items/models', (req, res) => {
         "notes": "Priority shipping due to high demand."
       }
     ]
-  }
   );
 
 });

@@ -16,12 +16,13 @@ function AddUser({ user }) {
     const [fileError, setFileError] = useState('');
 
     const [userRoles, setUserRoles] = useState([
-        'Cutting', 
-        'Tailoring', 
-        'Printing', 
-        'Quality Assurance',
-        'Engineering',
-        'Manager'
+        'CUTTING', 
+        'TAILORING', 
+        'PRINTING', 
+        'QUALITYASSURANCE',
+        'ENGINEERING',
+        'FACTORYMANAGER',
+        'STOREMANAGER'
     ]);
 
     // add another one category: Management and Production

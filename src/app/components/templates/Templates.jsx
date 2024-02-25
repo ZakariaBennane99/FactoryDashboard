@@ -6,6 +6,7 @@ import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
+import NoteAddIcon from '@mui/icons-material/Add'
 import Delete from '../../components/Delete';
 import AddTemplate from './AddTemplate';
 import CategoryIcon from '@mui/icons-material/Category';

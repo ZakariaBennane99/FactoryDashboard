@@ -56,30 +56,28 @@ class JwtService extends FuseUtils.EventEmitter {
 	};
 
 	/**
-	 * Signs in with the provided email and password.
+	 * Signs in with the provided UserName and password.
 	 */
-	signInWithEmailAndPassword = (email, password) =>
+	signInWithUserNameAndPassword = (userName, password) =>
 		new Promise((resolve, reject) => {
-			axios  
-			    // jwtServiceConfig.signIn to be with api/auth/signIn, 
-				// try to get the access_token too
-				.get(jwtServiceConfig.signIn, {
-					data: {
-						email,
-						password
-					}
+			axios
+				.post('http://localhost:3002/auth/login', {
+					username: userName,
+					password
+				}, {
+					withCredentials: true
 				})
 				.then(
 					(
 						response
 					) => {
+						console.log('the respone', response)
 						// here everytihng will be returned by the backend
-						if (response.data.user) {
-							_setSession(response.data.access_token);
-							// to be implemented later on <response.data.user>
-							// category of the user
-							this.emit('onLogin', response.data.user);
-							resolve(response.data.user);
+						if (response.data.data) {
+							_setSession(response.data.data.accessToken);
+							setUserRole(response.data.data.user.userRole)
+							this.emit('onLogin', response.data.data.user);
+							resolve(response.data.data);
 						} else {
 							reject(response.data.message);
 						}
@@ -215,6 +213,7 @@ class JwtService extends FuseUtils.EventEmitter {
 				(
 					response
 				) => {
+					console.log('THE RESPONSE', response)
 					if (response.data) {
 						// resolve with a success message and 201/200 code
 						resolve(response.data); // return an array of items
@@ -715,13 +714,20 @@ class JwtService extends FuseUtils.EventEmitter {
  */
 function _setSession(access_token) {
 	if (access_token) {
-		setAccessToken(access_token);
 		axios.defaults.headers.common.Authorization = `Bearer ${access_token}`;
 	} else {
 		removeAccessToken();
 		delete axios.defaults.headers.common.Authorization;
 	}
 }
+
+/**
+ * Sets the userRole in the local storage.
+ */
+function setUserRole(userRole) {
+	return window.localStorage.setItem('userRole', userRole);
+}
+
 
 /**
  * Checks if the access token is valid.
@@ -754,13 +760,6 @@ function getAccessToken() {
  */
 function setAccessToken(access_token) {
 	return window.localStorage.setItem('jwt_access_token', access_token);
-}
-
-/**
- * Sets the userId in the local storage.
- */
-function setUserId(userId) {
-	return window.localStorage.setItem('userId', userId);
 }
 
 /**

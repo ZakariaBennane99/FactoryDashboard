@@ -85,7 +85,7 @@ const TaskTracking = () => {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <Grid container spacing={3} flexWrap="nowrap" justifyContent="space-between" alignItems="flex-start" style={{ marginTop: '.6rem' }}>
+      <Grid container spacing={3} flexWrap="nowrap" justifyContent="space-between" alignItems="flex-start" >
         {Object.keys(state).map((list, index) => (
           <Grid item key={list}> 
             <Droppable key={list} droppableId={list}>

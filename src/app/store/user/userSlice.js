@@ -7,6 +7,9 @@ import settingsConfig from 'app/configs/settingsConfig';
 import jwtService from '../../auth/services/jwtService';
 import createAppAsyncThunk from '../createAppAsyncThunk';
 
+
+const userRole = window.localStorage.getItem('userRole')
+
 /**
  * Sets the user data in the Redux store and updates the login redirect URL if provided.
  */
@@ -15,7 +18,15 @@ export const setUser = createAsyncThunk('user/setUser', (user) => {
      * You can redirect the logged-in user to a specific route depending on his role
      */
 	if (user.loginRedirectUrl) {
-		settingsConfig.loginRedirectUrl = user.loginRedirectUrl; // for example 'apps/academy'
+		if (userRole === 'FACTORYMANAGER') {
+			settingsConfig.loginRedirectUrl = 'users'; // for example 'apps/academy'
+		} else if (userRole === 'STOREMANAGER') {
+			settingsConfig.loginRedirectUrl = 'store-management/warehouses';
+		} else if (userRole === 'ENGINEERING') {
+			settingsConfig.loginRedirectUrl = 'orders';
+		} else {
+			settingsConfig.loginRedirectUrl = 'production-departments/task-tracking';
+		}
 	}
 
 	return Promise.resolve(user);

@@ -25,6 +25,8 @@ function AuthProvider(props) {
         jwtService.on('onAutoLogin', () => {
             dispatch(showMessage({ message: 'Signing in!' }));
 
+            console.log('WTF')
+
             /**
              * Sign in and retrieve user data with stored token
              */ 
@@ -34,6 +36,7 @@ function AuthProvider(props) {
                     success(user, 'You have signed in!');
                 })
                 .catch((error) => {
+                    console.log('THE ERROR')
                     pass(error.message);
                 });
         });

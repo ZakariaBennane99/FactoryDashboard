@@ -1,17 +1,18 @@
 import i18next from 'i18next';
-import { FuseNavigationType } from '@fuse/core/FuseNavigation/types/FuseNavigationType';
 import ar from './navigation-i18n/ar';
 import en from './navigation-i18n/en';
 
 i18next.addResourceBundle('en', 'navigation', en);
 i18next.addResourceBundle('ar', 'navigation', ar);
 
+const userRole = window.localStorage.getItem('userRole')
+
 /**
  * The navigationConfig object is an array of navigation items for the Fuse application.
  */
-const navigationConfig: FuseNavigationType = [
+const navs = [
 	{
-		id: 'engineeringOffice',
+		id: 'engineering',
 		title: 'Engineering Office',
 		type: 'group',
 		icon: 'heroicons-outline:home',
@@ -21,7 +22,6 @@ const navigationConfig: FuseNavigationType = [
 				title: 'dashboards',
 				type: 'collapse',
 				icon: 'heroicons-outline:speakerphone',
-				url: 'dashboards',
 				translate: 'Dashboards',
 				children: [
 					{
@@ -214,7 +214,7 @@ const navigationConfig: FuseNavigationType = [
 		],
 	},
 	{
-		id: 'store',
+		id: 'store.manager',
 		title: 'store',
 		type: 'group',
 		icon: 'heroicons-outline:home',
@@ -282,7 +282,7 @@ const navigationConfig: FuseNavigationType = [
 		],
 	},
 	{
-		id: 'manager',
+		id: 'factory.manager',
 		title: 'manager',
 		type: 'group',
 		icon: 'heroicons-outline:home',
@@ -293,7 +293,6 @@ const navigationConfig: FuseNavigationType = [
 				title: 'Dashboards',
 				type: 'collapse',
 				icon: 'heroicons-outline:speakerphone',
-				url: 'dashboards',
 				translate: 'Dashboards',
 				children: [
 					{
@@ -331,7 +330,6 @@ const navigationConfig: FuseNavigationType = [
 				title: 'Actions',
 				type: 'collapse',
 				icon: 'heroicons-outline:switch-horizontal',
-				url: '/actions',
 				translate: 'Actions',
 				children: [
 					{
@@ -353,7 +351,7 @@ const navigationConfig: FuseNavigationType = [
 		],
 	},
 	{
-		id: 'productionDepartments',
+		id: 'production',
 		title: 'production departments',
 		type: 'group',
 		icon: 'heroicons-outline:home',
@@ -375,5 +373,17 @@ const navigationConfig: FuseNavigationType = [
 		],
 	}
 ];
+
+const navigationConfig = navs.filter(nav => {
+	if (userRole === 'FACTORYMANAGER') {
+	  return nav.id === 'factory.manager';
+	} else if (userRole === 'STOREMANAGER') {
+	  return nav.id === 'store.manager';
+	} else if (userRole === 'ENGINEERING') {
+	  return nav.id === 'engineering';
+	} else {
+	  return nav.id === 'production';
+	}
+});
 
 export default navigationConfig;

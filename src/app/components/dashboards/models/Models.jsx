@@ -137,7 +137,7 @@ function Models() {
                     itemType: "models"
                 });
                 if (res) {
-                    setModels(res.models)
+                    setModels(res)
                 }
             } catch (error) {
                 console.log('ThE ERROR', error)
