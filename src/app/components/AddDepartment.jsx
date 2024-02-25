@@ -88,7 +88,7 @@ function AddDepartment({ dprt }) {
 
     };
 
-    /* TO BE UNCOMMENTED IN PRODUCTION
+
     // get existing unassigned managers who have user roles other than 'Warehouse Manager'
     useEffect(() => {    
         async function getManagers() {
@@ -108,7 +108,7 @@ function AddDepartment({ dprt }) {
         }
         
         getManagers();
-    }, []);*/
+    }, []);
 
     
     return (

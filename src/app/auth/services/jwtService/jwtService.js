@@ -1,7 +1,5 @@
 import FuseUtils from '@fuse/utils/FuseUtils';
 import axios from 'axios';
-import jwtDecode from 'jwt-decode';
-import jwtServiceConfig from './jwtServiceConfig';
 /* eslint-disable camelcase, class-methods-use-this */
 
 /**
@@ -20,40 +18,42 @@ class JwtService extends FuseUtils.EventEmitter {
 	/**
 	 * Sets the interceptors for the Axios instance.
 	 */
-	setInterceptors = () => {
-		axios.interceptors.response.use(
-			(response) => response,
-			(err) =>
-				new Promise(() => {
-					if (err?.response?.status === 401 && err.config) {
-						// if you ever get an unauthorized response, logout the user
-						this.emit('onAutoLogout', 'Invalid access_token');
-						_setSession(null);
-					}
-					throw err;
-				})
-		);
-	};
+    setInterceptors = () => {
+        axios.interceptors.response.use(
+            (response) => response,
+            (err) => {
+                if (err?.response?.status === 401 && err.config) {
+                    // If there's a 401 Unauthorized response, emit an event to handle auto-logout
+                    this.emit('onAutoLogout', 'Invalid session');
+                }
+                return Promise.reject(err);
+            }
+        );
+    };
 
-	/**
-	 * Handles authentication by checking for a valid access token and emitting events based on the result.
-	 */
-	handleAuthentication = () => {
-		const access_token = getAccessToken();
 
-		if (!access_token) {
-			this.emit('onNoAccessToken');
-			return;
-		}
-
-		if (isAuthTokenValid(access_token)) {
-			_setSession(access_token);
-			this.emit('onAutoLogin', true);
-		} else {
-			_setSession(null);
-			this.emit('onAutoLogout', 'access_token expired');
-		}
-	};
+    /**
+     * Adjusted to handle authentication state without directly accessing the token.
+     */
+    handleAuthentication = () => {
+        // Attempt to validate the session with the backend
+        axios.get('http://localhost:3002/auth/session', { withCredentials: true })
+            .then(response => {
+				if (response.status === 200) {
+                    this.emit('onAutoLogin', true);
+                } else {
+                    // Session is not valid, emit an event to indicate no access token found
+                    this.emit('onNoAccessToken');
+					localStorage.clear()
+                }
+            })
+            .catch((error) => {
+				console.log('The response error',  error)
+                // Error or session not valid, em it an event to indicate no access token found
+                this.emit('onNoAccessToken');
+				localStorage.clear();
+            });
+    };
 
 	/**
 	 * Signs in with the provided UserName and password.
@@ -71,11 +71,11 @@ class JwtService extends FuseUtils.EventEmitter {
 					(
 						response
 					) => {
-						console.log('the respone', response)
 						// here everytihng will be returned by the backend
 						if (response.data.data) {
-							_setSession(response.data.data.accessToken);
-							setUserRole(response.data.data.user.userRole)
+							response.data.data.user.role = 'admin';
+							console.log(response.data.data.user)
+							setUserRole(response.data.data.user.userRole);
 							this.emit('onLogin', response.data.data.user);
 							resolve(response.data.data);
 						} else {
@@ -83,33 +83,7 @@ class JwtService extends FuseUtils.EventEmitter {
 						}
 					}
 				);
-		});
-
-	/**
-	 * Signs in with the provided token.
-	 */
-	signInWithToken = () =>
-		new Promise((resolve, reject) => {
-			axios
-				.get(jwtServiceConfig.accessToken, {
-					data: {
-						access_token: getAccessToken()
-					}
-				})
-				.then((response) => {
-					if (response.data.user) {
-						_setSession(response.data.access_token);
-						resolve(response.data.user);
-					} else {
-						this.logout();
-						reject(new Error('Failed to login with token.'));
-					}
-				})
-				.catch(() => {
-					this.logout();
-					reject(new Error('Failed to login with token.'));
-				});
-		});
+	});
 
 	/**
 	 * Creates a new item.
@@ -155,7 +129,7 @@ class JwtService extends FuseUtils.EventEmitter {
 					}
 				}
 			)
-		});
+	});
 
     /**
  	 * Deletes an item.
@@ -209,7 +183,7 @@ class JwtService extends FuseUtils.EventEmitter {
 	 */
 	getItems = (itemsInfo) =>
 	new Promise((resolve, reject) => {
-		axios.get(`http://localhost:3050/api/items/${itemsInfo.itemType}`).then(
+		axios.get(`http://localhost:3002/${itemsInfo.itemType}/all`, { withCredentials: true }).then(
 				(
 					response
 				) => {
@@ -674,100 +648,30 @@ class JwtService extends FuseUtils.EventEmitter {
 			}
 		);
 	});	
-	
-		/**
-	 * Get items.
-	 */
-		getItems = (itemsInfo) =>
-		new Promise((resolve, reject) => {
-				axios.get(`http://localhost:3050/api/items/${itemsInfo.itemType}`, itemsInfo.currentUserId).then(
-					(
-						response
-					) => {
-						if (response.data) {
-							// resolve with a success message and 201/200 code
-							resolve(response.data); // return an array of items
-						} else {
-							reject(response);
-							// send back the error + consistent error code: 404, 401..
-							// should return a msg for the error:
-							// 1. 'Server error! Please try again later.'
-							// 2. 'You don't have permission to get data.' (forbidden)
-						}
-					}
-				);
-		});	
 
 
 	/**
 	 * Signs out the user.
 	 */
-	logout = () => {
-		_setSession(null);
-		this.emit('onLogout', 'Logged out');
-	};
+    logout = () => {
+        axios.post('http://localhost:3002/auth/sign-out').then(() => {
+			this.emit('onLogout', 'Logged out');
+			localStorage.clear()
+        }).catch(error => {
+            console.error('Logout failed', error);
+        });
+    };
 
-}
-
-/**
- * Sets the session by storing the access token in the local storage and setting the default authorization header.
- */
-function _setSession(access_token) {
-	if (access_token) {
-		axios.defaults.headers.common.Authorization = `Bearer ${access_token}`;
-	} else {
-		removeAccessToken();
-		delete axios.defaults.headers.common.Authorization;
-	}
 }
 
 /**
  * Sets the userRole in the local storage.
  */
 function setUserRole(userRole) {
-	return window.localStorage.setItem('userRole', userRole);
+	window.localStorage.setItem('userRole', userRole);
 }
 
 
-/**
- * Checks if the access token is valid.
- */
-function isAuthTokenValid(access_token) {
-	if (!access_token) {
-		return false;
-	}
-	const decoded = jwtDecode(access_token);
-	const currentTime = Date.now() / 1000;
-
-	if (decoded.exp < currentTime) {
-		// eslint-disable-next-line no-console
-		console.warn('access token expired');
-		return false;
-	}
-
-	return true;
-}
-
-/**
- * Gets the access token from the local storage.
- */
-function getAccessToken() {
-	return window.localStorage.getItem('jwt_access_token');
-}
-
-/**
- * Sets the access token in the local storage.
- */
-function setAccessToken(access_token) {
-	return window.localStorage.setItem('jwt_access_token', access_token);
-}
-
-/**
- * Removes the access token from the local storage.
- */
-function removeAccessToken() {
-	return window.localStorage.removeItem('jwt_access_token');
-}
 
 const instance = new JwtService();
 

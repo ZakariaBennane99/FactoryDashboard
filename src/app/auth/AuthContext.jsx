@@ -6,14 +6,8 @@ import { logoutUser, setUser } from 'app/store/user/userSlice';
 import { useAppDispatch } from 'app/store';
 import jwtService from './services/jwtService';
 
-/**
- * The AuthContext object is a React context object that provides authentication information to child components.
- */
 const AuthContext = React.createContext({});
 
-/**
- * The AuthProvider component is a wrapper component that provides authentication information to child components.
- */
 function AuthProvider(props) {
     const { children } = props;
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -22,70 +16,46 @@ function AuthProvider(props) {
     const val = useMemo(() => ({ isAuthenticated }), [isAuthenticated]);
 
     useEffect(() => {
-        jwtService.on('onAutoLogin', () => {
-            dispatch(showMessage({ message: 'Signing in!' }));
+        const handleAutoLogin = () => {
+            setIsAuthenticated(true);
+            setWaitAuthCheck(false);
+        };
 
-            console.log('WTF')
+        const handleLogin = (user) => {
+            dispatch(setUser(user));
+            dispatch(showMessage({ message: 'Signed in' }));
+            setIsAuthenticated(true);
+            setWaitAuthCheck(false);
+        };
 
-            /**
-             * Sign in and retrieve user data with stored token
-             */ 
-            jwtService
-                .signInWithToken()
-                .then((user) => {
-                    success(user, 'You have signed in!');
-                })
-                .catch((error) => {
-                    console.log('THE ERROR')
-                    pass(error.message);
-                });
-        });
-
-        jwtService.on('onLogin', (user) => {
-            
-            success(user, 'Signed in');
-        });
-
-        jwtService.on('onLogout', () => {
-            pass('Signed out');
-
+        const handleLogout = () => {
             dispatch(logoutUser());
-        });
+            dispatch(showMessage({ message: 'Signed out' }));
+            setIsAuthenticated(false);
+            setWaitAuthCheck(false);
+        };
 
-        jwtService.on('onAutoLogout', (message) => {
-            pass(message);
+        const handleNoAccessToken = () => {
+            setIsAuthenticated(false);
+            setWaitAuthCheck(false);
+        };
 
-            dispatch(logoutUser());
-        });
-
-        jwtService.on('onNoAccessToken', () => {
-            pass();
-        });
+        jwtService.on('onAutoLogin', handleAutoLogin);
+        jwtService.on('onLogin', handleLogin);
+        jwtService.on('onLogout', handleLogout);
+        jwtService.on('onAutoLogout', handleLogout);
+        jwtService.on('onNoAccessToken', handleNoAccessToken);
 
         jwtService.init();
 
-        function success(user, message) {
-            Promise.all([
-                dispatch(setUser(user))
-                // You can receive data in here before app initialization
-            ]).then(() => {
-                if (message) {
-                    dispatch(showMessage({ message }));
-                }
-
-                setWaitAuthCheck(false);
-                setIsAuthenticated(true);
-            });
-        }
-
-        function pass(message) {
-            if (message) {
-                dispatch(showMessage({ message }));
-            }
-
-            setWaitAuthCheck(false);
-            setIsAuthenticated(false);
-        }
+        // Cleanup event listeners on component unmount
+        return () => {
+            jwtService.off('onAutoLogin', handleAutoLogin);
+            jwtService.off('onLogin', handleLogin);
+            jwtService.off('onLogout', handleLogout);
+            jwtService.off('onAutoLogout', handleLogout);
+            jwtService.off('onNoAccessToken', handleNoAccessToken);
+        };
     }, [dispatch]);
 
     return waitAuthCheck ? <FuseSplashScreen /> : <AuthContext.Provider value={val}>{children}</AuthContext.Provider>;
@@ -98,5 +68,6 @@ function useAuth() {
     }
     return context;
 }
+
 
 export { useAuth, AuthProvider };

@@ -17,6 +17,7 @@ import { useAppSelector } from 'app/store';
 import withAppProviders from './withAppProviders';
 import { AuthProvider } from './auth/AuthContext';
 
+
 // import axios from 'axios';
 /**
  * Axios HTTP Request defaults
@@ -38,14 +39,18 @@ const emotionCacheOptions = {
 	}
 };
 
+
 /**
  * The main App component.
  */
 function App() {
+
 	/**
 	 * The user object from the Redux store.
+	 * 
+	 * 
 	 */
-	const userRole = useAppSelector(selectUserRole);
+	const userRole = useAppSelector(selectUserRole)
 
 	/**
 	 * The language direction from the Redux store.
@@ -57,8 +62,9 @@ function App() {
 	 */
 	const mainTheme = useSelector(selectMainTheme);
 
+
 	return (
-		<CacheProvider value={createCache(emotionCacheOptions[langDirection] as Options)}>
+		<CacheProvider value={createCache(emotionCacheOptions[langDirection])}>
 			<FuseTheme
 				theme={mainTheme}
 				direction={langDirection}

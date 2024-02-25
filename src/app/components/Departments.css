@@ -25,6 +25,14 @@
     width: 30%;
 }
 
+.progress-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .parent-container .top-ribbon .add-btn,
 .add-depart-btn, .add-user-btn, .add-warehouse-btn,
 .add-supplier-btn, .add-material-btn, .add-materialCategory-btn,
@@ -85,6 +93,7 @@
 
 .parent-container .main-content {
     width: 100%;
+    height: 100%;
     padding: 15px 40px;
 }
 

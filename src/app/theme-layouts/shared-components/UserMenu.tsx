@@ -27,6 +27,8 @@ function UserMenu() {
 		setUserMenu(null);
 	};
 
+	console.log('THE USER IN THE USERMENU', user)
+
 	return (
 		<>
 			<Button
@@ -39,7 +41,7 @@ function UserMenu() {
 						component="span"
 						className="flex font-semibold"
 					>
-						{user.data.displayName}
+						{user.name}
 					</Typography>
 					<Typography
 						className="text-11 font-medium capitalize"
@@ -50,14 +52,14 @@ function UserMenu() {
 					</Typography>
 				</div>
 
-				{user.data.photoURL ? (
+				{user.userImage ? (
 					<Avatar
 						className="md:mx-4"
 						alt="user photo"
-						src={user.data.photoURL}
+						src={`http://localhost:3002${user.userImage}`}
 					/>
 				) : (
-					<Avatar className="md:mx-4">{user.data.displayName[0]}</Avatar>
+					<Avatar className="md:mx-4">{user.name}</Avatar>
 				)}
 			</Button>
 
