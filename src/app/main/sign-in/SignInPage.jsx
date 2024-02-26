@@ -17,7 +17,7 @@ import jwtService from '../../auth/services/jwtService';
  * Form Validation Schema
  */
 const schema = yup.object().shape({
-	email: yup.string().email('You must enter a valid email').required('You must enter a email'),
+	userName: yup.string().required('You must enter a userName'),
 	password: yup
 		.string()
 		.required('Please enter your password.')
@@ -26,7 +26,7 @@ const schema = yup.object().shape({
 });
 
 const defaultValues = {
-	email: '',
+	userName: '',
 	password: '',
 	remember: true
 };
@@ -44,13 +44,13 @@ function SignInPage() {
 	const { isValid, dirtyFields, errors } = formState;
 
 	useEffect(() => {
-		setValue('email', 'admin@fusetheme.com', { shouldDirty: true, shouldValidate: true });
-		setValue('password', 'admin', { shouldDirty: true, shouldValidate: true });
+		setValue('userName', 'zaki.greene', { shouldDirty: true, shouldValidate: true });
+		setValue('password', 'zakigreene', { shouldDirty: true, shouldValidate: true });
 	}, [setValue]);
 
-	function onSubmit({ email, password }) {
+	function onSubmit({ userName, password }) {
 		jwtService
-			.signInWithEmailAndPassword(email, password)
+			.signInWithEmailAndPassword(userName, password)
 			.then((user) => {
 				// eslint-disable-next-line no-console
 				console.info(user);
@@ -94,17 +94,17 @@ function SignInPage() {
 						onSubmit={handleSubmit(onSubmit)}
 					>
 						<Controller
-							name="email"
+							name="userName"
 							control={control}
 							render={({ field }) => (
 								<TextField
 									{...field}
 									className="mb-24"
-									label="Email"
+									label="User Name"
 									autoFocus
-									type="email"
-									error={!!errors.email}
-									helperText={errors?.email?.message}
+									type="userName"
+									error={!!errors.userName}
+									helperText={errors?.userName?.message}
 									variant="outlined"
 									required
 									fullWidth

@@ -42,18 +42,18 @@ function UserNavbarHeader() {
 						color: 'text.secondary'
 					}}
 					className="avatar h-96 w-96 text-32 font-bold"
-					src={user.data.photoURL}
-					alt={user.data.displayName}
+					src={`http://localhost:3002${user.userImage}`}
+					alt={user.name}
 				>
-					{user.data.displayName.charAt(0)}
+					{user.name.charAt(0)}
 				</Avatar>
 			</div>
-			<Typography className="username whitespace-nowrap text-14 font-medium">{user.data.displayName}</Typography>
+			<Typography className="username whitespace-nowrap text-14 font-medium">{user.name}</Typography>
 			<Typography
 				className="email whitespace-nowrap text-13 font-medium"
 				color="text.secondary"
 			>
-				{user.data.email}
+				{user.email}
 			</Typography>
 		</Root>
 	);

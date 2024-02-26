@@ -7,8 +7,6 @@ import { useAppDispatch } from 'app/store';
 
 function DeleteItem({ itemId, itemType }) {
 
-    const currentUserId = window.localStorage.getItem('userId')
-
     const dispatch = useAppDispatch();
 
 
@@ -35,17 +33,14 @@ function DeleteItem({ itemId, itemType }) {
             // @route: /api/delete/{itemType}
             // @description: delete an item
             const res = await jwtService.deleteItem({ 
-                currentUserId: currentUserId,
                 itemType: itemType,
                 itemId: itemId
             });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg('User has been successfully created!', 'success')
+            if (res.status === 200) {
+                showMsg(res.message, 'success')
             }
-        } catch (_errors) {
-            // the error msg will be sent so you don't have to hardcode it
-            showMsg('User creation failed. Please try again.!', 'error')
+        } catch (errors) {
+            showMsg(errors.message, 'error')
         }
     }
 

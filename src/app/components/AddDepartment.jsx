@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
@@ -29,14 +29,14 @@ function AddDepartment({ dprt }) {
         })), 100);
     }
 
-    const [managers, setManagers] = useState(['Chris Evans', 'Marly Manson', 'Tim Bergling', 'Hamid Abdelhamid',
-'Sam Kfouri', 'Omar Akil', 'Mohammed Atouani', 'Mouad Moutaouakil', 'Chris Tucker'])
+    const [managers, setManagers] = useState([])
 
-    const [categories, setCategories] = useState(['Management', 'Engineering', 'Cutting', 'Tailoring', 'Printing', 'Cleaning'])
+    const [categories, setCategories] = useState(['Management', 'Production', 'Services'])
 
     const [department, setDepartment] = useState({
+        departmentId: dprt.id,
         name: dprt ? dprt.name : '',
-        manager: dprt ? dprt.manager : '',
+        managerId: dprt ? dprt.manager : '',
         category: dprt ? dprt.category : '',
         description: dprt ? dprt.description : ''
     });
@@ -52,17 +52,15 @@ function AddDepartment({ dprt }) {
                 itemType: 'department',
                 data: {
                     data: department,
-                    currentUserId: currentUserId,
                     itemId: department.departmentId
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg('User has been successfully updated!', 'success');
+            if (res.status === 200) {
+                showMsg(res.message, 'success');
             }
-        } catch (_errors) {
+        } catch (err) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg('User update failed. Please try again.', 'error');
+            showMsg(err.message, 'error');
         }
 
     };
@@ -72,44 +70,38 @@ function AddDepartment({ dprt }) {
         try {
             const res = await jwtService.createItem({ 
                 itemType: 'department',
-                data: {
-                    data: department,
-                    currentUserId: currentUserId
-                }
+                data: department
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg('User has been successfully updated!', 'success');
+            if (res.status === 201) {
+                showMsg(res.message, 'success');
             }
-        } catch (_errors) {
-            // the error msg will be sent so you don't have to hardcode it
-            showMsg('User update failed. Please try again.', 'error');
+        } catch (err) {
+            showMsg(err.message, 'error');
         }
-
     };
 
-    /* TO BE UNCOMMENTED IN PRODUCTION
+
     // get existing unassigned managers who have user roles other than 'Warehouse Manager'
     useEffect(() => {    
         async function getManagers() {
             try {
                 // @route: api/managers
                 // @description: get Managers
-                const res = await jwtService.getManagers({ 
-                    currentUserId: currentUserId
-                });
+                const res = await jwtService.getManagers();
                 if (res) {
-                    setManagers(res.departs)
+                    setManagers(res.data.map(manager => ({
+                        id: manager.Id,
+                        fullName: `${manager.Firstname.charAt(0).toUpperCase() + manager.Firstname.slice(1)} ${manager.Lastname.charAt(0).toUpperCase() + manager.Lastname.slice(1)}`
+                    })));
                 }
-            } catch (_error) {
+            } catch (error) {
                 // the error msg will be sent so you don't have to hardcode it
-                showMsg(_error, 'error')
+                showMsg(error.message, 'error')
             }
         }
         
         getManagers();
-    }, []);*/
-
+    }, []);
     
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
@@ -134,7 +126,9 @@ function AddDepartment({ dprt }) {
                         required
                     >
                         {
-                            managers.map(manager => <MenuItem value={manager.replace(/\s+/g, '').toLowerCase()}>{manager}</MenuItem>)
+                            managers.map(manager => (
+                                <MenuItem key={manager.id} value={manager.id}>{manager.fullName}</MenuItem>
+                            ))
                         }
                     </Select>
                 </FormControl>

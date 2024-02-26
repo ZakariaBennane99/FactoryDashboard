@@ -1,7 +1,6 @@
 import FuseUtils from '@fuse/utils/FuseUtils';
 import axios from 'axios';
 import jwtDecode from 'jwt-decode';
-import jwtServiceConfig from './jwtServiceConfig';
 /* eslint-disable camelcase, class-methods-use-this */
 
 /**
@@ -47,6 +46,7 @@ class JwtService extends FuseUtils.EventEmitter {
 		}
 
 		if (isAuthTokenValid(access_token)) {
+			console.log('AUTOLOGINBABAY')
 			_setSession(access_token);
 			this.emit('onAutoLogin', true);
 		} else {
@@ -58,30 +58,28 @@ class JwtService extends FuseUtils.EventEmitter {
 	/**
 	 * Signs in with the provided email and password.
 	 */
-	signInWithEmailAndPassword = (email, password) =>
+	signInWithEmailAndPassword = (userName, password) =>
 		new Promise((resolve, reject) => {
 			axios  
 			    // jwtServiceConfig.signIn to be with api/auth/signIn, 
 				// try to get the access_token too
-				.get(jwtServiceConfig.signIn, {
-					data: {
-						email,
-						password
-					}
+				.post(`http://localhost:3002/auth/login`, {
+					username: userName,
+					password
 				})
 				.then(
 					(
 						response
 					) => {
 						// here everytihng will be returned by the backend
-						if (response.data.user) {
-							_setSession(response.data.access_token);
+						if (response.data.data.user) {
+							_setSession(response.data.data.access_token);
 							// to be implemented later on <response.data.user>
 							// category of the user
-							this.emit('onLogin', response.data.user);
-							resolve(response.data.user);
+							this.emit('onLogin', response.data.data.user);
+							resolve(response.data.data.user);
 						} else {
-							reject(response.data.message);
+							reject(response.data.data.message);
 						}
 					}
 				);
@@ -91,9 +89,45 @@ class JwtService extends FuseUtils.EventEmitter {
 	 * Signs in with the provided token.
 	 */
 	signInWithToken = () =>
+    new Promise((resolve, reject) => {
+        const accessToken = getAccessToken();
+		console.log('The acce', accessToken)
+        if (!accessToken) {
+            this.logout();
+            reject(new Error('No token provided. Please log in!'));
+            return;
+        }
+
+        axios
+            .get(`http://localhost:3002/auth/session`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            })
+            .then((response) => {
+                if (response.status === 200) {
+					console.log('THE RES FROM SESSION', response)
+                    // Assuming the successful response doesn't necessarily return user data anymore,
+                    // but just validates the session. You might need to adjust this part based on your actual response structure.
+                    resolve(response.data.user);
+                } else {
+                    // This block might not be necessary if your axios setup rejects non-2xx statuses,
+                    // but it's here to illustrate handling different responses.
+                    this.logout();
+                    reject(new Error(response.data.message || 'Failed to validate session.'));
+                }
+            })
+            .catch((error) => {
+                // This will catch network errors and any status codes that fall outside the 2xx range.
+                this.logout();
+                const message = error.response ? error.response.data.message : 'Failed to login with token.';
+                reject(new Error(message));
+            });
+    });/*
+	signInWithToken = () =>
 		new Promise((resolve, reject) => {
 			axios
-				.get(jwtServiceConfig.accessToken, {
+				.get(`http://localhost:3002/auth/session`, {
 					data: {
 						access_token: getAccessToken()
 					}
@@ -111,22 +145,22 @@ class JwtService extends FuseUtils.EventEmitter {
 					this.logout();
 					reject(new Error('Failed to login with token.'));
 				});
-		});
+		});*/
 
 	/**
 	 * Creates a new item.
 	 */
 	createItem = (itemInfo, headers) =>
 	new Promise((resolve, reject) => {
-			axios.post(`api/create/${itemInfo.itemType}`, itemInfo.data, headers).then(
+			axios.post(`http://localhost:3002/${itemInfo.itemType}`, itemInfo.data, headers).then(
 				(
 					response
 				) => {
-					if (response.data.user) {
-						// resolve with a success message and 201/200 code
-						resolve(response.data.user); // '<itemInfo.itemType> has been successfully created!'
+					if (response.data) {
+						// resolve with a success message and 201 code
+						resolve(response); 
 					} else {
-						reject(response.data.error);
+						reject(response);
 						// send back the error + consistent error code: 404, 401..
 						// should return a msg for the error:
 						// 1. 'Server error'
@@ -142,13 +176,12 @@ class JwtService extends FuseUtils.EventEmitter {
 	 */
 	updateItem = (itemInfo, headers) =>
 		new Promise((resolve, reject) => {
-			axios.put(`api/update/${itemInfo.itemType}`, itemInfo.data, headers).then(
+			axios.put(`http://localhost:3002/${itemInfo.itemType}/${itemInfo.data.itemId}`, itemInfo.data.data, headers).then(
 				(response) => {
 					if (response.data) {
 						resolve(response.data); // return a ok msg with a 201/200
-						// '<itemInfo.itemType> has been successfully updated!'
 					} else {
-						reject(response.data.error); 
+						reject(response.data); 
 						// send back the error + consistent error code: 404, 401..
 						// should return a msg for the error:
 						// 1. 'Server error'
@@ -164,7 +197,7 @@ class JwtService extends FuseUtils.EventEmitter {
      */
 	deleteItem = (itemInfo) =>
 	new Promise((resolve, reject) => {
-		axios.delete(`api/delete/${itemInfo.itemType}`, { 
+		axios.delete(`http://localhost:3002/${itemInfo.itemType}/${itemInfo.itemId}`, { 
 			currentUserId: itemInfo.currentUserId,
 			itemId: itemInfo.itemId
 		})
@@ -173,7 +206,7 @@ class JwtService extends FuseUtils.EventEmitter {
 					resolve(response.data); // send ok msg or 200/201
 					// 'Item has been successfully deleted.'
 				} else {
-					reject(response.data.error); 
+					reject(response.data); 
 					// send back the error
 					// should return a msg for the error:
 					// 1. server error
@@ -211,7 +244,7 @@ class JwtService extends FuseUtils.EventEmitter {
 	 */
 	getItems = (itemsInfo) =>
 	new Promise((resolve, reject) => {
-		axios.get(`http://localhost:3050/api/items/${itemsInfo.itemType}`).then(
+		axios.get(`http://localhost:3002/${itemsInfo.itemType}/all`).then(
 				(
 					response
 				) => {
@@ -316,7 +349,7 @@ class JwtService extends FuseUtils.EventEmitter {
 	 */
 	getManagers = (data) =>
 	new Promise((resolve, reject) => {
-		axios.get(`/api/managers`, data).then(
+		axios.get(`http://localhost:3002/auth/all-users`, data).then(
 			(
 				response
 			) => {
@@ -675,29 +708,6 @@ class JwtService extends FuseUtils.EventEmitter {
 			}
 		);
 	});	
-	
-		/**
-	 * Get items.
-	 */
-		getItems = (itemsInfo) =>
-		new Promise((resolve, reject) => {
-				axios.get(`http://localhost:3050/api/items/${itemsInfo.itemType}`, itemsInfo.currentUserId).then(
-					(
-						response
-					) => {
-						if (response.data) {
-							// resolve with a success message and 201/200 code
-							resolve(response.data); // return an array of items
-						} else {
-							reject(response);
-							// send back the error + consistent error code: 404, 401..
-							// should return a msg for the error:
-							// 1. 'Server error! Please try again later.'
-							// 2. 'You don't have permission to get data.' (forbidden)
-						}
-					}
-				);
-		});	
 
 
 	/**
@@ -727,19 +737,25 @@ function _setSession(access_token) {
  * Checks if the access token is valid.
  */
 function isAuthTokenValid(access_token) {
-	if (!access_token) {
-		return false;
-	}
-	const decoded = jwtDecode(access_token);
-	const currentTime = Date.now() / 1000;
+    if (!access_token) {
+        return false;
+    }
 
-	if (decoded.exp < currentTime) {
-		// eslint-disable-next-line no-console
-		console.warn('access token expired');
-		return false;
-	}
+    try {
+        const decodedAccess = jwtDecode(access_token);
+        const now = Math.floor(Date.now() / 1000);
 
-	return true;
+		console.log('the ACCESSTOKEN', decodedAccess, decodedAccess.exp < now )
+
+        const leeway = 1000; // seconds
+        if (decodedAccess.exp < now - leeway) {
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        return false;
+    }
 }
 
 /**

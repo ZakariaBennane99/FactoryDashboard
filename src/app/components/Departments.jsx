@@ -12,6 +12,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from './Delete';
 import jwtService from '../../app/auth/services/jwtService'
+import { CircularProgress } from '@mui/material';
+
 
 
 function trimText(txt, maxLength) {
@@ -25,8 +27,7 @@ function trimText(txt, maxLength) {
 
 function Departments() {
 
-    // handling search and expansion
-    const currentUserId = window.localStorage.getItem('userId')
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredDeparts, setFilteredDeparts] = useState(null);
 
@@ -98,27 +99,38 @@ function Departments() {
         })), 100);
     }
 
-    useEffect(() => {
-        useEffect(() => {    
-            async function getDepartments() {
-                try {
-                    // @route: api/items/departments
-                    // @description: get departments
-                    const res = await jwtService.getItems({ 
-                        currentUserId: currentUserId,
-                        itemType: "departments"
-                    });
-                    if (res) {
-                        setDeparts(res)
+    useEffect(() => {    
+        async function getDepartments() {
+            try {
+                setIsLoading(true);
+                const res = await jwtService.getItems({
+                    itemType: "department"
+                });
+                if (res) {
+
+                    const formattedDepartments = res.data.map(dept => ({
+                        id: dept.Id,
+                        name: dept.Name,
+                        category: dept.CategoryName,
+                        description: dept.Description,
+                        manager: `${capitalizeFirstLetter(dept.Manager.Firstname)} ${capitalizeFirstLetter(dept.Manager.Lastname)}`,
+                    }));
+                      
+                    function capitalizeFirstLetter(string) {
+                      return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
                     }
-                } catch (_error) {
-                    // the error msg will be sent so you don't have to hardcode it
-                    showMsg(_error, 'error')
+                    
+                    setDeparts(formattedDepartments);
                 }
+            } catch (_error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(_error, 'error')
+            } finally {
+                setIsLoading(false); 
             }
-            
-            getDepartments();
-        }, []);
+        }
+        
+        getDepartments();
     }, []);
 
 
@@ -152,7 +164,7 @@ function Departments() {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
                 children: ( 
-                    <Delete itemId={departs[i].departId} itemType='department' />
+                    <Delete itemId={departs[i].id} itemType='department' />
                 )
             }));
         }, 100);
@@ -171,134 +183,144 @@ function Departments() {
             </div>   
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {departs.length > 0 && !isQueryFound ? departs.map((depart, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                {isLoading ? (
+                    <div className='progress-container'>
+                        <CircularProgress />
+                    </div>
+                ) : departs.length > 0 ? 
+                    <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {!isQueryFound ? departs.map((depart, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div className="head-container">
+                                                 <img src={`/assets/gen/${depart.category === 'Production' ? 'production' : 'briefcase'}.svg`} />
+                                                 <span className="category">
+                                                    {depart.category}
+                                                 </span>
+                                                 <span className="name">
+                                                    {depart.name}
+                                                 </span>
+                                             </div>
+                                             <div className="body-container">
+                                                    <div className="manager">
+                                                        <span>
+                                                           {depart.manager}
+                                                        </span>
+                                                    </div>
+                                                    <div className="description">
+                                                       {depart.description}
+                                                    </div>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div className="head-container">
+                                    <img src={`/assets/gen/${depart.category === "Production" ? 'production' : 'briefcase'}.svg`} />
+                                    <span className="category">
+                                        {depart.category}
+                                    </span>
+                                    <span className="name">
+                                        {depart.name}
+                                    </span>
+                                </div>
+                                <div className="body-container">
+                                    <div className="manager">
+                                        <span>
+                                            {depart.manager}
+                                        </span>
                                     </div>
-                                    <div className="head-container">
-                                         <img src={`/assets/gen/${depart.category === 'Production' ? 'production' : 'briefcase'}.svg`} />
-                                         <span className="category">
-                                            {depart.category}
-                                         </span>
-                                         <span className="name">
-                                            {depart.name}
-                                         </span>
-                                     </div>
-                                     <div className="body-container">
-                                            <div className="manager">
-                                                <span>
-                                                   {depart.manager}
-                                                </span>
-                                            </div>
-                                            <div className="description">
-                                               {depart.description}
-                                            </div>
+                                    <div className="description">
+                                        {trimText(depart.description, 35)}
                                     </div>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div className="head-container">
-                            <img src={`/assets/gen/${depart.category === "Production" ? 'production' : 'briefcase'}.svg`} />
-                            <span className="category">
-                                {depart.category}
-                            </span>
-                            <span className="name">
-                                {depart.name}
-                            </span>
-                        </div>
-                        <div className="body-container">
-                            <div className="manager">
-                                <span>
-                                    {depart.manager}
-                                </span>
-                            </div>
-                            <div className="description">
-                                {trimText(depart.description, 35)}
-                            </div>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredDeparts && isQueryFound ? filteredDeparts.map((depart, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                              </Paper>
+                            </Grid>
+                          )) : filteredDeparts.map((depart, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                              <Paper
+                              className="depart-card"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div className="head-container">
+                                                 <img src={`/assets/gen/${depart.category === "Production" ? 'production' : 'briefcase'}.svg`} />
+                                                 <span className="category">
+                                                    {highlightMatch(depart.category, query)}
+                                                 </span>
+                                                 <span className="name">
+                                                    {highlightMatch(depart.name, query)}
+                                                 </span>
+                                             </div>
+                                             <div className="body-container">
+                                                    <div className="manager">
+                                                        <span>
+                                                           {highlightMatch(depart.manager, query)}
+                                                        </span>
+                                                    </div>
+                                                    <div className="description">
+                                                       {highlightMatch(depart.description, query)}
+                                                    </div>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div className="head-container">
+                                    <img src={`/assets/gen/${depart.category === "Production" ? 'production' : 'briefcase'}.svg`} />
+                                    <span className="category">
+                                        {highlightMatch(depart.category, query)}
+                                    </span>
+                                    <span className="name">
+                                        {highlightMatch(depart.name, query)}
+                                    </span>
+                                </div>
+                                <div className="body-container">
+                                    <div className="manager">
+                                        <span>
+                                            {highlightMatch(depart.manager, query)}
+                                        </span>
                                     </div>
-                                    <div className="head-container">
-                                         <img src={`/assets/gen/${depart.category === "Production" ? 'production' : 'briefcase'}.svg`} />
-                                         <span className="category">
-                                            {highlightMatch(depart.category, query)}
-                                         </span>
-                                         <span className="name">
-                                            {highlightMatch(depart.name, query)}
-                                         </span>
-                                     </div>
-                                     <div className="body-container">
-                                            <div className="manager">
-                                                <span>
-                                                   {highlightMatch(depart.manager, query)}
-                                                </span>
-                                            </div>
-                                            <div className="description">
-                                               {highlightMatch(depart.description, query)}
-                                            </div>
+                                    <div className="description">
+                                        {highlightMatch(trimText(depart.description, 35), query)}
                                     </div>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div className="head-container">
-                            <img src={`/assets/gen/${depart.category === "Production" ? 'production' : 'briefcase'}.svg`} />
-                            <span className="category">
-                                {highlightMatch(depart.category, query)}
-                            </span>
-                            <span className="name">
-                                {highlightMatch(depart.name, query)}
-                            </span>
-                        </div>
-                        <div className="body-container">
-                            <div className="manager">
-                                <span>
-                                    {highlightMatch(depart.manager, query)}
-                                </span>
-                            </div>
-                            <div className="description">
-                                {highlightMatch(trimText(depart.description, 35), query)}
-                            </div>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                              </Paper>
+                            </Grid>
+                          )) 
+                          }
+                        </Grid>
+                    </Box>
+                 : (
+                    <div className='progress-container'>
+                        No Departments Available!
+                    </div>
+                )}
             </div>
         </div>
     )
