@@ -31,7 +31,7 @@ const Root = styled('div')(({ theme }) => ({
 function UserNavbarHeader() {
 	const user = useSelector(selectUser);
 
-	console.log('THE USER', user)
+	console.log('THE USER', `http://localhost:3002/${user.userImage}`)
 
 	return (
 		<Root className="user relative flex flex-col items-center justify-center p-16 pb-14 shadow-0">

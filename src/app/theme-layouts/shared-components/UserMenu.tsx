@@ -27,6 +27,8 @@ function UserMenu() {
 		setUserMenu(null);
 	};
 
+	console.log('THE USER IN THE USERMENU', user)
+
 	return (
 		<>
 			<Button

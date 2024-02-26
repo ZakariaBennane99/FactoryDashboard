@@ -18,14 +18,15 @@ import jwtService from '../../auth/services/jwtService';
  */
 const schema = yup.object().shape({
 	userName: yup.string().required('You must enter a userName'),
+	userName: yup.string().required('You must enter a userName'),
 	password: yup
 		.string()
 		.required('Please enter your password.')
-		.min(4, 'Password is too short - must be at least 4 chars.'),
-	remember: yup.boolean()
+		.min(4, 'Password is too short - must be at least 4 chars.')
 });
 
 const defaultValues = {
+	userName: '',
 	userName: '',
 	password: '',
 	remember: true
@@ -48,6 +49,7 @@ function SignInPage() {
 		setValue('password', 'zakigreene', { shouldDirty: true, shouldValidate: true });
 	}, [setValue]);
 
+	function onSubmit({ userName, password }) {
 	function onSubmit({ userName, password }) {
 		jwtService
 			.signInWithEmailAndPassword(userName, password)
@@ -95,11 +97,13 @@ function SignInPage() {
 					>
 						<Controller
 							name="userName"
+							name="userName"
 							control={control}
 							render={({ field }) => (
 								<TextField
 									{...field}
 									className="mb-24"
+									label="User Name"
 									label="User Name"
 									autoFocus
 									type="userName"
