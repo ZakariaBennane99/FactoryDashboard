@@ -13,6 +13,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from './Delete';
 import jwtService from '../../app/auth/services/jwtService'
 import { CircularProgress } from '@mui/material';
+import Pagination from '@mui/material/Pagination';
+import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
+
+
 
 
 
@@ -27,12 +32,23 @@ function trimText(txt, maxLength) {
 
 function Departments() {
 
+    const { t, i18n } = useTranslation('departmentsPage');
+    const lang = i18n.language;
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(1);
+    const itemsPerPage = 7;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
     const [isLoading, setIsLoading] = useState(true);
 
     const [filteredDeparts, setFilteredDeparts] = useState(null);
 
     const dispatch = useAppDispatch();
-    const [elevatedIndex, setElevatedIndex] = useState(null);
+    const [elevatedIndex, setElevatedIndex] = useState([]);
     const [departs, setDeparts] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
@@ -57,32 +73,30 @@ function Departments() {
     }  
 
     function handleSearch(e) {
-        const query = e.target.value;
-        setQuery(query)
-        // check if the query exist
-        for (let i = 0; i < departs.length; i++) {
-            if (Object.values(departs[i]).some(value =>
-                typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
-            )) {
-                setIsQueryFound(true);
-                return; // Exit the function as we found the query
-            }
-        }
-    }
-
-    useEffect(() => {
-        if (departs.length > 0 && isQueryFound) {
-            const filtered = departs.filter((depart) => {
-                // Check if any field in the department matches the query
-                return Object.values(depart).some(value =>
-                    typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
-                );
-            });
-            console.log('The filtered departments', filtered)
+        const query = e.target.value.toLowerCase();
+        setQuery(query);
     
-            setFilteredDeparts(filtered);
-        }
-    }, [departs, query, isQueryFound]);
+        // Filter all departments that match the query
+        const filtered = departs.filter(depart => {
+            return Object.values(depart).some(value => {
+                if (typeof value === 'string') {
+                    return value.toLowerCase().includes(query);
+                }
+                if (typeof value === 'object' && value !== null) {
+                    return Object.values(value).some(subValue => 
+                        typeof subValue === 'string' && subValue.toLowerCase().includes(query)
+                    );
+                }
+                return false;
+            });
+        });
+    
+        // Update the state with filtered departments
+        setFilteredDeparts(filtered);
+    
+        // Set isQueryFound based on whether any matches were found
+        setIsQueryFound(filtered.length > 0);
+    }
 
     function showMsg(msg, status) {
     
@@ -99,32 +113,67 @@ function Departments() {
         })), 100);
     }
 
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "department",
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedDepartments = res.data.map(dept => ({
+                    id: dept.Id,
+                    name: dept.Name,
+                    category: dept.CategoryName,
+                    description: dept.Description,
+                    manager: {
+                        id: dept.Manager.Id,
+                        name: `${dept.Manager.Firstname} ${dept.Manager.Lastname}`
+                    }
+                }));
+                setDeparts(formattedDepartments);
+                setIsQueryFound(formattedDepartments.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
     useEffect(() => {    
         async function getDepartments() {
             try {
                 setIsLoading(true);
                 const res = await jwtService.getItems({
-                    itemType: "department"
+                    itemType: "department",
+                    page: page,
+                    itemsPerPage: itemsPerPage,
                 });
-                if (res) {
 
-                    const formattedDepartments = res.data.map(dept => ({
+                if (res.status === 200) {
+                    const formattedDepartments = res.data.departments.map(dept => ({
                         id: dept.Id,
                         name: dept.Name,
                         category: dept.CategoryName,
                         description: dept.Description,
-                        manager: `${capitalizeFirstLetter(dept.Manager.Firstname)} ${capitalizeFirstLetter(dept.Manager.Lastname)}`,
+                        manager: {
+                            id: dept.Manager.Id,
+                            name: `${capitalizeFirstLetter(dept.Manager.Firstname)} ${capitalizeFirstLetter(dept.Manager.Lastname)}`
+                        }
                     }));
                       
                     function capitalizeFirstLetter(string) {
                       return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
                     }
-                    
+                    setTotalUsers(res.data.count)
                     setDeparts(formattedDepartments);
                 }
             } catch (_error) {
                 // the error msg will be sent so you don't have to hardcode it
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
             } finally {
                 setIsLoading(false); 
             }
@@ -170,16 +219,35 @@ function Departments() {
         }, 100);
     }
 
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
+
 
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingDepart}>
+                
+                <button id="btn-generic" className="add-btn" onClick={handleAddingDepart}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Department</span>
+                    <span id="long" className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('ADD_DEPARTMENT')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Departments" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    label={t('SEARCH_DEPARTMENTS')} type="search"
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>
+
             </div>   
 
             <div className="main-content">
@@ -190,7 +258,7 @@ function Departments() {
                 ) : departs.length > 0 ? 
                     <Box sx={{ flexGrow: 1 }}>
                         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                          {!isQueryFound ? departs.map((depart, index) => (
+                          {departs.length > 0 && !isQueryFound ? departs.map((depart, index) => (
                             <Grid item xs={2} sm={4} md={4} key={index}>
                             <Paper
                               className="depart-card"
@@ -203,13 +271,13 @@ function Departments() {
                                     children: (
                                         <div className="depart-card dialog">
                                             <div id="edit-container">
-                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                            </div>
+                                                    <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                    <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                                </div>
                                             <div className="head-container">
                                                  <img src={`/assets/gen/${depart.category === 'Production' ? 'production' : 'briefcase'}.svg`} />
                                                  <span className="category">
-                                                    {depart.category}
+                                                    {t(depart.category)}
                                                  </span>
                                                  <span className="name">
                                                     {depart.name}
@@ -218,7 +286,7 @@ function Departments() {
                                              <div className="body-container">
                                                     <div className="manager">
                                                         <span>
-                                                           {depart.manager}
+                                                           {depart.manager.name}
                                                         </span>
                                                     </div>
                                                     <div className="description">
@@ -233,7 +301,7 @@ function Departments() {
                                 <div className="head-container">
                                     <img src={`/assets/gen/${depart.category === "Production" ? 'production' : 'briefcase'}.svg`} />
                                     <span className="category">
-                                        {depart.category}
+                                        {t(depart.category)}
                                     </span>
                                     <span className="name">
                                         {depart.name}
@@ -242,7 +310,7 @@ function Departments() {
                                 <div className="body-container">
                                     <div className="manager">
                                         <span>
-                                            {depart.manager}
+                                            {depart.manager.name}
                                         </span>
                                     </div>
                                     <div className="description">
@@ -264,13 +332,13 @@ function Departments() {
                                     children: (
                                         <div className="depart-card dialog">
                                             <div id="edit-container">
-                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                            </div>
+                                                    <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                    <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                                </div>
                                             <div className="head-container">
                                                  <img src={`/assets/gen/${depart.category === "Production" ? 'production' : 'briefcase'}.svg`} />
                                                  <span className="category">
-                                                    {highlightMatch(depart.category, query)}
+                                                    {highlightMatch(t(depart.category), query)}
                                                  </span>
                                                  <span className="name">
                                                     {highlightMatch(depart.name, query)}
@@ -279,7 +347,7 @@ function Departments() {
                                              <div className="body-container">
                                                     <div className="manager">
                                                         <span>
-                                                           {highlightMatch(depart.manager, query)}
+                                                           {highlightMatch(depart.manager.name, query)}
                                                         </span>
                                                     </div>
                                                     <div className="description">
@@ -303,7 +371,7 @@ function Departments() {
                                 <div className="body-container">
                                     <div className="manager">
                                         <span>
-                                            {highlightMatch(depart.manager, query)}
+                                            {highlightMatch(depart.manager.name, query)}
                                         </span>
                                     </div>
                                     <div className="description">
@@ -318,9 +386,19 @@ function Departments() {
                     </Box>
                  : (
                     <div className='progress-container'>
-                        No Departments Available!
+                        {t('NO_DEPARTMENT_AVAILABLE')}
                     </div>
                 )}
+
+                {
+                    departs.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalUsers / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
             </div>
         </div>
     )

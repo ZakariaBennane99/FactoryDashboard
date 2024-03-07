@@ -15,6 +15,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -28,9 +32,22 @@ function trimText(txt, maxLength) {
 
 
 
-function CategoriesI() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+function CategoriesI() {
+    
+    const { t, i18n } = useTranslation('categoriesIPage');
+    const lang = i18n.language;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredCategoriesI, setFilteredCategoriesI] = useState(null);
 
@@ -104,18 +121,26 @@ function CategoriesI() {
 
     useEffect(() => {
         async function getCategoriesI() {
+            setIsLoading(true)
             try {
-                // @route: api/items/categoriesI
-                // @description: get product categories I
-                const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "categoriesI"
+                const res = await jwtService.getItems({
+                    itemType: "productcatalogcategoryone",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setCategoriesI(res)
+                if (res.status === 200) { 
+                    const formatted = res.data.categories.map(ctgr => ({
+                        id: ctgr.Id,
+                        name: ctgr.CategoryName,
+                        description: ctgr.CategoryDescription,
+                    }));
+                    setCategoriesI(formatted)
+                    setTotalCtlgs(res.data.count)
                 }
             } catch (_error) {
                 showMsg(_error, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -153,10 +178,43 @@ function CategoriesI() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={categoriesI[i].categoryIId} itemType="categoriesI" />
+                    <Delete itemId={categoriesI[i].id} itemType="productcatalogcategoryone" />
                 )
             }));
         }, 100);
+    }
+
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "productcatalogcategoryone",
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+              
+                const formattedCategoriesI = res.data.map(ctgr => ({
+                    id: ctgr.Id,
+                    name: ctgr.CategoryName,
+                    description: ctgr.CategoryDescription,
+                }));
+                setCategoriesI(formattedCategoriesI); 
+                setIsQueryFound(formattedCategoriesI.length > 0); 
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error') 
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
     }
 
 
@@ -164,114 +222,149 @@ function CategoriesI() {
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingCategoryI}>
+                
+                <button id="btn-generic" className="add-btn" onClick={handleAddingCategoryI}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Category I</span>
+                    <span id="long" className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('ADD_CATEGORY_ONE')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Categories I" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    label={t('SEARCH_CATEGORIES_ONE')} type="search"
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>
+            
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {categoriesI.length > 0 && !isQueryFound ? categoriesI.map((categoryI, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card categoryI"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog categoryI">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <CategoryIcon />
-                                        <span className="categoryI-name">
-                                            {categoryI.name}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="categoryI-description">
-                                            {categoryI.description}
-                                        </span>
-                                    </div>
-                                </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <CategoryIcon />
-                            <span className="categoryI-name">
-                                {categoryI.name}
-                            </span>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
                         </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="categoryI-description">
-                                {trimText(categoryI.description, 30)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredCategoriesI && isQueryFound ? filteredCategoriesI.map((categoryI, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card categoryI"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog categoryI">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
+                    ) 
+                     : categoriesI.length > 0 ? 
+                     (
+                        <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {categoriesI.length > 0 && !isQueryFound ? categoriesI.map((categoryI, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card categoryI"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog categoryI">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <CategoryIcon />
+                                                <span className="categoryI-name">
+                                                    {categoryI.name}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <DescriptionIcon />
+                                                <span className="categoryI-description">
+                                                    {categoryI.description}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
                                 <div>
                                     <CategoryIcon />
                                     <span className="categoryI-name">
-                                        {highlightMatch(categoryI.name, query)}
+                                        {categoryI.name}
                                     </span>
                                 </div>
                                 <div>
                                     <DescriptionIcon />
                                     <span className="categoryI-description">
-                                        {highlightMatch(categoryI.description, query)}
+                                        {trimText(categoryI.description, 30)}
                                     </span>
                                 </div>
-                            </div>
-                            )
-                        }))
-                      }}
-                    >
-                            <div>
-                                <CategoryIcon />
-                                <span className="categoryI-name">
-                                    {highlightMatch(categoryI.name, query)}
-                                </span>
-                            </div>
-                            <div>
-                                <DescriptionIcon />
-                                <span className="categoryI-description">
-                                    {highlightMatch(trimText(categoryI.description, 30), query)}
-                                </span>
-                            </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                              </Paper>
+                            </Grid>
+                          )) : filteredCategoriesI && isQueryFound ? filteredCategoriesI.map((categoryI, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card categoryI"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog categoryI">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                        <div>
+                                            <CategoryIcon />
+                                            <span className="categoryI-name">
+                                                {highlightMatch(categoryI.name, query)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <DescriptionIcon />
+                                            <span className="categoryI-description">
+                                                {highlightMatch(categoryI.description, query)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                    <div>
+                                        <CategoryIcon />
+                                        <span className="categoryI-name">
+                                            {highlightMatch(categoryI.name, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <DescriptionIcon />
+                                        <span className="categoryI-description">
+                                            {highlightMatch(trimText(categoryI.description, 30), query)}
+                                        </span>
+                                    </div>
+                              </Paper>
+                            </Grid>
+                          )) : <div>Loading...</div>
+                          }
+                        </Grid>
+                    </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('NO_CATEGORY_AVAILABLE')}
+                        </div>
+                    )
+                }
+                {
+                    categoriesI.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
             </div>
 
         </div>

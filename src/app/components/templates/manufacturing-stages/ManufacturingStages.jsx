@@ -17,12 +17,28 @@ import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search'
+import { useTranslation } from 'react-i18next';
+
 
 
 
 function ManufacturingStages() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('manufacturingStagesPage');
+    const lang = i18n.language;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredTemplates, setFilteredTemplates] = useState(null);
 
@@ -100,18 +116,32 @@ function ManufacturingStages() {
 
     useEffect(() => {
         async function getManufacturingStages() {
+            setIsLoading(true)
             try {
-                // @route: api/items/manufacturingStages
-                // @description: get a list of Manufacturing Stages
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "manufacturingStages"
+                    itemType: "manufacturingstage",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setManufacturingStages(res)
+                if (res.status === 200) {
+                    const formatted = res.data.stages.map(ctgr => ({ 
+                        id: ctgr.Id,
+                        stageNumber: ctgr.StageNumber,
+                        stageName: ctgr.StageName,
+                        workDescription: ctgr.WorkDescription,
+                        duration: ctgr.Duration,
+                        description: ctgr.Description,
+                        template: ctgr.Template,
+                        department: ctgr.Department
+                    }));
+                    console.log('The formatted', formatted)
+                    setTotalCtlgs(res.data.count)
+                    setManufacturingStages(formatted)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -149,209 +179,286 @@ function ManufacturingStages() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={manufacturingStages[i].manufacturingStageId} itemType="manufacturingStages" />
+                    <Delete itemId={manufacturingStages[i].id} itemType="manufacturingstage" />
                 )
             }));
         }, 100);
     }
 
+
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "manufacturingstage", // Adapted to search for manufacturing stages
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedStages = res.data.map(stage => ({
+                    id: stage.Id,
+                    stageNumber: stage.StageNumber,
+                    stageName: stage.StageName,
+                    workDescription: stage.WorkDescription,
+                    duration: stage.Duration,
+                    description: stage.Description,
+                    template: stage.Template,
+                    department: stage.Department
+                }));
+                setManufacturingStages(formattedStages); // Adapted to set manufacturing stages
+                setIsQueryFound(formattedStages.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
+    
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
+
+
+
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingInternalOrder}>
+
+                <button id="btn-generic" className="add-btn" onClick={handleAddingInternalOrder}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Manufacturing Stage</span>
+                    <span>{t('ADD_MANUFACTURING_STAGE')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Manufacturing Stages" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_MANUFACTURING_STAGES')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} 
+                disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>  
 
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {manufacturingStages.length > 0 && !isQueryFound ? manufacturingStages.map((manufacturingStage, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card manufacturingStage"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}  
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog manufacturingStage">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <LabelIcon /> 
-                                        <span className="manufacturingStage-name">
-                                            {manufacturingStage.stageName}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <TimelineIcon />
-                                        <span className="manufacturingStage-number">
-                                            {manufacturingStage.stageNumber}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <AssignmentIcon /> 
-                                        <span className="manufacturingStage-workDescription">
-                                            {manufacturingStage.workDescription}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <TimerIcon /> 
-                                        <span className="manufacturingStage-duration">
-                                            {manufacturingStage.duration} Min
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <InfoIcon /> 
-                                        <span className="manufacturingStage-description">
-                                            {manufacturingStage.description}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <LayersIcon />
-                                        <span className="manufacturingStage-template">
-                                            {manufacturingStage.template}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <BusinessCenterIcon />
-                                        <span className="manufacturingStage-department">
-                                            {manufacturingStage.department}
-                                        </span>
-                                    </div>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
+                        </div>
+                    ) 
+                     : manufacturingStages.length > 0 ? 
+                    (
+                    <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {manufacturingStages.length > 0 && !isQueryFound ? manufacturingStages.map((manufacturingStage, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card manufacturingStage"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}  
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog manufacturingStage">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <LabelIcon /> 
+                                                <span className="manufacturingStage-name">
+                                                    {manufacturingStage.stageName}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <TimelineIcon />
+                                                <span className="manufacturingStage-number">
+                                                    {manufacturingStage.stageNumber}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <AssignmentIcon /> 
+                                                <span className="manufacturingStage-workDescription">
+                                                    {manufacturingStage.workDescription}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <TimerIcon /> 
+                                                <span className="manufacturingStage-duration">
+                                                    {manufacturingStage.duration} Min
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <InfoIcon /> 
+                                                <span className="manufacturingStage-description">
+                                                    {manufacturingStage.description}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <LayersIcon />
+                                                <span className="manufacturingStage-template">
+                                                    {manufacturingStage.template.TemplateName}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <BusinessCenterIcon />
+                                                <span className="manufacturingStage-department">
+                                                    {manufacturingStage.department.Name}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <LabelIcon /> 
+                                    <span className="manufacturingStage-name">
+                                        {manufacturingStage.stageName}
+                                    </span>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <LabelIcon /> 
-                            <span className="manufacturingStage-name">
-                                {manufacturingStage.stageName}
-                            </span>
-                        </div>
-                        <div>
-                            <TimerIcon /> 
-                            <span className="manufacturingStage-duration">
-                                {manufacturingStage.duration} Min
-                            </span>
-                        </div>
-                        <div>
-                            <LayersIcon />
-                            <span className="manufacturingStage-template">
-                                {manufacturingStage.template}
-                            </span>
-                        </div>
-                        <div>
-                            <BusinessCenterIcon />
-                            <span className="manufacturingStage-department">
-                                {manufacturingStage.department}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredTemplates && isQueryFound ? filteredTemplates.map((manufacturingStage, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card manufacturingStage"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog manufacturingStage">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <LabelIcon /> 
-                                        <span className="manufacturingStage-name">
-                                            {highlightMatch(manufacturingStage.stageName, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <TimelineIcon />
-                                        <span className="manufacturingStage-number">
-                                            {highlightMatch(manufacturingStage.stageNumber.toString(), query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <AssignmentIcon /> 
-                                        <span className="manufacturingStage-workDescription">
-                                            {highlightMatch(manufacturingStage.workDescription, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <TimerIcon /> 
-                                        <span className="manufacturingStage-duration">
-                                            {highlightMatch(manufacturingStage.duration, query)} Min
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <InfoIcon /> 
-                                        <span className="manufacturingStage-description">
-                                            {highlightMatch(manufacturingStage.description, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <LayersIcon />
-                                        <span className="manufacturingStage-template">
-                                            {highlightMatch(manufacturingStage.template, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <BusinessCenterIcon />
-                                        <span className="manufacturingStage-department">
-                                            {highlightMatch(manufacturingStage.department, query)}
-                                        </span>
-                                    </div>
+                                <div>
+                                    <TimerIcon /> 
+                                    <span className="manufacturingStage-duration">
+                                        {manufacturingStage.duration} Min
+                                    </span>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <LabelIcon /> 
-                            <span className="manufacturingStage-name">
-                                {highlightMatch(manufacturingStage.stageName, query)}
-                            </span>
+                                <div>
+                                    <LayersIcon />
+                                    <span className="manufacturingStage-template">
+                                        {manufacturingStage.template.TemplateName}
+                                    </span>
+                                </div>
+                                <div>
+                                    <BusinessCenterIcon />
+                                    <span className="manufacturingStage-department">
+                                        {manufacturingStage.department.Name}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : filteredTemplates && isQueryFound ? filteredTemplates.map((manufacturingStage, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card manufacturingStage"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog manufacturingStage">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <LabelIcon /> 
+                                                <span className="manufacturingStage-name">
+                                                    {highlightMatch(manufacturingStage.stageName, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <TimelineIcon />
+                                                <span className="manufacturingStage-number">
+                                                    {highlightMatch(manufacturingStage.stageNumber.toString(), query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <AssignmentIcon /> 
+                                                <span className="manufacturingStage-workDescription">
+                                                    {highlightMatch(manufacturingStage.workDescription, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <TimerIcon /> 
+                                                <span className="manufacturingStage-duration">
+                                                    {highlightMatch(manufacturingStage.duration, query)} Min
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <InfoIcon /> 
+                                                <span className="manufacturingStage-description">
+                                                    {highlightMatch(manufacturingStage.description, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <LayersIcon />
+                                                <span className="manufacturingStage-template">
+                                                    {highlightMatch(manufacturingStage.template.TemplateName, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <BusinessCenterIcon />
+                                                <span className="manufacturingStage-department">
+                                                    {highlightMatch(manufacturingStage.department.Name, query)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <LabelIcon /> 
+                                    <span className="manufacturingStage-name">
+                                        {highlightMatch(manufacturingStage.stageName, query)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <TimerIcon /> 
+                                    <span className="manufacturingStage-duration">
+                                        {highlightMatch(manufacturingStage.duration, query)} Min
+                                    </span>
+                                </div>
+                                <div>
+                                    <LayersIcon />
+                                    <span className="manufacturingStage-template">
+                                        {highlightMatch(manufacturingStage.template.TemplateName, query)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <BusinessCenterIcon />
+                                    <span className="manufacturingStage-department">
+                                        {highlightMatch(manufacturingStage.department.Name, query)}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : ""
+                          }
+                        </Grid>
+                    </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('NO_MANUFACTURING_STAGE_IS_AVAILABLE')}
                         </div>
-                        <div>
-                            <TimerIcon /> 
-                            <span className="manufacturingStage-duration">
-                                {highlightMatch(manufacturingStage.duration, query)} Min
-                            </span>
-                        </div>
-                        <div>
-                            <LayersIcon />
-                            <span className="manufacturingStage-template">
-                                {highlightMatch(manufacturingStage.template, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <BusinessCenterIcon />
-                            <span className="manufacturingStage-department">
-                                {highlightMatch(manufacturingStage.department, query)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                    )
+                }
+                {
+                    manufacturingStages.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
             </div>
 
         </div>

@@ -3,14 +3,24 @@ import { FormControl, TextField, Box } from '@mui/material';
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import jwtService from '../../../auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import { useTranslation } from 'react-i18next';
+
+
 
 
 function AddTemplatePattern({ ptrn }) {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('patternsPage');
+    const lang = i18n.language;
+
+    const dispatch = useAppDispatch();
+    
+    const [isLoading, setIsLoading] = useState(false);
 
     const [templatePattern, setTemplatePattern] = useState({
-        templatePatternName: ptrn ? ptrn.templatePatternName : '',
+        id: ptrn ? ptrn.id : '', 
+        name: ptrn ? ptrn.name : '',
         description: ptrn ? ptrn.description : ''
     });
 
@@ -36,22 +46,20 @@ function AddTemplatePattern({ ptrn }) {
     const handleAddPatterns = async (event) => {
         event.preventDefault();
         
+        setIsLoading(true)
         try {
-            // @route: api/create/patterns
-            // @description: create a new pattern
             const res = await jwtService.createItem({ 
-                itemType: 'patterns',
-                data: {
-                    data: templatePattern,
-                    currentUserId: currentUserId
-                }
+                itemType: 'templatepattern',
+                data: templatePattern
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                showMsg(res, 'success')
+            if (res.status === 201) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     const handleUpdatePatterns = async (event) => {
@@ -61,21 +69,22 @@ function AddTemplatePattern({ ptrn }) {
             // @route: api/update/patterns
             // @description: update an existing pattern
             const res = await jwtService.updateItem({ 
-                itemType: 'patterns',
+                itemType: 'templatepattern',
                 data: {
                     data: templatePattern,
-                    currentUserId: currentUserId,
-                    itemId: ptrn.patternId
+                    itemId: templatePattern.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
+            if (res.status === 200) {
                 // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
     
 
@@ -84,17 +93,17 @@ function AddTemplatePattern({ ptrn }) {
             <form onSubmit={ptrn ? handleUpdatePatterns : handleAddPatterns}>
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Template Type Name"
+                        label={t('TEMPLATE_PATTERN_NAME')}
                         variant="outlined"
-                        value={templatePattern.templatePatternName}
-                        onChange={handleChange('templatePatternName')}
+                        value={templatePattern.name}
+                        onChange={handleChange('name')}
                         required
                     />
                 </FormControl>
 
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
-                        label="Description"
+                        label={t('DESCRIPTION')}
                         variant="outlined"
                         value={templatePattern.description}
                         onChange={handleChange('description')}
@@ -104,7 +113,9 @@ function AddTemplatePattern({ ptrn }) {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-internalOrder-btn">{ptrn ? 'Update' : 'Add'} Pattern</button>
+                <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                    {ptrn ? (isLoading ? t('UPDATING') : t('UPDATE_TEMPLATE_PATTERN')) : (isLoading ? t('ADDING') : t('ADD_PATTERN'))}
+                </button>
             </form>
         </Box>
     );

@@ -1,5 +1,31 @@
 const locale = {
-	TITLE: 'Tasks'
+    TITLE: 'Tasks',
+    ADD_TASK: 'Add Task',
+    SEARCH: 'Search',
+    SEARCH_TASKS: 'Search Tasks',
+    QUERY_ERROR: 'Please enter a more specific query.',
+    NO_TASK_AVAILABLE: 'No Task is Available!',
+    HIGH: 'High',
+    MEDIUM: 'Medium',
+    LOW: 'Low',
+    PENDING: 'Pending',
+    APPROVED: 'Approved',
+    REJECTED: 'Rejected',
+    FULFILLED: 'Fulfilled',
+    CANCELLED: 'Cancelled',
+    COMPLETED: 'Completed',
+    ONGOING: 'Ongoing',
+    TASK_NAME: 'Task Name',
+    DUE_DATE: 'Due Date',
+    ASSIGNED_TO_DEPARTMENT: 'Assigned To Department',
+    CREATED_BY_DEPARTMENT: 'Created By Department',
+    NOTES: 'Notes',
+    STATUS: 'Status',
+    PRIORITY: 'Priority',
+    ASSIGN_TO_DEPARTMENT: 'Assign To Department',
+    UPDATE_TASK: 'Update Task',
+    UPDATING: 'Updating...',
+    ADDING: 'Adding...'
 };
 
 export default locale;

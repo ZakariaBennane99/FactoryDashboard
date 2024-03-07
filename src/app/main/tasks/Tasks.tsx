@@ -1,7 +1,7 @@
 import TasksComp from '../../components/tasks/Tasks';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import { useTranslation } from 'react-i18next';
-import { styled } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';  // production/task-tracking
 
 const Root = styled(FusePageSimple)(({ theme }) => ({
 	'& .FusePageSimple-header': {
@@ -40,7 +40,7 @@ function Tasks() {
 				</div>
 			}
 			content={
-				<div className="p-24 w-full h-full">
+				<div className="p-24 w-full h-full" style={{ overflowY: "hidden" }}>
 					<TasksComp />
 				</div>
 			}

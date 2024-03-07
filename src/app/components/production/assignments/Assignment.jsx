@@ -7,11 +7,11 @@ import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import AssignmentIcon from '@mui/icons-material/Assignment'; // assignment name
 import AccessTimeIcon from '@mui/icons-material/AccessTime'; // due date
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter'; // assign to
 import AccountTreeIcon from '@mui/icons-material/AccountTree'; // assigned by
-import EditAssignments from './EditAssignment';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import EditTasks from './EditAssignment';
 import EditIcon from '@mui/icons-material/Edit';
 import jwtService from '../../../auth/services/jwtService/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
@@ -26,6 +26,8 @@ import {
 } from '@mui/icons-material';
 import NoteIcon from '@mui/icons-material/Note';
 import { CircularProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import SearchIcon from '@mui/icons-material/Search'
 
 
 
@@ -34,16 +36,19 @@ import { CircularProgress } from '@mui/material';
 
 function Assignments() {
 
-    // you get the category (NOT THE CURRENTUSERID) 
-    // of the user to show the assignments assigned 
-    // to his/her department
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('assignmentsPage');
+    const lang = i18n.language;
 
-    const [filteredAssignments, setFilteredAssignments] = useState(null);
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    const [isLoading, setIsLoading] = useState(true);
+
+    const [filteredtasks, setFilteredtasks] = useState(null);
 
     const dispatch = useAppDispatch();
     const [elevatedIndex, setElevatedIndex] = useState(null);
-    const [assignments, setAssignments] = useState([]);
+    const [tasks, setTasks] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
@@ -86,8 +91,8 @@ function Assignments() {
         const query = e.target.value;
         setQuery(query)
         // check if the query exist
-        for (let i = 0; i < assignments.length; i++) {
-            if (Object.values(assignments[i]).some(value =>
+        for (let i = 0; i < tasks.length; i++) {
+            if (Object.values(tasks[i]).some(value =>
                 typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
             )) {
                 setIsQueryFound(true);
@@ -97,38 +102,65 @@ function Assignments() {
     }
 
     useEffect(() => {
-        if (assignments.length > 0 && isQueryFound) {
-            const filtered = assignments.filter((user) => {
+        if (tasks.length > 0 && isQueryFound) {
+            const filtered = tasks.filter((user) => {
                 // Check if any field in the Userment matches the query
                 return Object.values(user).some(value =>
                     typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
                 );
             });
     
-            setFilteredAssignments(filtered);
+            setFilteredtasks(filtered);
         }
-    }, [assignments, query, isQueryFound]);
+    }, [tasks, query, isQueryFound]);
 
+
+    async function fetchSearchResults() {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "task",
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                setTasks(res.data)
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
 
     useEffect(() => {
-        async function getAssignments() {
+        async function gettasks() {
             try {
-                // @route: api/items/assignments
-                // @description: get a list of current assignments
+                setIsLoading(true);
                 const res = await jwtService.getItems({ 
-                    itemType: "assignments"
+                    itemType: "task"
                 });
-                if (res) {
-                    setAssignments(res.tasks)
+                console.log(res)
+                if (res.status === 200) {
+                    setTasks(res.data)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
-        getAssignments();
+        gettasks();
     }, []);
 
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
 
     function handleEdit(i) {
         // first close the current window
@@ -137,7 +169,7 @@ function Assignments() {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
                 children: ( 
-                    <EditAssignments task={assignments[i]} />
+                    <EditTasks tsk={tasks[i]} />
                 )
             }));
         }, 100);
@@ -191,189 +223,222 @@ function Assignments() {
 
             <div className="top-ribbon">
 
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Assignments" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    id="outlined-search" 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`} 
+                    label={t('searchTasks')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('queryLongerThan3') : ""}
+                    InputLabelProps={{
+                        className: lang === 'ar' ? 'rtl-label' : '', 
+                    }}
+                    InputProps={{
+                        className: lang === 'ar' ? 'rtl-input' : '', 
+                    }}
+                />
+                <button className={`search-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('search')}</span>
+                </button>
 
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {assignments.length > 0 && !isQueryFound ? assignments.map((assignment, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card assignment"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog assignment">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                    </div>
-                                    <div>
-                                        <Chip id="chip-priority" label={assignment.priority} color={getPriorityColor(assignment.priority)} size="small" />
-                                    </div>
-                                    <div>
-                                        <AssignmentIcon /> 
-                                        <span className="assignment-name">
-                                            {assignment.taskName}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <AccessTimeIcon />
-                                        <span className="assignment-due">
-                                            {formatDate(assignment.dueDate) }
-                                        </span>
-                                    </div>
-                                    <div>
-                                        {getStatusIcon(assignment.status)}
-                                        <span className="assignment-status">
-                                            {assignment.status}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <AccountTreeIcon />
-                                        <span className="assignment-assign-depart">
-                                            {assignment.createdByDepartment}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <BusinessCenterIcon />
-                                        <span className="assignment-assigned-depart">
-                                            {assignment.assignedToDepartment}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <NoteIcon />
-                                        <span className="assignment-nots">
-                                            {assignment.notes}
-                                        </span>
-                                    </div>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
+                        </div>
+                    ) 
+                     : tasks.length > 0 ? 
+                     (
+                        <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {tasks.length > 0 && !isQueryFound ? tasks.map((task, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card task"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog task">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                            </div>
+                                            <div>
+                                                <Chip id="chip-priority" label={task.priority} color={getPriorityColor(task.priority)} size="small" />
+                                            </div>
+                                            <div>
+                                                <AssignmentIcon /> 
+                                                <span className="task-name">
+                                                    {task.taskName}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <AccessTimeIcon />
+                                                <span className="task-due">
+                                                    {formatDate(task.dueDate) }
+                                                </span>
+                                            </div>
+                                            <div>
+                                                {getStatusIcon(task.status)}
+                                                <span className="task-status">
+                                                    {task.status}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <AccountTreeIcon />
+                                                <span className="task-assign-depart">
+                                                    {task.createdByDepartment.name}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <BusinessCenterIcon />
+                                                <span className="task-assigned-depart">
+                                                    {task.assignedToDepartment.name}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <NoteIcon />
+                                                <span className="task-nots">
+                                                    {task.notes}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <Chip id="chip-priority" label={task.priority} color={getPriorityColor(task.priority)} size="small" />
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <Chip id="chip-priority" label={assignment.priority} color={getPriorityColor(assignment.priority)} size="small" />
-                        </div>
-                        <div>
-                            <AssignmentIcon /> 
-                            <span className="assignment-name">
-                                {assignment.taskName}
-                            </span>
-                        </div>
-                        <div>
-                            <AccessTimeIcon />
-                            <span className="assignment-due">
-                                {formatDate(assignment.dueDate) }
-                            </span>
-                        </div>
-                        <div>
-                            <AccountTreeIcon />
-                            <span className="assignment-assign-depart">
-                                {assignment.createdByDepartment}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredAssignments && isQueryFound ? filteredAssignments.map((assignment, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card assignment"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog assignment">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                    </div>
-                                    <div>
-                                        <Chip id="chip-priority" label={assignment.priority} color={getPriorityColor(assignment.priority)} size="small" />
-                                    </div>
-                                    <div>
-                                        <AssignmentIcon /> 
-                                        <span className="assignment-name">
-                                            {assignment.taskName}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <AccessTimeIcon />
-                                        <span className="assignment-due">
-                                            {formatDate(assignment.dueDate) }
-                                        </span>
-                                    </div>
-                                    <div>
-                                        {getStatusIcon(assignment.status)}
-                                        <span className="assignment-status">
-                                            {assignment.status}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <AccountTreeIcon />
-                                        <span className="assignment-assign-depart">
-                                            {assignment.createdByDepartment}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <BusinessCenterIcon />
-                                        <span className="assignment-assigned-depart">
-                                            {assignment.assignedToDepartment}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <NoteIcon />
-                                        <span className="assignment-nots">
-                                            {assignment.notes}
-                                        </span>
-                                    </div>
+                                <div>
+                                    <AssignmentIcon /> 
+                                    <span className="task-name">
+                                        {task.taskName}
+                                    </span>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <Chip id="chip-priority" label={assignment.priority} color={getPriorityColor(assignment.priority)} size="small" />
+                                <div>
+                                    <AccessTimeIcon />
+                                    <span className="task-due">
+                                        {formatDate(task.dueDate) }
+                                    </span>
+                                </div>
+                                <div>
+                                    <AccountTreeIcon />
+                                    <span className="task-assign-depart">
+                                        {task.createdByDepartment.name}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : filteredtasks && isQueryFound ? filteredtasks.map((task, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card task"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog task">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                            </div>
+                                            <div>
+                                                <Chip id="chip-priority" label={task.priority} color={getPriorityColor(task.priority)} size="small" />
+                                            </div>
+                                            <div>
+                                                <AssignmentIcon /> 
+                                                <span className="task-name">
+                                                    {task.taskName}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <AccessTimeIcon />
+                                                <span className="task-due">
+                                                    {formatDate(task.dueDate) }
+                                                </span>
+                                            </div>
+                                            <div>
+                                                {getStatusIcon(task.status)}
+                                                <span className="task-status">
+                                                    {task.status}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <AccountTreeIcon />
+                                                <span className="task-assign-depart">
+                                                    {task.createdByDepartment.name}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <BusinessCenterIcon />
+                                                <span className="task-assigned-depart">
+                                                    {task.assignedToDepartment.name}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <NoteIcon />
+                                                <span className="task-nots">
+                                                    {task.notes}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <Chip id="chip-priority" label={task.priority} color={getPriorityColor(task.priority)} size="small" />
+                                </div>
+                                <div>
+                                    <AssignmentIcon /> 
+                                    <span className="task-name">
+                                        {highlightMatch(task.taskName, query)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <AccessTimeIcon />
+                                    <span className="task-due">
+                                        {highlightMatch(formatDate(task.dueDate), query)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <AccountTreeIcon />
+                                    <span className="task-assign-depart">
+                                        {highlightMatch(task.createdByDepartment.name, query)}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) 
+                          :
+                          <div className="progress-container">
+                            <CircularProgress />  
+                          </div> 
+                          }
+                        </Grid>
+                    </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('noAssignmentAvailable')}
                         </div>
-                        <div>
-                            <AssignmentIcon /> 
-                            <span className="assignment-name">
-                                {highlightMatch(assignment.taskName, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <AccessTimeIcon />
-                            <span className="assignment-due">
-                                {highlightMatch(formatDate(assignment.dueDate), query)}
-                            </span>
-                        </div>
-                        <div>
-                            <AccountTreeIcon />
-                            <span className="assignment-assign-depart">
-                                {highlightMatch(assignment.createdByDepartment, query)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) 
-                  :
-                  <div className="progress-container">
-                    <CircularProgress />  
-                  </div> 
-                  }
-                </Grid>
-            </Box>
+                    )
+                }
             </div>
 
         </div>
     )
 }
 
-export default Assignments;
+export default Assignments

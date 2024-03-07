@@ -31,7 +31,7 @@ function Models() {
   			}
 		}
 	*/
-	const { t } = useTranslation('ordersPage');
+	const { t } = useTranslation('modelsPage');
 
 	return (
 		<Root
@@ -41,7 +41,7 @@ function Models() {
 				</div>
 			}
 			content={
-				<div className="p-24 w-full h-full">
+				<div className="p-24 w-full h-full" style={{ overflowY: "hidden" }}>
 					<ModelsComp />
 				</div>
 			}

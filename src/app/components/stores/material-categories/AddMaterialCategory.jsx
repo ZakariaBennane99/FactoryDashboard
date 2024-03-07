@@ -2,13 +2,24 @@ import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { useTranslation } from 'react-i18next';
+
+
 
 
 function AddMaterial({ mtrlCat }) {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('materialCategoriesPage');
+    const lang = i18n.language;
+
+    const [isLoading, setIsLoading] = useState(false)
+
+    const dispatch = useAppDispatch();
 
     const [materialCategory, setMaterial] = useState({
+        id: mtrlCat ? mtrlCat.id : '',
         name: mtrlCat ? mtrlCat.name : '',
         description: mtrlCat ? mtrlCat.description : '',
     });
@@ -35,48 +46,46 @@ function AddMaterial({ mtrlCat }) {
     const handleAddMaterialCategories = async (event) => {
         event.preventDefault();
         
+        setIsLoading(true)
         try {
             // @route: api/create/materialCategories
             // @description: create a new Material Category
             const res = await jwtService.createItem({ 
-                itemType: 'materialCategories',
-                data: {
-                    data: materialCategory,
-                    currentUserId: currentUserId
-                }
+                itemType: 'materialcategory',
+                data: materialCategory
              }, { 'Content-Type': 'application/json' });
-            if (res) {
+            if (res.status === 201) {
                 // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     const handleUpdateMaterialCategories = async (event) => {
         event.preventDefault();
 
+        setIsLoading(true)
         try {
-            // @route: api/update/materialCategories
-            // @description: update existing material category
             const res = await jwtService.updateItem({ 
-                itemType: 'materialCategories',
+                itemType: 'materialcategory',
                 data: {
                     data: materialCategory,
-                    currentUserId: currentUserId,
-                    itemId: mtrlCat.materialCategoriesId
+                    itemId: materialCategory.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+            if (res.status === 200) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
-            // the error msg will be sent so you don't have to hardcode it
             showMsg(_error, 'error')
-        } 
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     return (
@@ -84,7 +93,7 @@ function AddMaterial({ mtrlCat }) {
             <form onSubmit={mtrlCat ? handleUpdateMaterialCategories : handleAddMaterialCategories}>
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Material Category Name"
+                        label={t('MATERIAL_CATEGORY_NAME')}
                         variant="outlined"
                         value={materialCategory.name}
                         onChange={handleChange('name')}
@@ -94,7 +103,7 @@ function AddMaterial({ mtrlCat }) {
 
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
-                        label="Description"
+                        label={t('DESCRIPTION')}
                         variant="outlined"
                         value={materialCategory.description}
                         onChange={handleChange('description')}
@@ -104,7 +113,10 @@ function AddMaterial({ mtrlCat }) {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-materialCategory-btn">{mtrlCat ? 'Update' : 'Add'} Material Category</button>
+                <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                {mtrlCat ? (isLoading ? t('UPDATING') : t('UPDATE_MATERIAL_CATEGORY_BUTTON')) : (isLoading ? t('ADDING') : t('ADD_MATERIAL_CATEGORY_BUTTON'))}
+                </button>
+
             </form>
         </Box>
     );

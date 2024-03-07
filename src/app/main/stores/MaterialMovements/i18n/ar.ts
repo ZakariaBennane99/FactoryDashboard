@@ -1,5 +1,37 @@
 const locale = {
-	TITLE: 'تحرك المواد'
+    TITLE: 'حركات المواد',
+    ADD_MATERIAL_MOVEMENT: 'إضافة حركة مادة',
+    SEARCH_MATERIAL_MOVEMENTS: 'بحث عن حركات المواد',
+    QUERY_ERROR: 'الرجاء إدخال أكثر من 3 أحرف',
+    SEARCH: 'بحث',
+    MATERIAL_NAME: 'اسم المادة',
+    FROM: 'من',
+    TO: 'إلى',
+    INTERNAL_ORDER: 'الأمر الداخلي',
+    MOVEMENT_TYPE: 'نوع الحركة',
+    QUANTITY: 'الكمية',
+    UNIT_OF_MEASURE: 'وحدة القياس',
+    STATUS: 'الحالة',
+    NOTES: 'ملاحظات',
+    INCOMING: 'وارد',
+    OUTGOING: 'صادر',
+    TRANSFER: 'تحويل',
+    RETURN: 'إرجاع',
+    REJECTED: 'مرفوض',
+    SUPPLIER: 'المورد',
+    DEPARTMENT: 'القسم',
+    WAREHOUSE: 'المستودع',
+    APPROVED: 'موافق عليه',
+    PENDING: 'قيد الانتظار',
+    FULFILLED: 'مكتمل',
+    CANCELLED: 'ملغى',
+    COMPLETED: 'منجز',
+    ONGOING: 'جاري',
+    ADDING: 'جاري الإضافة...',
+    ADD_MATERIAL_MOVEMENT_BUTTON: 'إضافة حركة المادة',
+    UPDATING: 'جاري التحديث...',
+    UPDATE_MATERIAL_MOVEMENT_BUTTON: 'تحديث حركة المادة',
+	NO_MATERIAL_MOVEMENT_AVAILABLE: 'لا توجد حركات مواد متاحة!'
 };
 
 export default locale;

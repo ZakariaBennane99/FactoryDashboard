@@ -8,7 +8,6 @@ import jwtService from '../../auth/services/jwtService';
 import createAppAsyncThunk from '../createAppAsyncThunk';
 
 
-const userRole = window.localStorage.getItem('userRole')
 
 /**
  * Sets the user data in the Redux store and updates the login redirect URL if provided.
@@ -17,11 +16,12 @@ export const setUser = createAsyncThunk('user/setUser', (user) => {
 	/*
      * You can redirect the logged-in user to a specific route depending on his role
      */
-	if (userRole === 'FACTORYMANAGER') {
-		settingsConfig.loginRedirectUrl = 'users'; // for example 'apps/academy'
-	} else if (userRole === 'STOREMANAGER') {
-		settingsConfig.loginRedirectUrl = 'store-management/warehouses';
-	} else if (userRole === 'ENGINEERING') {
+
+	if (user.userRole === 'FACTORYMANAGER') {
+		settingsConfig.loginRedirectUrl = 'users';
+	} else if (user.userRole === 'WAREHOUSEMANAGER') {
+		settingsConfig.loginRedirectUrl = 'store-management/suppliers';
+	} else if (user.userRole === 'ENGINEERING') {
 		settingsConfig.loginRedirectUrl = 'orders';
 	} else {
 		settingsConfig.loginRedirectUrl = 'production-departments/task-tracking';
@@ -97,6 +97,14 @@ export const updateUserShortcuts = createAppAsyncThunk(
  */
 export const logoutUser = () => async (dispatch, getState) => {
 	
+	const AppState = getState();
+
+	const isUserGuest = selectIsUserGuest(AppState);
+
+	if (isUserGuest) {
+		return null;
+	}
+
 	history.push({
 		pathname: '/'
 	});
@@ -159,7 +167,7 @@ export const userSlice = createSlice({
 	extraReducers: (builder) => {
 		builder
 			.addCase(setUser.fulfilled, (state, action) => action.payload)
-			.addCase(updateUserData.fulfilled, (state, action) => action.payload)
+			.addCase(updateUserData.fulfilled, (state, action) => action.payload.data)
 			.addCase(updateUserShortcuts.fulfilled, (state, action) => {
 				state.data.shortcuts = action.payload.data.shortcuts;
 			})
@@ -173,10 +181,7 @@ export const { userLoggedOut } = userSlice.actions;
 
 export const selectUser = (state) => state.user;
 
-export const selectUserRole = (state) =>  {
-	console.log('THE USER IN THE SELECT', state.user)
-	return state.user.role; 
-}
+export const selectUserRole = (state) => state.user.role;
 
 export const selectIsUserGuest = (state) => {
 	const { role } = state.user;

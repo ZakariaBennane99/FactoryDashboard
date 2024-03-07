@@ -28,6 +28,7 @@ class JwtService extends FuseUtils.EventEmitter {
 						// if you ever get an unauthorized response, logout the user
 						this.emit('onAutoLogout', 'Invalid access_token');
 						_setSession(null);
+						localStorage.clear();
 					}
 					throw err;
 				})
@@ -42,48 +43,44 @@ class JwtService extends FuseUtils.EventEmitter {
 
 		if (!access_token) {
 			this.emit('onNoAccessToken');
+			localStorage.clear();
 			return;
 		}
 
 		if (isAuthTokenValid(access_token)) {
-			console.log('AUTOLOGINBABAY')
 			_setSession(access_token);
 			this.emit('onAutoLogin', true);
 		} else {
 			_setSession(null);
 			this.emit('onAutoLogout', 'access_token expired');
+			localStorage.clear();
 		}
 	};
 
 	/**
-	 * Signs in with the provided email and password.
+	 * Signs in with the provided UserName and password.
 	 */
-	signInWithEmailAndPassword = (userName, password) =>
-		new Promise((resolve, reject) => {
-			axios  
-			    // jwtServiceConfig.signIn to be with api/auth/signIn, 
-				// try to get the access_token too
-				.post(`http://localhost:3002/auth/login`, {
+	signInWithEmailAndPassword = (userName, password) => {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const response = await axios.post(`http://localhost:3002/auth/login`, {
 					username: userName,
 					password
-				})
-				.then(
-					(
-						response
-					) => {
-						// here everytihng will be returned by the backend
-						if (response.data.data.user) {
-							_setSession(response.data.data.access_token);
-							// to be implemented later on <response.data.user>
-							// category of the user
-							this.emit('onLogin', response.data.data.user);
-							resolve(response.data.data.user);
-						} else {
-							reject(response.data.data.message);
-						}
-					}
-				);
+				});
+	
+				if (response.data.data.user) {
+					setUserRole(response.data.data.user.userRole);
+					_setSession(response.data.data.access_token);
+					this.emit('onLogin', response.data.data.user);
+					resolve(response.data.data.user);
+				} else {
+					reject(new Error(response.data.data.message));
+				}
+			} catch (error) {
+				reject(error);
+			}
 		});
+	};
 
 	/**
 	 * Signs in with the provided token.
@@ -91,10 +88,10 @@ class JwtService extends FuseUtils.EventEmitter {
 	signInWithToken = () =>
     new Promise((resolve, reject) => {
         const accessToken = getAccessToken();
-		console.log('The acce', accessToken)
         if (!accessToken) {
             this.logout();
             reject(new Error('No token provided. Please log in!'));
+			localStorage.clear();
             return;
         }
 
@@ -106,7 +103,6 @@ class JwtService extends FuseUtils.EventEmitter {
             })
             .then((response) => {
                 if (response.status === 200) {
-					console.log('THE RES FROM SESSION', response)
                     // Assuming the successful response doesn't necessarily return user data anymore,
                     // but just validates the session. You might need to adjust this part based on your actual response structure.
                     resolve(response.data.user);
@@ -115,12 +111,14 @@ class JwtService extends FuseUtils.EventEmitter {
                     // but it's here to illustrate handling different responses.
                     this.logout();
                     reject(new Error(response.data.message || 'Failed to validate session.'));
+					localStorage.clear();
                 }
             })
             .catch((error) => {
                 // This will catch network errors and any status codes that fall outside the 2xx range.
                 this.logout();
                 const message = error.response ? error.response.data.message : 'Failed to login with token.';
+				localStorage.clear();
                 reject(new Error(message));
             });
     });/*
@@ -152,20 +150,25 @@ class JwtService extends FuseUtils.EventEmitter {
 	 */
 	createItem = (itemInfo, headers) =>
 	new Promise((resolve, reject) => {
+		
 			axios.post(`http://localhost:3002/${itemInfo.itemType}`, itemInfo.data, headers).then(
 				(
 					response
 				) => {
-					if (response.data) {
-						// resolve with a success message and 201 code
-						resolve(response); 
-					} else {
-						reject(response);
-						// send back the error + consistent error code: 404, 401..
-						// should return a msg for the error:
-						// 1. 'Server error'
-						// 2. 'You don't have permission to edit' (forbidden)
-						// 3. '<element/elements> is/are already in use!'
+					try {
+						if (response.data) {
+							// resolve with a success message and 201 code
+							resolve(response.data); 
+						} else {
+							reject(response.data);
+							// send back the error + consistent error code: 404, 401..
+							// should return a msg for the error:
+							// 1. 'Server error'
+							// 2. 'You don't have permission to edit' (forbidden)
+							// 3. '<element/elements> is/are already in use!'
+						}
+					} catch (err) {
+						reject(err)
 					}
 				}
 			);
@@ -178,62 +181,122 @@ class JwtService extends FuseUtils.EventEmitter {
 		new Promise((resolve, reject) => {
 			axios.put(`http://localhost:3002/${itemInfo.itemType}/${itemInfo.data.itemId}`, itemInfo.data.data, headers).then(
 				(response) => {
-					if (response.data) {
-						resolve(response.data); // return a ok msg with a 201/200
-					} else {
-						reject(response.data); 
-						// send back the error + consistent error code: 404, 401..
-						// should return a msg for the error:
-						// 1. 'Server error'
-						// 2. 'You don't have permission to edit' (forbidden
-						// 3. '<element/elements> already in use!'
+					try {
+						if (response.data) {
+							// resolve with a success message and 201 code
+							resolve(response.data); 
+						} else {
+							reject(response.data);
+							// send back the error + consistent error code: 404, 401..
+							// should return a msg for the error:
+							// 1. 'Server error'
+							// 2. 'You don't have permission to edit' (forbidden)
+							// 3. '<element/elements> is/are already in use!'
+						}
+					} catch (err) {
+						reject(err)
 					}
 				}
 			)
-		});
+	});
+
+	/**
+	 * Updates an item.
+	 */
+	updateToProg = (itemInfo, headers) =>
+	new Promise((resolve, reject) => {
+		axios.get(`http://localhost:3002/trackingmodels/prog/${itemInfo.itemId}`, headers).then(
+			(response) => {
+				try {
+					if (response.data) {
+						// resolve with a success message and 201 code
+						resolve(response.data); 
+					} else {
+						reject(response.data);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error'
+						// 2. 'You don't have permission to edit' (forbidden)
+						// 3. '<element/elements> is/are already in use!'
+					}
+				} catch (err) {
+					reject(err)
+				}
+			}
+		)
+	});
+
+	getItemNames = (itemUrls) =>
+    new Promise((resolve, reject) => {
+        // Map each URL to a request that axios will execute
+        const requests = itemUrls.map(url => axios.get(`http://localhost:3002/${url}`));
+
+        // Use Promise.all to execute all requests concurrently
+        Promise.all(requests)
+            .then(responses => {
+                // responses is an array of axios responses
+                // You can process these responses further if needed
+                const data = responses.map(response => response.data);
+                resolve(data);
+            })
+            .catch(error => {
+                // If any request fails, this catch block will execute
+                reject(error);
+            });
+    });
+
 
     /**
  	 * Deletes an item.
      */
 	deleteItem = (itemInfo) =>
 	new Promise((resolve, reject) => {
-		axios.delete(`http://localhost:3002/${itemInfo.itemType}/${itemInfo.itemId}`, { 
-			currentUserId: itemInfo.currentUserId,
-			itemId: itemInfo.itemId
-		})
+		axios.delete(`http://localhost:3002/${itemInfo.itemType}/${itemInfo.itemId}`)
 			.then(response => {
-				if (response.data) {
-					resolve(response.data); // send ok msg or 200/201
-					// 'Item has been successfully deleted.'
-				} else {
-					reject(response.data); 
-					// send back the error
-					// should return a msg for the error:
-					// 1. server error
-					// 2. you don't have permission to delete this item (forbidden)
+				try {
+					if (response.data) {
+						// resolve with a success message and 201 code
+						resolve(response.data); 
+					} else {
+						reject(response.data);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error'
+						// 2. 'You don't have permission to edit' (forbidden)
+						// 3. '<element/elements> is/are already in use!'
+					}
+				} catch (err) {
+					reject(err)
 				}
 			})
 	});
 
 	/**
- 	 * Adds roles to a user account.
+ 	 * reports
  	 */
-	addUserRole = (data) =>
+	handleReports = (itemInfo) =>
 	new Promise((resolve, reject) => {
-		// Change the URL to the appropriate endpoint for adding roles to a user
-		axios.post(`/api/user/addRole`, data)
+
+		const config = {
+            headers: {
+				'Content-Type': 'application/json'
+			}
+        };
+        
+		if (itemInfo.itemType.includes('download')) {
+			config.responseType = 'blob';
+			config.headers['Accept'] = 'application/pdf';
+		}
+
+		axios.post(`http://localhost:3002/reports/${itemInfo.itemType}`, itemInfo.data, config)
 			.then(response => {
-				if (response.data.success) {
+				if (response.data) {
 					// Resolve with a success message and appropriate status code
-					resolve(response.data.message); 
+					resolve(response.data); 
 					// 'User Role has been successfully added!'
 				} else {
 					// Reject with the error message and a consistent error code
-					reject(response.data.error);
-					// Potential error messages:
-					// 1. 'Server error'
-					// 2. 'You don't have permission to add roles' (forbidden)
-					// 3. 'User Role is already in use!' (another role with the same name exist, check with/without case sensitivity)
+					reject(response.data);
 				}
 			})
 	});
@@ -244,19 +307,32 @@ class JwtService extends FuseUtils.EventEmitter {
 	 */
 	getItems = (itemsInfo) =>
 	new Promise((resolve, reject) => {
-		axios.get(`http://localhost:3002/${itemsInfo.itemType}/all`).then(
+
+		const config = {
+            headers: {
+                'Page': itemsInfo.page,
+                'Items-Per-Page': itemsInfo.itemsPerPage
+            }
+        };
+
+		axios.get(`http://localhost:3002/${itemsInfo.itemType}/all`, config).then(
 				(
 					response
 				) => {
-					if (response.data) {
-						// resolve with a success message and 201/200 code
-						resolve(response.data); // return an array of items
-					} else {
-						reject(response);
-						// send back the error + consistent error code: 404, 401..
-						// should return a msg for the error:
-						// 1. 'Server error! Please try again later.'
-						// 2. 'You don't have permission to get data.' (forbidden)
+					try {
+						if (response.data) {
+							// resolve with a success message and 201 code
+							resolve(response.data); 
+						} else {
+							reject(response.data);
+							// send back the error + consistent error code: 404, 401..
+							// should return a msg for the error:
+							// 1. 'Server error'
+							// 2. 'You don't have permission to edit' (forbidden)
+							// 3. '<element/elements> is/are already in use!'
+						}
+					} catch (err) {
+						reject(err)
 					}
 				}
 			);
@@ -265,33 +341,94 @@ class JwtService extends FuseUtils.EventEmitter {
 	/**
 	 * Get model by id.
 	 */
-	getIModelById = (payload) =>
+	getItemById = (payload) =>
 	new Promise((resolve, reject) => {
-			axios.post(`http://localhost:3050/api/items/getModel`, {
-				modelId: payload.modelId
-				}).then(
+			axios.get(`http://localhost:3002/${payload.itemType}/${payload.itemId}`).then(
 				(
 					response
 				) => {
-					if (response.data) {
-						// resolve with a success message and 201/200 code
-						resolve(response); // return the target model
-					} else {
-						reject(response);
-						// send back the error + consistent error code: 404, 401..
-						// should return a msg for the error:
-						// 1. 'Server error! Please try again later.'
-						// 2. 'You don't have permission to get data.' (forbidden)
+					try {
+						if (response.data) {
+							// resolve with a success message and 201 code
+							resolve(response.data); 
+						} else {
+							reject(response.data);
+							// send back the error + consistent error code: 404, 401..
+							// should return a msg for the error:
+							// 1. 'Server error'
+							// 2. 'You don't have permission to edit' (forbidden)
+							// 3. '<element/elements> is/are already in use!'
+						}
+					} catch (err) {
+						reject(err)
 					}
 				}
 			);
 	});	
 
 
+   	/**
+    * Get model by id.
+    */
+   	getOrdersForDash = () =>
+   	new Promise((resolve, reject) => {
+   			axios.get(`http://localhost:3002/order/ordersForDash`).then(
+   				(
+   					response
+   				) => {
+   					try {
+   						if (response.data) {
+   							// resolve with a success message and 201 code
+   							resolve(response.data); 
+   						} else {
+   							reject(response.data);
+   							// send back the error + consistent error code: 404, 401..
+   							// should return a msg for the error:
+   							// 1. 'Server error'
+   							// 2. 'You don't have permission to edit' (forbidden)
+   							// 3. '<element/elements> is/are already in use!'
+   						}
+   					} catch (err) {
+   						reject(err)
+   					}
+   				}
+   			);
+   	});	
+
+
+	/**
+    * Get model by id.
+    */
+    getProdModels = () =>
+    new Promise((resolve, reject) => {
+ 		   axios.get(`http://localhost:3002/model/productionModels`).then(
+ 			   (
+ 				   response
+ 			   ) => {
+ 				   try {
+ 					   if (response.data) {
+ 						   // resolve with a success message and 201 code
+ 						   resolve(response.data); 
+ 					   } else {
+ 						   reject(response.data);
+ 						   // send back the error + consistent error code: 404, 401..
+ 						   // should return a msg for the error:
+ 						   // 1. 'Server error'
+ 						   // 2. 'You don't have permission to edit' (forbidden)
+ 						   // 3. '<element/elements> is/are already in use!'
+ 					   }
+ 				   } catch (err) {
+ 					   reject(err)
+ 				   }
+ 			   }
+ 		   );
+    });	
+
+
 	/**
 	 * Get model by id.
-	 */
-	getModelTrackings = (payload) =>
+	get */
+	ModelTrackings = (payload) =>
 	new Promise((resolve, reject) => {
 			axios.post(`http://localhost:3050/api/items/getModelTracking`, {
 				modelId: payload.modelId
@@ -299,15 +436,20 @@ class JwtService extends FuseUtils.EventEmitter {
 				(
 					response
 				) => {
-					if (response.data) {
-						// resolve with a success message and 201/200 code
-						resolve(response); // return an array of models
-					} else {
-						reject(response);
-						// send back the error + consistent error code: 404, 401..
-						// should return a msg for the error:
-						// 1. 'Server error! Please try again later.'
-						// 2. 'You don't have permission to get data.' (forbidden)
+					try {
+						if (response.data) {
+							// resolve with a success message and 201 code
+							resolve(response.data); 
+						} else {
+							reject(response.data);
+							// send back the error + consistent error code: 404, 401..
+							// should return a msg for the error:
+							// 1. 'Server error'
+							// 2. 'You don't have permission to edit' (forbidden)
+							// 3. '<element/elements> is/are already in use!'
+						}
+					} catch (err) {
+						reject(err)
 					}
 				}
 			);
@@ -323,22 +465,20 @@ class JwtService extends FuseUtils.EventEmitter {
 			(
 				response
 			) => {
-				if (response.data) {
-					// resolve with 201/200 code
-					resolve(response.data); // return an an array of user Roles:
-					/*
-					 *  'Managerial Head',
-	 				 *  'Production Manager',
-	 				 *  'Departments Head',
-	 				 *  'Factory Manager',
-	 				 *  'Warehouse Manager'
-					 */
-				} else {
-					reject(response.data.error);
-					// send back the error + consistent error code: 404, 401..
-					// should return a msg for the error:
-					// 1. 'Server error! Please try again later.'
-					// 2. 'You don't have permission to get data.' (forbidden)
+				try {
+					if (response.data) {
+						// resolve with a success message and 201 code
+						resolve(response.data); 
+					} else {
+						reject(response.data);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error'
+						// 2. 'You don't have permission to edit' (forbidden)
+						// 3. '<element/elements> is/are already in use!'
+					}
+				} catch (err) {
+					reject(err)
 				}
 			}
 		);
@@ -349,23 +489,57 @@ class JwtService extends FuseUtils.EventEmitter {
 	 */
 	getManagers = (data) =>
 	new Promise((resolve, reject) => {
-		axios.get(`http://localhost:3002/auth/all-users`, data).then(
+		axios.get(`http://localhost:3002/auth/managers`, data).then(
 			(
 				response
 			) => {
-				if (response.data) {
-					// resolve with 201/200 code
-					resolve(response.data); // return an array of managers
-				} else {
-					reject(response.data.error);
-					// send back the error + consistent error code: 404, 401..
-					// should return a msg for the error:
-					// 1. 'Server error! Please try again later.'
-					// 2. 'You don't have permission to get data.' (forbidden)
+				try {
+					if (response.data) {
+						// resolve with a success message and 201 code
+						resolve(response.data); 
+					} else {
+						reject(response.data);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error'
+						// 2. 'You don't have permission to edit' (forbidden)
+						// 3. '<element/elements> is/are already in use!'
+					}
+				} catch (err) {
+					reject(err)
 				}
 			}
 		);
 	});	
+
+	/**
+	 * Search queries
+	 */
+	searchItems = (data) =>
+	new Promise((resolve, reject) => {
+		const appends = data.from ? "?from=" + data.from + "&to=" + data.to : ''
+		axios.get(`http://localhost:3002/${data.itemType}/search/${data.query}${appends}`).then(
+			(
+				response
+			) => {
+				try {
+					if (response.data) {
+						// resolve with a success message and 201 code
+						resolve(response.data); 
+					} else {
+						reject(response.data);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error'
+						// 2. 'You don't have permission to edit' (forbidden)
+						// 3. '<element/elements> is/are already in use!'
+					}
+				} catch (err) {
+					reject(err)
+				}
+			}
+		);
+	});
 
 	/**
 	 * Get Model Data
@@ -376,15 +550,20 @@ class JwtService extends FuseUtils.EventEmitter {
 			(
 				response
 			) => {
-				if (response.data) {
-					// resolve with 201/200 code
-					resolve(response.data); // return an object of 4 arrays: orderIds, templateTypeIds, colors, and sizes
-				} else {
-					reject(response.data.error);
-					// send back the error + consistent error code: 404, 401..
-					// should return a msg for the error:
-					// 1. 'Server error! Please try again later.'
-					// 2. 'You don't have permission to get data.' (forbidden)
+				try {
+					if (response.data) {
+						// resolve with a success message and 201 code
+						resolve(response.data); 
+					} else {
+						reject(response.data);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error'
+						// 2. 'You don't have permission to edit' (forbidden)
+						// 3. '<element/elements> is/are already in use!'
+					}
+				} catch (err) {
+					reject(err)
 				}
 			}
 		);
@@ -400,15 +579,20 @@ class JwtService extends FuseUtils.EventEmitter {
 			(
 				response
 			) => {
-				if (response.data) {
-					// resolve with 201/200 code
-					resolve(response.data); // return an array of exsting material names
-				} else {
-					reject(response.data.error);
-					// send back the error + consistent error code: 404, 401..
-					// should return a msg for the error:
-					// 1. 'Server error! Please try again later.'
-					// 2. 'You don't have permission to get data.' (forbidden)
+				try {
+					if (response.data) {
+						// resolve with a success message and 201 code
+						resolve(response.data); 
+					} else {
+						reject(response.data);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error'
+						// 2. 'You don't have permission to edit' (forbidden)
+						// 3. '<element/elements> is/are already in use!'
+					}
+				} catch (err) {
+					reject(err)
 				}
 			}
 		);
@@ -416,126 +600,28 @@ class JwtService extends FuseUtils.EventEmitter {
 
 
 	/**
-	 * Get the data of the report based on the data. 
+	 * Get the report based on the data. 
 	 */
 	getReportData = (data) =>
 	new Promise((resolve, reject) => {
-		axios.post(`/api/getReportData`, data).then(
+		axios.post(`http://localhost:3050/reports/getModelTracking`, data).then(
 			(
 				response
 			) => {
-				if (response.data) {
-					// resolve with 201/200 code
-					resolve(response.data); 
-					// return an array of object with the following items:
-					/* e.g.
-					    materialName: 'Material 1',
-            			internalOrdersId: 1001,
-            			movementId: 5001,
-            			from: 'Department A',
-            			to: 'Warehouse X',
-            			quantity: 120,
-            			color: 'Blue',
-            			date: '2020-01-15' 
-					*/
-				} else {
-					reject(response.data.error);
-					// send back the error + consistent error code: 404, 401..
-					// should return a msg for the error:
-					// 1. 'Server error! Please try again later.'
-					// 2. 'You don't have permission to get data.' (forbidden)
-				}
-			}
-		);
-	});	
-
-	/**
-	 * Generate a downloadable PDF link based on the data input 
-	 */
-	generatePDFReport = (data) =>
-	new Promise((resolve, reject) => {
-		axios.post(`/api/generatePDFReport`, data).then(
-			(
-				response
-			) => {
-				if (response.data) {
-					// resolve with 201/200 code
-					resolve(response.data); 
-					// return a downloadable PDF link based on the data input
-				} else {
-					reject(response.data.error);
-					// send back the error + consistent error code: 404, 401..
-					// should return a msg for the error:
-					// 1. 'Server error! Please try again later.'
-					// 2. 'You don't have permission to get data.' (forbidden)
-				}
-			}
-		);
-	});	
-
-
-	/**
-	 * Get the existing supplier names.
-	 */
-	getSupplierNames = (data) =>
-	new Promise((resolve, reject) => {
-		axios.post(`/api/supplierNames`, data).then(
-			(
-				response
-			) => {
-				if (response.data) {
-					// resolve with 201/200 code
-					resolve(response.data); 
-					// return an array of current suppliers, like the follow:
-					/*
-						[
-        					'Tartous Textile Solutions',
-        					'Raqqa Garment Makers',
-        					'Deir Ezzor Cloth Co.',
-        					'Aleppo Textiles Ltd.',
-        					'Damascus Fabrics Co.'
-    					]
-					*/ 
-				} else {
-					reject(response.data.error);
-					// send back the error + consistent error code: 404, 401..
-					// should return a msg for the error:
-					// 1. 'Server error! Please try again later.'
-					// 2. 'You don't have permission to get data.' (forbidden)
-				}
-			}
-		);
-	});	
-
-
-	/**
-	 * Get the existing supplier names.
-	 */
-	getSupplierNames = (data) =>
-	new Promise((resolve, reject) => {
-		axios.post(`/api/supplierNames`, data).then(
-			(
-				response
-			) => {
-				if (response.data) {
-					// resolve with 201/200 code
-					resolve(response.data); 
-					// return an array of current suppliers, like the follow:
-					/*
-						[
-							'Tartous Textile Solutions',
-							'Raqqa Garment Makers',
-							'Deir Ezzor Cloth Co.',
-							'Aleppo Textiles Ltd.',
-							'Damascus Fabrics Co.'
-						]
-					*/ 
-				} else {
-					reject(response.data.error);
-					// send back the error + consistent error code: 404, 401..
-					// should return a msg for the error:
-					// 1. 'Server error! Please try again later.'
-					// 2. 'You don't have permission to get data.' (forbidden)
+				try {
+					if (response.data) {
+						// resolve with a success message and 201 code
+						resolve(response.data); 
+					} else {
+						reject(response.data);
+						// send back the error + consistent error code: 404, 401..
+						// should return a msg for the error:
+						// 1. 'Server error'
+						// 2. 'You don't have permission to edit' (forbidden)
+						// 3. '<element/elements> is/are already in use!'
+					}
+				} catch (err) {
+					reject(err)
 				}
 			}
 		);
@@ -715,13 +801,14 @@ class JwtService extends FuseUtils.EventEmitter {
 	 */
 	logout = () => {
 		_setSession(null);
+		localStorage.clear();
 		this.emit('onLogout', 'Logged out');
 	};
 
 }
 
 /**
- * Sets the session by storing the access token in the local storage and setting the default authorization header.
+ * Sets the userRole in the local storage.
  */
 function _setSession(access_token) {
 	if (access_token) {
@@ -772,11 +859,8 @@ function setAccessToken(access_token) {
 	return window.localStorage.setItem('jwt_access_token', access_token);
 }
 
-/**
- * Sets the userId in the local storage.
- */
-function setUserId(userId) {
-	return window.localStorage.setItem('userId', userId);
+function setUserRole(userRole) {
+	return window.localStorage.setItem('userRole', userRole);
 }
 
 /**

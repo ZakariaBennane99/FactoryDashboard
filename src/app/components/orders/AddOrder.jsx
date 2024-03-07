@@ -1,20 +1,32 @@
-import { useState } from 'react';
-import { FormControl, TextField, Box } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { FormControl, TextField, Box, MenuItem } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import jwtService from '../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import { useTranslation } from 'react-i18next';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+
+
+
 
 
 function AddOrder({ ordr }) {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('ordersPage');
+    const lang = i18n.language;
+
+    const dispatch = useAppDispatch();
+    
+    const [isLoading, setIsLoading] = useState(false);
 
     const [order, setOrder] = useState({
+        id: ordr ? ordr.id : '',
         orderNumber: ordr ? ordr.orderNumber : '',
         orderDate: ordr ? new Date(ordr.orderDate) : null,
         totalAmount: ordr ? ordr.totalAmount : 0,
-        status: ordr ? ordr.status : '',
+        status: ordr ? ordr.status : (lang === 'ar' ? "في الانتظار" : "AWAITING"),
         season: ordr ? ordr.season : ''
     });
 
@@ -33,60 +45,91 @@ function AddOrder({ ordr }) {
         })), 100);
     }
 
+    const status = ["AWAITING", "TODO", "INPROGRESS", "DONE"];
+    const statusAr = ["في الانتظار", "للعمل", "جاري التنفيذ", "مكتمل"];
+
+    const [seasons, setSeasons] =  useState([])
+
     const handleChange = (prop) => (event) => {
-        setOrder({ ...order, [prop]: event.target.value });
+        if (prop === 'season') {
+            const tmple = seasons.find(supplier => supplier.id === event.target.value);
+            setOrder({ ...order, [prop]: tmple });
+        } else {
+            setOrder({ ...order, [prop]: event.target.value });
+        }
     };
 
     const handleDateChange = (date) => {
         setOrder({ ...order, orderDate: date });
     };
 
+
     const handleAddOrder = async (event) => {
         event.preventDefault();
         
+        if (lang === 'ar') {
+            setOrder({ ...order, 
+                status: status[statusAr.indexOf(order.status)] });
+        }
         try {
-            // @route: api/create/order
-            // @description: create a new order
+            setIsLoading(true)
             const res = await jwtService.createItem({ 
                 itemType: 'order',
-                data: {
-                    data: order,
-                    currentUserId: currentUserId
-                }
+                data: order
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+            if (res.status === 201) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     const handleUpdateOrder = async (event) => {
         event.preventDefault();
 
+        if (lang === 'ar') {
+            setOrder({ ...order, 
+                status: status[statusAr.indexOf(order.status)] });
+        }
+
         try {
-            // @route: api/update/order
-            // @description: update models Size
+            setIsLoading(true)
             const res = await jwtService.updateItem({ 
                 itemType: 'order',
                 data: {
                     data: order,
-                    currentUserId: currentUserId,
-                    itemId: ordr.orderId
+                    itemId: order.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+            if (res.status === 200) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
-            // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
+
+
+    useEffect(() => {    
+        async function getSeasons() {
+            try {
+                const res = await jwtService.getItemNames(['season']);
+                if (res) {
+                    setSeasons(res[0].data)
+                }
+            } catch (_error) {
+                showMsg(_error.message || "An unexpected error occurred", 'error')
+            } 
+        }
+        
+        getSeasons();
+    }, []);
 
 
 
@@ -96,18 +139,19 @@ function AddOrder({ ordr }) {
                 <form onSubmit={ordr ? handleUpdateOrder : handleAddOrder}>
                     <FormControl fullWidth margin="normal">
                         <TextField
-                            label="Order Number"
+                            label={t('ORDER_NUMBER')}
                             variant="outlined"
                             type="number"
                             value={order.orderNumber}
                             onChange={handleChange('orderNumber')}
                             required
+                            disabled={ordr}
                         />
                     </FormControl>
 
                     <FormControl fullWidth margin="normal">
                         <DatePicker
-                            label="Order Date"
+                            label={t('ORDER_DATE')}
                             value={order.orderDate}
                             onChange={handleDateChange}
                             renderInput={(params) => <TextField {...params} required />}
@@ -116,7 +160,7 @@ function AddOrder({ ordr }) {
 
                     <FormControl fullWidth margin="normal">
                         <TextField
-                            label="Total Amount"
+                            label={t('TOTAL_AMOUNT')}
                             variant="outlined"
                             type="number"
                             value={order.totalAmount}
@@ -128,26 +172,49 @@ function AddOrder({ ordr }) {
 
                     <FormControl fullWidth margin="normal">
                         <TextField
-                            label="Status"
+                            select
+                            label={t('STATUS')}
                             variant="outlined"
-                            value={order.status}
+                            value={order.status ? order.status : ''}
                             onChange={handleChange('status')}
                             required
-                        />
+                        >
+                            { 
+                            lang === 'ar' ? 
+                            statusAr.map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>
+                            ))
+                            :
+                            status.map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>
+                            ))
+                            }
+                        </TextField>
                     </FormControl>
 
                     <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                         <TextField
-                            label="Season"
+                            select
+                            label={t('SEASON')}
                             variant="outlined"
-                            value={order.season}
+                            value={order.season ? order.season.id : ''}
                             onChange={handleChange('season')}
                             required
-                        />
+                        >
+                            {seasons.map((season) => (
+                                <MenuItem key={season.id} value={season.id}>
+                                    {season.name}
+                                </MenuItem>
+                            ))}
+                        </TextField>
                     </FormControl>
 
-                    <button type="submit" className="add-user-btn">
-                        {ordr ? 'Update' : 'Add'} Order
+                    <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                        {ordr ? (isLoading ? t('UPDATING') : t("UPDATE_ORDER")) : (isLoading ? t("ADDING") : t('ADD_ORDER'))}
                     </button>
                 </form>
             </Box>

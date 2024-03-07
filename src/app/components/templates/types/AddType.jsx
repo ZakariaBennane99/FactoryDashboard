@@ -3,15 +3,25 @@ import { FormControl, TextField, Box } from '@mui/material';
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import jwtService from '../../../auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import { useTranslation } from 'react-i18next';
+
+
 
 
 
 function AddTemplateType({ typs }) {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('typesPage');
+    const lang = i18n.language;
+
+    const dispatch = useAppDispatch();
+    
+    const [isLoading, setIsLoading] = useState(false);
 
     const [templateType, setTemplateType] = useState({
-        templateTypeName: typs ? typs.templateTypeName : '',
+        id: typs ? typs.id : '',
+        name: typs ? typs.name : '',
         description: typs ? typs.description : ''
     });
 
@@ -38,22 +48,20 @@ function AddTemplateType({ typs }) {
     const handleAddTypes = async (event) => {
         event.preventDefault();
         
+        setIsLoading(true)
         try {
-            // @route: api/create/templateTypes
-            // @description: create a new template type
             const res = await jwtService.createItem({ 
-                itemType: 'types',
-                data: {
-                    data: templateType,
-                    currentUserId: currentUserId
-                }
+                itemType: 'templatetype',
+                data: templateType
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                showMsg(res, 'success')
+            if (res.status === 201) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     const handleUpdateTypes = async (event) => {
@@ -63,21 +71,22 @@ function AddTemplateType({ typs }) {
             // @route: api/update/templateTypes
             // @description: update an existing template Type type
             const res = await jwtService.updateItem({ 
-                itemType: 'types',
+                itemType: 'templatetype',
                 data: {
                     data: templateType,
-                    currentUserId: currentUserId,
-                    itemId: typs.typeId
+                    itemId: templateType.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
+            if (res.status === 200) {
                 // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
 
@@ -86,17 +95,17 @@ function AddTemplateType({ typs }) {
             <form onSubmit={typs ? handleUpdateTypes : handleAddTypes}>
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Template Type Name"
+                        label={t('TEMPLATE_TYPE_NAME')}
                         variant="outlined"
-                        value={templateType.templateTypeName}
-                        onChange={handleChange('templateTypeName')}
+                        value={templateType.name}
+                        onChange={handleChange('name')}
                         required
                     />
                 </FormControl>
 
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
-                        label="Description"
+                        label={t('DESCRIPTION')}
                         variant="outlined"
                         value={templateType.description}
                         onChange={handleChange('description')}
@@ -106,7 +115,9 @@ function AddTemplateType({ typs }) {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-internalOrder-btn">{typs ? 'Update' : 'Add'} Type</button>
+                <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                    {typs ? (isLoading ? t('UPDATING') : t('UPDATE_TEMPLATE_TYPE')) : (isLoading ? t('ADDING') : t('ADD_TEMPLATE_TYPE'))}
+                </button>
             </form>
         </Box>
     );

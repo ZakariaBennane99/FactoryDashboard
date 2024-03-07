@@ -1,5 +1,33 @@
 const locale = {
-	TITLE: 'Internal Orders'
+	TITLE: 'Internal Orders',
+	ADD_INTERNAL_ORDER: "Add Internal Order",
+    SEARCH_INTERNAL_ORDERS: "Search Internal Orders",
+    SEARCH: "Search",
+    QUERY_ERROR: "Please enter more than 3 characters",
+    NO_INTERNAL_ORDER_IS_AVAILABLE: "No internal order is available",
+    EXPECTED_DELIVERY: "Expected Delivery",
+    DEPARTMENT: "Department",
+    PRIORITY: "Priority",
+    STATUS: "Status",
+    MATERIAL: "Material",
+    QUANTITY: "Quantity",
+    SPECIFICS: "Specifics",
+    ORDER_DATE: "Order Date",
+    NOTES: "Notes",
+    ADDING: "Adding...",
+    ADD_INTERNAL_ORDER_BUTTON: "Add Internal Order",
+    UPDATING: "Updating...",
+    UPDATE_INTERNAL_ORDER: "Update Internal Order",
+    HIGH: "High",
+    MEDIUM: "Medium",
+    LOW: "Low",
+    PENDING: "Pending",
+    APPROVED: "Approved",
+    REJECTED: "Rejected",
+    FULFILLED: "Fulfilled",
+    CANCELLED: "Cancelled",
+    COMPLETED: "Completed",
+    ONGOING: "Ongoing"
 };
 
 export default locale;

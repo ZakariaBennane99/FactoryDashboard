@@ -1,5 +1,5 @@
 const locale = {
-	TITLE: 'مقاييس'
+	TITLE:"تقارير المواد"
 };
 
 export default locale;

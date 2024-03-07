@@ -12,7 +12,10 @@ import CategoryIcon from '@mui/icons-material/Category';
 import DescriptionIcon from '@mui/icons-material/Description';
 import jwtService from '../../../auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
-
+import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -27,7 +30,18 @@ function trimText(txt, maxLength) {
 
 function Patterns() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('patternsPage');
+    const lang = i18n.language;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredPatterns, setFilteredPatterns] = useState(null);
 
@@ -102,18 +116,28 @@ function Patterns() {
 
     useEffect(() => {
         async function getMaterials() {
+
+            setIsLoading(true)
             try {
-                // @route: api/items/patterns
-                // @description: get a list of patterns
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "patterns"
+                    itemType: "templatepattern",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setPatterns(res)
+                if (res.status === 200) {
+                    console.log(res)
+                    const formatted = res.data.templates.map(ctgr => ({ 
+                        id: ctgr.Id,
+                        name: ctgr.TemplatePatternName,
+                        description: ctgr.Description
+                    }));
+                    setTotalCtlgs(res.data.count)
+                    setPatterns(formatted)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -151,10 +175,45 @@ function Patterns() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={patterns[i].patternId} itemType="patterns" />
+                    <Delete itemId={patterns[i].id} itemType="templatepattern" />
                 )
             }));
         }, 100);
+    }
+
+
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "templatepattern", 
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+            
+                const formattedPatterns = res.data.map(pattern => ({
+                    id: pattern.Id,
+                    name: pattern.TemplatePatternName,
+                    description: pattern.Description
+                }));
+                setPatterns(formattedPatterns); 
+                setIsQueryFound(formattedPatterns.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
+    
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
     }
 
 
@@ -162,114 +221,148 @@ function Patterns() {
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingInternalOrder}>
+                
+                <button id="btn-generic" className="add-btn" onClick={handleAddingInternalOrder}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Pattern</span>
+                    <span>{t('ADD_PATTERN')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Patterns" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_PATTERNS')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>  
 
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {patterns.length > 0 && !isQueryFound ? patterns.map((pattern, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card pattern"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}  
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog pattern">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <CategoryIcon /> 
-                                        <span className="pattern-name">
-                                            {pattern.templatePatternName}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="pattern-description">
-                                            {pattern.description}
-                                        </span>
-                                    </div>
-                                </div>
-                            )
-                        }))
-                      }}
-                    >   <div>
-                            <CategoryIcon /> 
-                            <span className="pattern-name">
-                                {pattern.templatePatternName}
-                            </span>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
                         </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="pattern-description">
-                                {trimText(pattern.description, 30)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredPatterns && isQueryFound ? filteredPatterns.map((pattern, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card pattern"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                            <div className="depart-card dialog pattern">
-                                <div id="edit-container">
-                                    <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                    <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                </div>
-                                <div>
+                    ) 
+                     : patterns.length > 0 ? 
+                    (
+                    <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {patterns.length > 0 && !isQueryFound ? patterns.map((pattern, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card pattern"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}  
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog pattern">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <CategoryIcon /> 
+                                                <span className="pattern-name">
+                                                    {pattern.name}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <DescriptionIcon />
+                                                <span className="pattern-description">
+                                                    {pattern.description}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >   <div>
                                     <CategoryIcon /> 
                                     <span className="pattern-name">
-                                        {highlightMatch(pattern.templatePatternName, query)}
+                                        {pattern.name}
                                     </span>
                                 </div>
                                 <div>
                                     <DescriptionIcon />
                                     <span className="pattern-description">
-                                        {highlightMatch(pattern.description, query)}
+                                        {trimText(pattern.description, 30)}
                                     </span>
                                 </div>
-                            </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <CategoryIcon /> 
-                            <span className="pattern-name">
-                                {highlightMatch(pattern.templatePatternName, query)}
-                            </span>
+                              </Paper>
+                            </Grid>
+                          )) : filteredPatterns && isQueryFound ? filteredPatterns.map((pattern, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card pattern"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                    <div className="depart-card dialog pattern">
+                                        <div id="edit-container">
+                                            <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                            <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                        </div>
+                                        <div>
+                                            <CategoryIcon /> 
+                                            <span className="pattern-name">
+                                                {highlightMatch(pattern.name, query)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <DescriptionIcon />
+                                            <span className="pattern-description">
+                                                {highlightMatch(pattern.description, query)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <CategoryIcon /> 
+                                    <span className="pattern-name">
+                                        {highlightMatch(pattern.name, query)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <DescriptionIcon />
+                                    <span className="pattern-description">
+                                        {highlightMatch(trimText(pattern.description, 30), query)}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : ''
+                          }
+                        </Grid>
+                    </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('NO_PATTERN_IS_AVAILABLE')}
                         </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="pattern-description">
-                                {highlightMatch(trimText(pattern.description, 30), query)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                    )
+                }
+                {
+                    patterns.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
             </div>
 
         </div>

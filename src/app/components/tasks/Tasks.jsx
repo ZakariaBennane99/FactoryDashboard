@@ -14,6 +14,7 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree'; // assigned by
 import AddTask from './AddTask';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import NoteIcon from '@mui/icons-material/Note'
 import Delete from '../Delete';
 import {
     CheckCircleOutline as CompletedIcon,
@@ -26,6 +27,11 @@ import {
 } from '@mui/icons-material';
 import jwtService from '../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { CircularProgress } from '@mui/material';
+import Pagination from '@mui/material/Pagination';
+import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
+
 
 
 
@@ -33,7 +39,18 @@ import { showMessage } from 'app/store/fuse/messageSlice';
 
 function Tasks() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('tasksPage');
+    const lang = i18n.language;
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(1);
+    const itemsPerPage = 7;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredTasks, setFilteredTasks] = useState(null);
 
@@ -75,8 +92,7 @@ function Tasks() {
                 },
                 variant: status // success error info warning null
         })), 100);
-    }  
-    
+    } 
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -105,21 +121,41 @@ function Tasks() {
         }
     }, [tasks, query, isQueryFound]);
 
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "task", 
+                query: query
+            });
+            if (res.status === 200) {
+                setTasks(res.data); // Assuming you have a state setter for tasks
+                setIsQueryFound(res.data.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
 
     useEffect(() => {
         async function getTasks() {
             try {
-                // @route: api/items/tasks
-                // @description: get a list of current tasks
+                setIsLoading(true);
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "tasks"
+                    itemType: "task",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setTasks(res)
+                if (res.status === 200) {
+                    setTasks(res.data.formattedTasks)
+                    setTotalUsers(res.data.count)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false); 
             }
         }
         
@@ -157,7 +193,7 @@ function Tasks() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={tasks[i].taskId} itemType="tasks" />
+                    <Delete itemId={tasks[i].id} itemType="task" />
                 )
             }));
         }, 100);
@@ -203,22 +239,51 @@ function Tasks() {
         return new Intl.DateTimeFormat('en-US', options).format(date);
     }
 
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
+
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingTask}>
+                <button id="btn-generic" className="add-btn" onClick={handleAddingTask}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Task</span>
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('ADD_TASK')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Tasks" type="search" />
 
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_TASKS')}
+                    type="search" 
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} 
+                    disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
+                {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
+                        </div>
+                    ) 
+                     : tasks.length > 0 ? 
+                     (
+                        <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {tasks.length > 0 && !isQueryFound ? tasks.map((task, index) => (
+                  {!isQueryFound ? tasks.map((task, index) => (
                     <Grid item xs={2} sm={4} md={4} key={index}>
                     <Paper
                       className="depart-card task"
@@ -252,19 +317,25 @@ function Tasks() {
                                     <div>
                                         {getStatusIcon(task.status)}
                                         <span className="task-status">
-                                            {task.status}
+                                            {t(task.status)}
                                         </span>
                                     </div>
                                     <div>
                                         <BusinessCenterIcon />
                                         <span className="task-assigned-depart">
-                                            {task.assignedToDepartment}
+                                            {task.assignedToDepartment.name}
                                         </span>
                                     </div>
                                     <div>
                                         <AccountTreeIcon />
                                         <span className="task-assign-depart">
-                                            {task.createdByDepartment}
+                                            {task.createdByDepartment.name}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <NoteIcon />
+                                        <span className="task-nots">
+                                            {task.notes}
                                         </span>
                                     </div>
                                 </div>
@@ -284,13 +355,13 @@ function Tasks() {
                         <div>
                             <BusinessCenterIcon />
                             <span className="task-assigned-depart">
-                                {task.assignedToDepartment}
+                                {task.assignedToDepartment.name}
                             </span>
                         </div>
                         <div>
                             <AccountTreeIcon />
                             <span className="task-assign-depart">
-                                {task.createdByDepartment}
+                                {task.createdByDepartment.name}
                             </span>
                         </div>
                       </Paper>
@@ -329,19 +400,19 @@ function Tasks() {
                                     <div>
                                         {getStatusIcon(task.status)}
                                         <span className="task-status">
-                                            {highlightMatch(task.status, query)}
+                                            {highlightMatch(t(task.status), query)}
                                         </span>
                                     </div>
                                     <div>
                                         <BusinessCenterIcon />
                                         <span className="task-assigned-depart">
-                                            {highlightMatch(task.assignedToDepartment, query)}
+                                            {highlightMatch(task.assignedToDepartment.name, query)}
                                         </span>
                                     </div>
                                     <div>
                                         <AccountTreeIcon />
                                         <span className="task-assign-depart">
-                                            {highlightMatch(task.createdByDepartment, query)}
+                                            {highlightMatch(task.createdByDepartment.name, query)}
                                         </span>
                                     </div>
                                 </div>
@@ -361,21 +432,38 @@ function Tasks() {
                         <div>
                             <BusinessCenterIcon />
                             <span className="task-assigned-depart">
-                                {highlightMatch(task.assignedToDepartment, query)}
+                                {highlightMatch(task.assignedToDepartment.name, query)}
                             </span>
                         </div>
                         <div>
                             <AccountTreeIcon />
                             <span className="task-assign-depart">
-                                {highlightMatch(task.createdByDepartment, query)}
+                                {highlightMatch(task.createdByDepartment.name, query)}
                             </span>
                         </div>
                       </Paper>
                     </Grid>
-                  )) : <div>Loading...</div>
+                  )) : ''
                   }
                 </Grid>
-            </Box>
+                        </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('NO_TASK_AVAILABLE')}
+                        </div>
+                    )
+                }
+
+
+                {
+                    tasks.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalUsers / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
             </div>
 
         </div>

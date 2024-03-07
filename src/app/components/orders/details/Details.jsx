@@ -16,12 +16,29 @@ import LabelIcon from '@mui/icons-material/Label';
 import PlusOneIcon from '@mui/icons-material/PlusOne';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import SearchIcon from '@mui/icons-material/Search';
+
+
 
 
 
 function Details() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('orderDetailsPage');
+    const lang = i18n.language;
+    
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredDetails, setFilteredDetails] = useState(null);
 
@@ -95,18 +112,28 @@ function Details() {
 
     useEffect(() => {
         async function getOrderDetails() {
+            setIsLoading(true)
             try {
-                // @route: api/items/orderDetails
-                // @description: get Order Details
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "orderDetails"
+                    itemType: "orderdetail",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setDetails(res)
+                if (res.status === 200) {
+                    const formatted = res.data.orderDetails.map(ctgr => ({ 
+                        id: ctgr.Id,
+                        orderNumber: ctgr.Orders,
+                        quantityDetails: ctgr.QuantityDetails,
+                        productCatalogue: ctgr.ProductCatalogDetails,
+                        modelQuantity: ctgr.ModelQuantity,
+                    }));
+                    setTotalCtlgs(res.data.count)
+                    setDetails(formatted)
                 }
             } catch (_error) {
                 showMsg(_error, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -144,197 +171,236 @@ function Details() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} itemType='orderDetails' />
+                    <Delete itemId={details[i].id} itemType='orderdetail' />
                 )
             }));
         }, 100);
     }
 
+
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "orderdetail", // Adapted to search for order details
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedDetails = res.data.map(detail => ({ 
+                    id: detail.Id,
+                    orderNumber: detail.Orders,
+                    quantityDetails: detail.QuantityDetails,
+                    productCatalogue: detail.ProductCatalogDetails,
+                    modelQuantity: detail.ModelQuantity,
+                }));
+                setDetails(formattedDetails); // Adapted to set order details
+                setIsQueryFound(formattedDetails.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
+    
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
+
+
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingInternalOrder}>
+                <button id="btn-generic" className="add-btn" onClick={handleAddingInternalOrder}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Detail</span>
+                    <span>{t('ADD_DETAILS')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Details" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_DETAILS')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} 
+                disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>  
 
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {details.length > 0 && !isQueryFound ? details.map((detail, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card detail"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}  
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog detail">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <ConfirmationNumberIcon /> 
-                                        <span className="order-number">
-                                            {detail.orderNumber}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <ListAltIcon /> 
-                                        <span className="quantity-details">
-                                            {detail.quantityDetails}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <PatternIcon />
-                                        <span className="template-pattern">
-                                            {detail.templatePattern}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <MenuBookIcon />
-                                        <span className="product-catalogue">
-                                            {detail.productCatalogue}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <LabelIcon />
-                                        <span className="model-name">
-                                            {detail.modelName}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <PlusOneIcon />
-                                        <span className="model-quantity">
-                                            {detail.modelQuantity}
-                                        </span>
-                                    </div>
+
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
+                        </div>
+                    ) 
+                     : details.length > 0 ? 
+                    (
+                    <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {details.length > 0 && !isQueryFound ? details.map((detail, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card detail"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}  
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog detail">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <ConfirmationNumberIcon /> 
+                                                <span className="order-number">
+                                                    {detail.orderNumber.OrderNumber}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <ListAltIcon /> 
+                                                <span className="quantity-details">
+                                                    {detail.quantityDetails}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <MenuBookIcon />
+                                                <span className="product-catalogue">
+                                                    {detail.productCatalogue.ProductCatalog.ProductCatalogName}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <PlusOneIcon />
+                                                <span className="model-quantity">
+                                                    {detail.modelQuantity}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <ConfirmationNumberIcon /> 
+                                    <span className="order-number">
+                                        {detail.orderNumber.OrderNumber}
+                                    </span>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <ConfirmationNumberIcon /> 
-                            <span className="order-number">
-                                {detail.orderNumber}
-                            </span>
-                        </div>
-                        <div>
-                            <MenuBookIcon />
-                            <span className="product-catalogue">
-                                {detail.productCatalogue}
-                            </span>
-                        </div>
-                        <div>
-                            <LabelIcon />
-                            <span className="model-name">
-                                {detail.modelName}
-                            </span>
-                        </div>
-                        <div>
-                            <PlusOneIcon />
-                            <span className="model-quantity">
-                                {detail.modelQuantity}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredDetails && isQueryFound ? filteredDetails.map((detail, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card detail"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog detail">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <ConfirmationNumberIcon /> 
-                                        <span className="order-number">
-                                            {highlightMatch(detail.orderNumber, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <ListAltIcon /> 
-                                        <span className="quantity-details">
-                                            {highlightMatch(detail.quantityDetails, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <PatternIcon />
-                                        <span className="template-pattern">
-                                            {highlightMatch(detail.templatePattern, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <MenuBookIcon />
-                                        <span className="product-catalogue">
-                                            {highlightMatch(detail.productCatalogue, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <LabelIcon />
-                                        <span className="model-name">
-                                            {highlightMatch(detail.modelName, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <PlusOneIcon />
-                                        <span className="model-quantity">
-                                            {highlightMatch(detail.modelQuantity, query)}
-                                        </span>
-                                    </div>
+                                <div>
+                                    <MenuBookIcon />
+                                    <span className="product-catalogue">
+                                        {detail.productCatalogue.ProductCatalog.ProductCatalogName}
+                                    </span>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <ConfirmationNumberIcon /> 
-                            <span className="order-number">
-                                {highlightMatch(detail.orderNumber, query)}
-                            </span>
+                                <div>
+                                    <PlusOneIcon />
+                                    <span className="model-quantity">
+                                        {detail.modelQuantity}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : filteredDetails && isQueryFound ? filteredDetails.map((detail, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card detail"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog detail">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <ConfirmationNumberIcon /> 
+                                                <span className="order-number">
+                                                    {highlightMatch(detail.orderNumber.OrderNumber, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <ListAltIcon /> 
+                                                <span className="quantity-details">
+                                                    {highlightMatch(detail.quantityDetails, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <MenuBookIcon />
+                                                <span className="product-catalogue">
+                                                    {highlightMatch(detail.productCatalogue.ProductCatalog.ProductCatalogName, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <PlusOneIcon />
+                                                <span className="model-quantity">
+                                                    {highlightMatch(detail.modelQuantity, query)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <ConfirmationNumberIcon /> 
+                                    <span className="order-number">
+                                        {highlightMatch(detail.orderNumber.OrderNumber, query)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <MenuBookIcon />
+                                    <span className="product-catalogue">
+                                        {highlightMatch(detail.productCatalogue.ProductCatalog.ProductCatalogName, query)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <PlusOneIcon />
+                                    <span className="model-quantity">
+                                        {highlightMatch(detail.modelQuantity, query)}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : ""
+                          }
+                        </Grid>
+                    </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('NO_ORDER_DETAILS_IS_AVAILABLE')}
                         </div>
-                        <div>
-                            <MenuBookIcon />
-                            <span className="product-catalogue">
-                                {highlightMatch(detail.productCatalogue, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <LabelIcon />
-                            <span className="model-name">
-                                {highlightMatch(detail.modelName, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <PlusOneIcon />
-                            <span className="model-quantity">
-                                {highlightMatch(detail.modelQuantity, query)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                    )
+                }
+                {
+                    details.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
+
             </div>
 
         </div>

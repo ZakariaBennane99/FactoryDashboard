@@ -1,14 +1,27 @@
 import { Box, TextField, FormControl, FormHelperText } from '@mui/material';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux'; 
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { useSelector } from 'react-redux';
+import { selectUser } from 'app/store/user/userSlice';
+import jwtService from '../auth/services/jwtService';
 import './Profile.css';
 import './Departments.css';
+import { useTranslation } from 'react-i18next';
+
 
 
 function Profile() {
+
+    const { t, i18n } = useTranslation('profilePage');
+    const lang = i18n.language;
+
+    const user = useSelector(selectUser);
+    console.log('THE DAMEND USER', user)
+
+    const [loading, setLoading] = useState(false)
 
     const fileInputRef = React.createRef();
     
@@ -16,15 +29,13 @@ function Profile() {
 
     const [fileError, setFileError] = useState('');
 
-    const [profileImageUrl, setProfileImageUrl] = useState('')
-
     const [profile, setProfile] = useState({
-        userId: '1243515423',
-        firstName: 'John',
-        lastName: 'Doe',
-        password: 'password123',
+        userId: user.id,
+        firstName: user.name.split(" ")[0],
+        lastName: user.name.split(" ")[1],
+        password: '',
         confirmPassword: '',
-        profileImage: 'https://example.com/photo.jpg',
+        profileImage: `http://localhost:3002${user.userImage}`,
     });
 
     const [errors, setErrors] = useState({ password: '', confirmPassword: '' });
@@ -47,6 +58,9 @@ function Profile() {
     }
 
     const validatePassword = () => {
+        if (profile.password === '') {
+            return true
+        }
         let isValid = true;
         if (profile.password.length < 8) {
             setErrors(prevErrors => ({ ...prevErrors, password: 'Password must be at least 8 characters long!' }));
@@ -71,6 +85,8 @@ function Profile() {
     };
 
     const handleChange = (event) => {
+        setErrors({ password: '', confirmPassword: '' })
+        
         const { name, type, value, files } = event.target;
         setProfile({
             ...profile,
@@ -95,7 +111,6 @@ function Profile() {
                 setFileError('')
                 // set the file to state
                 setProfile({...profile, profileImage: file});
-                setProfileImageUrl(URL.createObjectURL(file))
             } else {
                 setFileError('Invalid file type. Only JPG, JPEG, and PNG files are allowed.');
             }
@@ -109,68 +124,53 @@ function Profile() {
             return; 
         }
 
+        setLoading(true)
+
         // Create a FormData object
         const formData = new FormData();
         // Append the file to formData if it exists
         if (profile.profileImage) {
-            formData.append('profileImage', profile.profileImage);
+            formData.append('profiles', profile.profileImage);
         }
-    
-        // Append other user fields to formData
-        formData.append('firstName', profile.firstName);
-        formData.append('lastName', profile.lastName);
-        formData.append('password', profile.password);
+        
+        const userInfo = JSON.stringify({
+            firstname: profile.firstName,
+            lastname: profile.lastName,
+            password: profile.password
+        });
+        
+        formData.append('userInfo', userInfo);
+
         try {
             const res = await jwtService.updateItem({ 
-                itemType: 'user',
+                itemType: 'auth',
                 data: {
                     data: formData,
-                    currentUserId: currentUserId,
                     itemId: profile.userId
                 }
              }, { 'Content-Type': 'multipart/form-data' });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg('User has been successfully updated!', 'success');
+            if (res.status === 200) {
+                showMsg(res.message, 'success')
             }
         } catch (_errors) {
-            // the error msg will be sent so you don't have to hardcode it
-            showMsg('User update failed. Please try again.', 'error');
+            showMsg(_errors.message, 'error');
+        } finally {
+            setLoading(false)
         }
 
     }
-
-    useEffect(() => {    
-        async function getProfiles() {
-            try {
-                // @route: api/items/profiles
-                // @description: get profile based on currentUserId's privilege
-                const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "profiles"
-                });
-                if (res) {
-                    setProfile(res)
-                }
-            } catch (_error) {
-                // the error msg will be sent so you don't have to hardcode it
-                showMsg('An error has happened! Please try again.', 'error')
-            }
-        }
-        
-        getProfiles();
-    }, []);
 
     const handleClick = () => {
         fileInputRef.current.click();
     };
 
 
+
     return (
         <Box className="profile-box" sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '25px' }}>
 
             <div className="image-container">
-                <img src={ profileImageUrl ? profileImageUrl : 'https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?q=80&w=1776&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'} 
+                <img src={ profile.profileImage && typeof profile.profileImage === 'string' && profile.profileImage.includes('localhost') ? profile.profileImage : profile.profileImage ? URL.createObjectURL(profile.profileImage) : 'https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?q=80&w=1776&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'} 
                  />
                 <FormControl fullWidth margin="normal" error={Boolean(fileError)} sx={{ mb: 3 }} style={{ width: '50%' }}>
                     <input
@@ -180,15 +180,15 @@ function Profile() {
                         onChange={handleFileChange}
                         accept="image/jpeg,image/jpg,image/png" 
                     />
-                    <button className='upload-photo-btn' onClick={handleClick}>
-                        <CloudUploadIcon /> <span>Upload Photo</span>
+                    <button className='upload-photo-btn' style={{ marginRight: lang === 'ar' ? '27px' : '' }} onClick={handleClick}>
+                        <CloudUploadIcon /> <span>{t('UPLOAD_PHOTO')}</span>
                     </button>
-                    {fileError && <FormHelperText style={{ width: '100%', textAlign: 'center' }} error>{fileError}</FormHelperText>}
+                    {fileError && <FormHelperText style={{ width: '100%', textAlign: 'center' }} error>{t(fileError)}</FormHelperText>}
                 </FormControl>
             </div>
 
             <TextField
-                label="First Name"
+                label={t('FIRST_NAME')}
                 name="firstName" 
                 variant="outlined"
                 value={profile.firstName}
@@ -197,7 +197,7 @@ function Profile() {
                 sx={{ mb: 3 }}
             />
             <TextField
-                label="Last Name"
+                label={t('LAST_NAME')}
                 name="lastName"
                 variant="outlined"
                 value={profile.lastName}
@@ -206,31 +206,34 @@ function Profile() {
                 sx={{ mb: 3 }}
             />
             <TextField
-                label="Password"
+                label={t('PASSWORD')}
                 name="password"
                 type="password"
                 variant="outlined"
                 value={profile.password}
                 onChange={handleChange}
                 error={!!errors.password}
-                helperText={errors.password}
+                helperText={errors.password && t(errors.password)}
                 style={{ width: '100%' }}
                 sx={{ mb: 3 }}
             />
             <TextField 
-                label="Confirm Password"
+                label={t('CONFIRM_PASSWORD')}
                 name="confirmPassword"
                 type="password"
                 variant="outlined"
                 value={profile.confirmPassword}
                 onChange={handleChange}
                 error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword}
+                helperText={errors.confirmPassword && t(errors.confirmPassword)}
                 style={{ width: '100%' }}
                 sx={{ mb: 3 }}
             />
 
-            <button className='add-user-btn' onClick={handleUpdate}>Update</button>
+            <button disabled={loading} className={`add-user-btn ${loading ? 'disabled-button' : ''}`} onClick={handleUpdate}>
+                {loading ? t('UPDATING') : t('UPDATE')}
+            </button>
+            
         </Box>
     )
 }

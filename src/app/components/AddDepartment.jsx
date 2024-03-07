@@ -4,11 +4,17 @@ import { closeDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
 import { useAppDispatch } from 'app/store';
 import jwtService from '../auth/services/jwtService';
+import { useTranslation } from 'react-i18next';
+import { indexOf } from 'lodash';
+
 
 
 function AddDepartment({ dprt }) {
 
-    const currentUserId = window.localStorage.getItem('userId')
+    const { t, i18n } = useTranslation('departmentsPage');
+    const lang = i18n.language;
+
+    const [isLoading, setIsLoading] = useState(false)
 
     const dispatch = useAppDispatch()
 
@@ -31,23 +37,36 @@ function AddDepartment({ dprt }) {
 
     const [managers, setManagers] = useState([])
 
-    const [categories, setCategories] = useState(['Management', 'Production', 'Services'])
+    const categories = ['MANAGEMENT', 'PRODUCTION', 'SERVICES'];
+    const categoriesAr = ['الإدارة', 'الإنتاج', 'الخدمات'];
 
     const [department, setDepartment] = useState({
-        departmentId: dprt.id,
+        departmentId: dprt ? dprt.id : '',
         name: dprt ? dprt.name : '',
-        managerId: dprt ? dprt.manager : '',
+        manager: dprt ? dprt.manager : '',
         category: dprt ? dprt.category : '',
         description: dprt ? dprt.description : ''
     });
 
     const handleChange = (prop) => (event) => {
-        setDepartment({ ...department, [prop]: event.target.value });
+        if (prop === 'manager') {
+            setDepartment({
+                ...department,
+                [prop]: {
+                    ...department.manager,
+                    id: event.target.value,
+                    name: managers.find(manager => manager.id === event.target.value).name
+                }
+            });
+        } else {
+            setDepartment({ ...department, [prop]: event.target.value });
+        }
     };
 
     const handleUpdateDepart = async (event) => {
         event.preventDefault();
         try {
+            setIsLoading(true)
             const res = await jwtService.updateItem({ 
                 itemType: 'department',
                 data: {
@@ -56,27 +75,37 @@ function AddDepartment({ dprt }) {
                 }
              }, { 'Content-Type': 'application/json' });
             if (res.status === 200) {
-                showMsg(res.message, 'success');
+                showMsg(res.message, 'success')
             }
         } catch (err) {
             // the error msg will be sent so you don't have to hardcode it
             showMsg(err.message, 'error');
+        } finally {
+            setIsLoading(false)
         }
 
     };
 
     const handleAddDepart = async (event) => {
         event.preventDefault();
+        if (lang === 'ar') {
+            setDepartment({ ...department, 
+                category: categories[categoriesAr.indexOf(department.category)] })
+        }
+
         try {
+            setIsLoading(true)
             const res = await jwtService.createItem({ 
                 itemType: 'department',
                 data: department
              }, { 'Content-Type': 'application/json' });
             if (res.status === 201) {
-                showMsg(res.message, 'success');
+                showMsg(res.message, 'success')
             }
         } catch (err) {
             showMsg(err.message, 'error');
+        } finally {
+            setIsLoading(false)
         }
     };
 
@@ -88,10 +117,10 @@ function AddDepartment({ dprt }) {
                 // @route: api/managers
                 // @description: get Managers
                 const res = await jwtService.getManagers();
-                if (res) {
-                    setManagers(res.data.map(manager => ({
+                if (res.status === 200) {
+                    setManagers(res.data.filter(manager => manager.Role !== 'STOREMANAGER').map(manager => ({
                         id: manager.Id,
-                        fullName: `${manager.Firstname.charAt(0).toUpperCase() + manager.Firstname.slice(1)} ${manager.Lastname.charAt(0).toUpperCase() + manager.Lastname.slice(1)}`
+                        name: `${manager.Firstname.charAt(0).toUpperCase() + manager.Firstname.slice(1)} ${manager.Lastname.charAt(0).toUpperCase() + manager.Lastname.slice(1)}`
                     })));
                 }
             } catch (error) {
@@ -102,47 +131,55 @@ function AddDepartment({ dprt }) {
         
         getManagers();
     }, []);
-    
+
+
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
             <form onSubmit={dprt ? handleUpdateDepart : handleAddDepart}>
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Department Name"
+                        label={t('DEPARTMENT_NAME')}
                         variant="outlined"
                         value={department.name}
                         onChange={handleChange('name')}
-                        required
+                        required={!dprt}
                     />
                 </FormControl>
 
-                <FormControl fullWidth margin="normal">
-                    <InputLabel id="manager-label">Manager</InputLabel>
+                <FormControl fullWidth margin="normal" >
+                    <InputLabel id="manager-label">{t('MANAGER_LABEL')}</InputLabel>
                     <Select
-                        labelId="manager-label"
-                        value={department.manager.split(" ").join("").toLocaleLowerCase()}
+                        labelId={t('MANAGER_LABEL')}
+                        value={department.manager ? department.manager.id : ''}
                         label="Manager"
                         onChange={handleChange('manager')}
-                        required
+                        required={!dprt}
                     >
-                        {
-                            managers.map(manager => (
-                                <MenuItem key={manager.id} value={manager.id}>{manager.fullName}</MenuItem>
-                            ))
-                        }
+                        {managers.map((manager) => (
+                            <MenuItem key={manager.id} value={manager.id}>
+                                {manager.name}
+                            </MenuItem>
+                        ))}
+
                     </Select>
                 </FormControl>
 
                 <FormControl fullWidth margin="normal">
-                    <InputLabel id="category-label">Category</InputLabel>
+                    <InputLabel id="category-label">{t('CATEGORY_LABEL')}</InputLabel>
                     <Select
-                        labelId="category-label"
-                        value={department.category}
+                        labelId={t('CATEGORY_LABEL')}
+                        value={lang === 'ar' ? categoriesAr[categories.indexOf(department.category)] : department.category}
                         label="Category"
                         onChange={handleChange('category')}
-                        required
+                        required={!dprt}
                     >
-                        {categories.map((category, index) => (
+                        { lang === 'ar' ?
+                         categoriesAr.map((category, index) => (
+                            <MenuItem key={index} value={category}>
+                                {category}
+                            </MenuItem>
+                        )) :
+                        categories.map((category, index) => (
                             <MenuItem key={index} value={category}>
                                 {category}
                             </MenuItem>
@@ -152,7 +189,7 @@ function AddDepartment({ dprt }) {
 
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
-                        label="Description"
+                        label={t('DESCRIPTION_LABEL')}
                         multiline
                         rows={4}
                         value={department.description}
@@ -161,7 +198,9 @@ function AddDepartment({ dprt }) {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-depart-btn">{dprt ? 'Update' : 'Add' } Department</button>
+                <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                    {dprt ? (isLoading ? t('UPDATING') : t('UPDATE_DEPARTMENT_BUTTON')) : (isLoading ? t('ADDING') : t('ADD_DEPARTMENT_BUTTON')) }
+                </button>
             </form>
         </Box>
     );

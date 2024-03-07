@@ -3,9 +3,27 @@
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
+    font-size: 1.12em;
 }
 
-.depart-card.size div {
+.depart-card.dialog.size {
+    height: 70vh;
+    overflow-x: hidden;
+}
+
+.depart-card.size .special {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.depart-card.size .special h2 {
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 7.5px;
+}
+
+.depart-card.size div:not(.special) {
     display: flex;
     justify-content: space-between;
     align-items: center;

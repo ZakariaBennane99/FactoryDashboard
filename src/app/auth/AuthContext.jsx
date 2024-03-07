@@ -31,7 +31,6 @@ function AuthProvider(props) {
             jwtService
                 .signInWithToken()
                 .then((user) => {
-                    console.log('THE USER FROM AUTHCONTEXT', user)
                     success(user, 'You have signed in!');
                 })
                 .catch((error) => {

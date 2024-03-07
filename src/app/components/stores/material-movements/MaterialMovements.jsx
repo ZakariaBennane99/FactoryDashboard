@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import { TextField, Box, Grid, Paper, Chip } from '@mui/material'
-import axios from 'axios';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import MoveToInboxIcon from '@mui/icons-material/MoveToInbox'
@@ -18,13 +17,30 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { CircularProgress } from '@mui/material';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import { useTranslation } from 'react-i18next';
+import Pagination from '@mui/material/Pagination';
+import SearchIcon from '@mui/icons-material/Search';
+
 
 
 
 
 function MaterialMovements() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('materialMovementsPage');
+    const lang = i18n.language;
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(1);
+    const itemsPerPage = 7;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    const [isLoading, setIsLoading] = useState(false)
 
     const [filteredMaterials, setFilteredMaterials] = useState(null);
 
@@ -88,7 +104,6 @@ function MaterialMovements() {
     useEffect(() => {
         if (materialMovements.length > 0 && isQueryFound) {
             const filtered = materialMovements.filter((user) => {
-                // Check if any field in the Userment matches the query
                 return Object.values(user).some(value =>
                     typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
                 );
@@ -101,18 +116,19 @@ function MaterialMovements() {
 
     useEffect(() => {
         async function getMaterials() {
+            setIsLoading(true)
             try {
-                // @route: api/items/materialMovements
-                // @description: get Material Movements
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "materialMovements"
+                    itemType: "materialmovement"
                 });
-                if (res) {
-                    setMaterialMovements(res)
+                if (res.status === 200) {
+                    setMaterialMovements(res.data.updatedMaterialMovements)
+                    setTotalUsers(res.data.count)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -123,11 +139,38 @@ function MaterialMovements() {
     function handleAddingMaterialMovement() {
         dispatch(openDialog({
             children: ( 
-                <AddMaterialMovement />
+                <AddMaterialMovement mtrlMovement={null} />
             )
         }))
     }
 
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "materialmovement", 
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+
+                setMaterialMovements(res.data.materialMovements); 
+                setIsQueryFound(formattedMaterialMovements.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
 
     const getMovementIcon = (movementType) => {
         switch (movementType) {
@@ -140,14 +183,14 @@ function MaterialMovements() {
     };
 
     const getStatusColor = (status) => {
-        switch (status) {
-            case 'Rejected': return 'error';
-            case 'Approved': return 'primary';
-            case 'Pending': return 'warning';
-            case 'Fulfilled': return 'success';
-            case 'Cancelled': return 'default';
-            case 'Completed': return 'info';
-            case 'Ongoing': return 'secondary';
+        switch (status.toUpperCase()) {            
+            case 'REJECTED': return 'error';
+            case 'APPROVED': return 'primary';
+            case 'PENDING': return 'warning';
+            case 'FULFILLED': return 'success';
+            case 'CANCELLED': return 'default';
+            case 'COMPLETED': return 'info';
+            case 'ONGOING': return 'secondary';            
             default: return 'default';
         }
     };
@@ -174,7 +217,7 @@ function MaterialMovements() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={materialMovements[i].materialMovementId} itemType="materialMovements" />
+                    <Delete itemId={materialMovements[i].id} itemType="materialmovement" />
                 )
             }));
         }, 100);
@@ -185,16 +228,36 @@ function MaterialMovements() {
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingMaterialMovement}>
+
+            <button id="btn-generic" className="add-btn" onClick={handleAddingMaterialMovement}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Material Movement</span>
+                    <span id="long" className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('ADD_MATERIAL_MOVEMENT')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Material Movements" type="search" />
+
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_MATERIAL_MOVEMENTS')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+
+                <button id="btn-generic" 
+                    className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`}
+                    disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button> 
 
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
+                {isLoading ? (
+                    <div className='progress-container'>
+                        <CircularProgress />
+                    </div>
+                ) : materialMovements.length > 0 ? 
+                <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
                   {materialMovements.length > 0 && !isQueryFound ? materialMovements.map((materialMovement, index) => (
                     <Grid item xs={2} sm={4} md={4} key={index}>
@@ -218,7 +281,13 @@ function MaterialMovements() {
                                     <div>
                                         <TextSnippetIcon />
                                         <span className="materialMovement-name">
-                                            {materialMovement.materialName}
+                                            {materialMovement.materialName.name}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <AssignmentIcon />
+                                        <span className="materialMovement">
+                                            {materialMovement.internalOrder.name}
                                         </span>
                                     </div>
                                     <div>
@@ -230,17 +299,17 @@ function MaterialMovements() {
                                     <div>
                                         <StorefrontIcon />
                                         <span className="materialMovement-type">
-                                            <span className="txt-identifiers">From: </span> {materialMovement.from}  <span className="txt-identifiers">To: </span> {materialMovement.to}
+                                            <span className="txt-identifiers">{t('FROM')}: </span> {materialMovement.from.name}  <span className="txt-identifiers">To: </span> {materialMovement.to.name}
                                         </span>
                                     </div>
                                     <div>
                                         <span className="materialMovement-description">
-                                            <span className="txt-identifiers">Quantity:</span> {materialMovement.quantity} {materialMovement.unitOfMeasure}
+                                            <span className="txt-identifiers">{t('QUANTITY')}:</span> {materialMovement.quantity} {materialMovement.unitOfMeasure}
                                         </span>
                                     </div>
                                     <div>
                                         <span className="materialMovement-supplier">
-                                            <span className="txt-identifiers">Notes:</span> {materialMovement.notes}
+                                            <span className="txt-identifiers">{t('NOTES')}:</span> {materialMovement.notes}
                                         </span>
                                     </div>
                                 </div>
@@ -254,7 +323,7 @@ function MaterialMovements() {
                         <div>
                             <TextSnippetIcon />
                             <span className="materialMovement-name">
-                                {materialMovement.materialName}
+                                {materialMovement.materialName.name}
                             </span>
                         </div>
                         <div>
@@ -266,17 +335,17 @@ function MaterialMovements() {
                         <div>
                             <StorefrontIcon />
                             <span className="materialMovement-type">
-                                <span className="txt-identifiers">From:</span> {materialMovement.from} <span className="txt-identifiers">To:</span> {materialMovement.to}
+                                <span className="txt-identifiers">{t('FROM')}:</span> {materialMovement.from.name} <span className="txt-identifiers">To:</span> {materialMovement.name}
                             </span>
                         </div>
                         <div>
                             <span className="materialMovement-description">
-                                <span className="txt-identifiers">Quantity:</span> {materialMovement.quantity} {materialMovement.unitOfMeasure}
+                                <span className="txt-identifiers">{t('QUANTITY')}:</span> {materialMovement.quantity} {materialMovement.unitOfMeasure}
                             </span>
                         </div>
                         <div>
                             <span className="materialMovement-supplier">
-                                <span className="txt-identifiers">Notes:</span> {materialMovement.notes}
+                                <span className="txt-identifiers">{t('NOTES')}:</span> {materialMovement.notes}
                             </span>
                         </div>
                       </Paper>
@@ -303,7 +372,13 @@ function MaterialMovements() {
                                 <div>
                                     <TextSnippetIcon />
                                     <span className="materialMovement-name">
-                                        {highlightMatch(materialMovement.materialName, query)}
+                                        {highlightMatch(materialMovement.materialName.name, query)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <AssignmentIcon />
+                                    <span className="materialMovement">
+                                        {highlightMatch(materialMovement.internalOrder.name, query)}
                                     </span>
                                 </div>
                                 <div>
@@ -315,17 +390,17 @@ function MaterialMovements() {
                                 <div>
                                     <StorefrontIcon />
                                     <span className="materialMovement-type">
-                                        <span className="txt-identifiers">From:</span> {highlightMatch(materialMovement.from, query)}  <span className="txt-identifiers">To:</span> {highlightMatch(materialMovement.to, query)}
+                                        <span className="txt-identifiers">{t('FROM')}:</span> {highlightMatch(materialMovement.from.name, query)}  <span className="txt-identifiers">To:</span> {highlightMatch(materialMovement.to.name, query)}
                                     </span>
                                 </div>
                                 <div>
                                     <span className="materialMovement-description">
-                                        <span className="txt-identifiers">Quantity:</span> {highlightMatch(materialMovement.quantity, query)} {materialMovement.unitOfMeasure}
+                                        <span className="txt-identifiers">{t('QUANTITY')}:</span> {highlightMatch(materialMovement.quantity, query)} {materialMovement.unitOfMeasure}
                                     </span>
                                 </div>
                                 <div>
                                     <span className="materialMovement-supplier">
-                                        <span className="txt-identifiers">Notes:</span> {highlightMatch(materialMovement.notes, query)}
+                                        <span className="txt-identifiers">{t('NOTES')}:</span> {highlightMatch(materialMovement.notes, query)}
                                     </span>
                                 </div>
                             </div>
@@ -339,7 +414,7 @@ function MaterialMovements() {
                         <div>
                             <TextSnippetIcon />
                             <span className="materialMovement-name">
-                                {highlightMatch(materialMovement.materialName, query)}
+                                {highlightMatch(materialMovement.materialName.name, query)}
                             </span>
                         </div>
                         <div>
@@ -351,25 +426,40 @@ function MaterialMovements() {
                         <div>
                             <StorefrontIcon />
                             <span className="materialMovement-type">
-                                <span className="txt-identifiers">From:</span> {highlightMatch(materialMovement.from, query)}  <span className="txt-identifiers">To:</span> {highlightMatch(materialMovement.to, query)}
+                                <span className="txt-identifiers">{t('FROM')}:</span> {highlightMatch(materialMovement.from.name, query)}  <span className="txt-identifiers">To:</span> {highlightMatch(materialMovement.to.name, query)}
                             </span>
                         </div>
                         <div>
                             <span className="materialMovement-description">
-                                <span className="txt-identifiers">Quantity:</span> {highlightMatch(materialMovement.quantity, query)} {materialMovement.unitOfMeasure}
+                                <span className="txt-identifiers">{t('QUANTITY')}:</span> {highlightMatch(materialMovement.quantity, query)} {materialMovement.unitOfMeasure}
                             </span>
                         </div>
                         <div>
                             <span className="materialMovement-supplier">
-                                <span className="txt-identifiers">Notes:</span> {highlightMatch(materialMovement.notes, query)}
+                                <span className="txt-identifiers">{t('NOTES')}:</span> {highlightMatch(materialMovement.notes, query)}
                             </span>
                         </div>
                       </Paper>
                     </Grid>
-                  )) : <div>Loading...</div>
+                  )) : ''
                   }
                 </Grid>
-            </Box>
+                </Box>
+                 : (
+                    <div className='progress-container'>
+                        {t('NO_MATERIAL_MOVEMENT_AVAILABLE')}
+                    </div>
+                )}
+
+                {
+                    materialMovements.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalUsers / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
             </div>
 
         </div>

@@ -2,14 +2,24 @@ import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { useAppDispatch } from 'app/store';
+import { useTranslation } from 'react-i18next';
+
 
 
 
 function AddSupplier({ splier }) {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('suppliersPage');
+    const lang = i18n.language;
+
+    const dispatch = useAppDispatch()
+
+    const [isLoading, setIsLoading] = useState(false)
 
     const [supplier, setSupplier] = useState({
+        id: splier ? splier.id : '',
         name: splier ? splier.name : '',
         phone: splier ? splier.phone : '',
         email: splier ? splier.email : '',
@@ -37,47 +47,44 @@ function AddSupplier({ splier }) {
 
     const handleAddSuppliers = async (event) => {
         event.preventDefault();
-        
+        setIsLoading(true)
         try {
             // @route: api/create/suppliers
             // @description: create a new supplier
             const res = await jwtService.createItem({ 
-                itemType: 'suppliers',
-                data: {
-                    data: supplier,
-                    currentUserId: currentUserId
-                }
+                itemType: 'supplier',
+                data: supplier
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                showMsg(res, 'success')
+            if (res.status === 201) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     const handleUpdateSuppliers = async (event) => {
         event.preventDefault();
 
+        setIsLoading(true)
         try {
-            // @route: api/update/suppliers
-            // @description: update an existing supplier
             const res = await jwtService.updateItem({ 
-                itemType: 'suppliers',
+                itemType: 'supplier',
                 data: {
                     data: supplier,
-                    currentUserId: currentUserId,
-                    itemId: splier.suppliersId
+                    itemId: supplier.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+            if (res.status === 200) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
-            // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
 
@@ -86,7 +93,7 @@ function AddSupplier({ splier }) {
             <form onSubmit={splier ? handleUpdateSuppliers : handleAddSuppliers}>
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Supplier Name"
+                        label={t('SUPPLIER_NAME_LABEL')}
                         variant="outlined"
                         value={supplier.name}
                         onChange={handleChange('name')}
@@ -96,7 +103,7 @@ function AddSupplier({ splier }) {
 
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Phone"
+                        label={t('PHONE_LABEL')}
                         variant="outlined"
                         value={supplier.phone}
                         onChange={handleChange('phone')}
@@ -106,7 +113,7 @@ function AddSupplier({ splier }) {
 
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Email"
+                        label={t('EMAIL_LABEL')}
                         variant="outlined"
                         value={supplier.email}
                         onChange={handleChange('email')}
@@ -115,7 +122,7 @@ function AddSupplier({ splier }) {
 
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
-                        label="Address"
+                        label={t('ADDRESS_LABEL')}
                         variant="outlined"
                         value={supplier.address}
                         onChange={handleChange('address')}
@@ -123,7 +130,9 @@ function AddSupplier({ splier }) {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-supplier-btn">{splier ? 'Update' : 'Add'} Supplier</button>
+                <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                    {splier ? (isLoading ? t('UPDATING') : t('UPDATE_SUPPLIER_BUTTON')) : (isLoading ? t('ADDING') : t('ADD_SUPPLIER_BUTTON')) }
+                </button>
             </form>
         </Box>
     );

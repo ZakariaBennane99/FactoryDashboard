@@ -1,5 +1,20 @@
 const locale = {
-	TITLE: 'المواد'
+    TITLE: 'المواد',
+    ADD_MATERIAL: 'إضافة مادة',
+    SEARCH_MATERIAL: 'بحث عن مادة',
+    SEARCH: 'بحث',
+    QUERY_ERROR: 'الرجاء إدخال 4 أحرف على الأقل',
+    MATERIAL_NAME: 'اسم المادة',
+    MATERIAL_TYPE: 'نوع المادة',
+    COLOR: 'اللون',
+    QUANTITY: 'الكمية',
+    UNIT_OF_MEASURE: 'وحدة القياس',
+    SUPPLIER: 'المورد',
+    CATEGORY: 'الفئة',
+    DESCRIPTION: 'الوصف',
+    UPDATE_MATERIAL: 'تحديث المادة',
+    ADDING: 'جاري الإضافة...',
+    UPDATING: 'جاري التحديث...',
+    NO_MATERIAL_AVAILABLE: 'لا توجد مواد متاحة!',
 };
-
 export default locale;

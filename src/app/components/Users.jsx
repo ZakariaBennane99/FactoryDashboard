@@ -15,16 +15,28 @@ import Delete from './Delete';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
-import { Switch, FormControlLabel } from '@mui/material';
-import jwtService from '../../app/auth/services/jwtService'
-
+import jwtService from '../../app/auth/services/jwtService';
+import { CircularProgress } from '@mui/material';
+import Pagination from '@mui/material/Pagination';
+import SearchIcon from '@mui/icons-material/Search'
+import { useTranslation } from 'react-i18next';
 
 
 
 function Users() {
-    
-    // instead of the userId, you should get the userRole
-    const currentUserId = window.localStorage.getItem('userId')
+
+    const { t, i18n } = useTranslation('usersPage');
+    const lang = i18n.language;
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(1);
+    const itemsPerPage = 7;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredUsers, setFilteredUsers] = useState(null);
 
@@ -34,6 +46,39 @@ function Users() {
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
    
+    async function fetchSearchResults() {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "auth",
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedUsers = res.data.map(user => ({
+                    id: user.Id,
+                    firstName: user.Firstname,
+                    lastName: user.Lastname,
+                    userName: user.Username,
+                    email: user.Email,
+                    phoneNumber: user.PhoneNumber,
+                    department: user.Department ? user.Department.Name : (user.Warehouse ? user.Warehouse.WarehouseName : null),
+                    category: user.Department ? user.Department.CategoryName : (user.Warehouse ? "MANAGEMENT" : null),
+                    active: user.IsActive,
+                    userRole: user.Role,
+                    profileImage: user.PhotoPath,
+                    password: ''
+                }));
+                setUsers(formattedUsers)
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
     function highlightMatch(text, query) {
         if (!isQueryFound || !query) {
             return <span>{text}</span>;
@@ -54,17 +99,25 @@ function Users() {
     }  
 
     function handleSearch(e) {
+        setSearchError(false)
         const query = e.target.value;
-        setQuery(query)
+        setQuery(query.toLocaleLowerCase())
+        
         // check if the query exist
         for (let i = 0; i < users.length; i++) {
             if (Object.values(users[i]).some(value =>
                 typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
             )) {
                 setIsQueryFound(true);
-                return; // Exit the function as we found the query
             }
         }
+
+        if (query.length <= 3) {
+            setSearchError(true);
+        } else {
+            setSearchError(false);
+        }
+
     }
 
     useEffect(() => {
@@ -97,24 +150,41 @@ function Users() {
 
     useEffect(() => {    
         async function getUsers() {
+            setIsLoading(true)
             try {
-                // @route: api/items/users
-                // @description: get users
-                const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "users"
+                const res = await jwtService.getItems({
+                    itemType: "auth",
+                    page: page,
+                    itemsPerPage: itemsPerPage,
                 });
-                if (res) {
-                    setUsers(res)
+                if (res.status === 200) {
+                    console.log('The response', res)
+                    const formattedUsers = res.data.users.map(user => ({
+                        id: user.Id,
+                        firstName: user.Firstname,
+                        lastName: user.Lastname,
+                        userName: user.Username,
+                        email: user.Email,
+                        phoneNumber: user.PhoneNumber,
+                        department: user.Department ? user.Department.Name : (user.Warehouse ? user.Warehouse.WarehouseName : null),
+                        category: user.Department ? user.Department.CategoryName : (user.Warehouse ? "MANAGEMENT" : null),
+                        active: user.IsActive,
+                        userRole: user.Role,
+                        profileImage: user.PhotoPath,
+                        password: ''
+                    }));
+                    setUsers(formattedUsers)
+                    setTotalUsers(res.data.count)
                 }
             } catch (_error) {
-                // the error msg will be sent so you don't have to hardcode it
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false); 
             }
         }
         
         getUsers();
-    }, []);
+    }, [page, itemsPerPage]);
 
     function handleAddingUser() {
         dispatch(openDialog({
@@ -125,7 +195,6 @@ function Users() {
     }
 
     function handleEdit(i) {
-        console.log(users[i])
         // first close the current window
         dispatch(closeDialog())
         setTimeout(() => {
@@ -147,196 +216,227 @@ function Users() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={users[i].userId} itemType='user' />
+                    <Delete itemId={users[i].id} itemType='auth' />
                 )
             }));
         }, 100);
     }
 
-    function handleAddingRole() {
-        dispatch(openDialog({
-            children: ( 
-                <AddRole />
-            )
-        }))
-    }
 
-    // Add a new function to handle the active toggle
-    function handleToggleActive(e, index) {
-        const updatedUsers = [...users];
-        // Update the active status of the specific user
-        updatedUsers[index] = { ...updatedUsers[index], active: e.target.checked };
-        setUsers(updatedUsers);
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
     }
-
 
 
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn users" onClick={handleAddingUser}>
+                <button id="btn-generic" className="add-btn users" onClick={handleAddingUser}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add User</span>
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('ADD_USER')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search-user" label="Search Users" type="search" />
+                <TextField
+                    onChange={handleSearch}
+                    id="outlined-search"
+                    className={`search-user ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_USERS')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""}
+                />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {users.length > 0 && !isQueryFound ? users.map((user, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card user"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog user">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div className="head-container">
-                                         <img id="avatar" src={`/assets/images/avatars/${user.userName.toLowerCase()}.jpg`} />
-                                         <span className="name">
-                                            {user.firstName + ' ' + user.lastName} 
-                                         </span>
-                                         <span className="category">
-                                            {user.category}
-                                         </span>
-                                         <span>
-                                            <FormControlLabel
-                                              control={<Switch checked={user.active} onChange={(e) => handleToggleActive(e, index)} />}
-                                              label={user.active ? 'Active' : 'Inactive'}
-                                            />
-                                         </span>
-                                     </div>
-                                     <div className="full-body-container">
-                                            <div className="manager">
-                                                <ApartmentIcon />
-                                                <span>
-                                                   {user.department}
-                                                </span>
-                                            </div>
-                                            <div className="manager">
-                                                <EmailIcon />
-                                                <span>
-                                                   {user.email}
-                                                </span>
-                                            </div>
-                                            <div className="manager">
-                                                <PhoneIcon />
-                                                <span>
-                                                   {user.phoneNumber}
-                                                </span>
-                                            </div>
-                                    </div>
-                                </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div className="head-container">
-                            <img id="avatar" src={`/assets/images/avatars/${user.userName.toLowerCase()}.jpg`} />
-                            <span className="name">
-                                {user.firstName + ' ' + user.lastName} 
-                            </span>
+                {
+                    isLoading ? 
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
                         </div>
-                        <div className="body-container">
-                            <span className="category">
-                                {user.category}
-                            </span>
-                            <div className="manager">
-                                <span>
-                                    {user.department}
+                    ) : users.length > 0 ? (
+                        <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {users.length > 0 && !isQueryFound ? users.map((user, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card user"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog user">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div className="head-container">
+                                                 <img id="avatar" src={`http://localhost:3002${user.profileImage}`} />
+                                                 <span className="name">
+                                                    {user.firstName + ' ' + user.lastName} 
+                                                 </span>
+                                                 <span className="category">
+                                                    {t(user.category)}
+                                                 </span>
+                                             </div>
+                                             <div className="full-body-container">
+                                                    {
+                                                        user.department ?
+                                                            <div className="manager">
+                                                                <ApartmentIcon />
+                                                                <span>
+                                                                   {user.department}
+                                                                </span>
+                                                            </div> : ''
+                                                    }
+                                                    <div className="manager">
+                                                        <EmailIcon />
+                                                        <span>
+                                                           {user.email}
+                                                        </span>
+                                                    </div>
+                                                    <div className="manager">
+                                                        <PhoneIcon />
+                                                        <span>
+                                                           {user.phoneNumber}
+                                                        </span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div className="head-container">
+                                    <img id="avatar" src={`http://localhost:3002${user.profileImage}`} />
+                                    <span className="name">
+                                        {user.firstName + ' ' + user.lastName} 
+                                    </span>
+                                </div>
+                                {
+                                    user.department ? 
+                                        <div className="body-container">
+                                            <span className="category">
+                                                {t(user.category)}
+                                            </span>
+                                            <div className="manager">
+                                                <span>
+                                                    {user.department}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    :
+                                    <div style={{ textAlign: 'center' }}>
+                                        {t('USER_NOT_ASSIGNED')}
+                                    </div>
+                                }
+                    
+                              </Paper>
+                            </Grid>
+                          )) : filteredUsers && isQueryFound ? filteredUsers.map((user, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card user"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog user">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div className="head-container">
+                                                <img id="avatar" src={`http://localhost:3002${user.profileImage}`} />
+                                                <span className="name">
+                                                    {highlightMatch(user.firstName + ' ' + user.lastName, query)}
+                                                </span>
+                                                <span className="category">
+                                                    {highlightMatch(user.category, query)}
+                                                </span>
+                                            </div>
+                                            <div className="full-body-container">
+                                                <div className="manager">
+                                                    <ApartmentIcon />
+                                                    <span>
+                                                        {highlightMatch(user.department, query)}
+                                                    </span>
+                                                </div>
+                                                <div className="manager">
+                                                    <EmailIcon />
+                                                    <span>
+                                                        {highlightMatch(user.email, query)}
+                                                    </span>
+                                                </div>
+                                                <div className="manager">
+                                                    <PhoneIcon />
+                                                    <span>
+                                                        {highlightMatch(user.phoneNumber, query)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                            <div className="head-container">
+                                <img id="avatar" src={`http://localhost:3002${user.profileImage}`} />
+                                <span className="name">
+                                    {highlightMatch(user.firstName + ' ' + user.lastName, query)}
                                 </span>
                             </div>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredUsers && isQueryFound ? filteredUsers.map((user, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card user"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog user">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div className="head-container">
-                                        <img id="avatar" src={`/assets/images/avatars/${user.userName.toLowerCase()}.jpg`} />
-                                        <span className="name">
-                                            {highlightMatch(user.firstName + ' ' + user.lastName, query)}
-                                        </span>
-                                        <span className="category">
-                                            {highlightMatch(user.category, query)}
-                                        </span>
-                                        <span>
-                                            <FormControlLabel
-                                              control={<Switch checked={user.active} onChange={(e) => handleToggleActive(e, index)} />}
-                                              label={user.active ? 'Active' : 'Inactive'}
-                                            />
-                                         </span>
-                                    </div>
-                                    <div className="full-body-container">
-                                        <div className="manager">
-                                            <ApartmentIcon />
-                                            <span>
-                                                {highlightMatch(user.department, query)}
+                                {
+                                    user.department ? 
+                                        <div className="body-container">
+                                            <span className="category">
+                                                {highlightMatch(t(user.category), query)}
                                             </span>
+                                            <div className="manager">
+                                                <span>
+                                                    {highlightMatch(user.department, query)}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="manager">
-                                            <EmailIcon />
-                                            <span>
-                                                {highlightMatch(user.email, query)}
-                                            </span>
-                                        </div>
-                                        <div className="manager">
-                                            <PhoneIcon />
-                                            <span>
-                                                {highlightMatch(user.phoneNumber, query)}
-                                            </span>
-                                        </div>
+                                    :
+                                    <div style={{ textAlign: 'center' }}>
+                                        {t('USER_NOT_ASSIGNED')}
                                     </div>
-                                </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div className="head-container">
-                            <img id="avatar" src={`/assets/images/avatars/${user.userName.toLowerCase()}.jpg`} />
-                            <span className="name">
-                                {highlightMatch(user.firstName + ' ' + user.lastName, query)}
-                            </span>
+                                }
+                              </Paper>
+                            </Grid>
+                          )) : ''
+                          }
+                        </Grid>
+                        </Box>
+                    ) : (
+                        <div className='progress-container'>
+                            {t('NO_USERS_AVAILABLE')}
                         </div>
-                        <div className="body-container">
-                            <span className="category">
-                                {highlightMatch(user.category, query)}
-                            </span>
-                            <div className="manager">
-                                <span>
-                                    {highlightMatch(user.department, query)}
-                                </span>
-                            </div>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                    )
+                }
+                {
+                    users.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalUsers / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
             </div>
 
         </div>

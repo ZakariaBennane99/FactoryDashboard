@@ -21,23 +21,30 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import ReportDates from './ReportDates';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { CircularProgress } from '@mui/material';
+import NumbersIcon from '@mui/icons-material/Numbers';
+import StraightenIcon from '@mui/icons-material/Straighten'; 
+import Pagination from '@mui/material/Pagination';
+import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
 
 
-
-
-
-function trimText(txt, maxLength) {
-    if (txt.length > maxLength) {
-        return txt.substring(0, maxLength) + '...'
-    } else {
-        return txt
-    }
-}
 
 
 function Materials() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('materialsPage');
+    const lang = i18n.language;
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(1);
+    const itemsPerPage = 7;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    const [isLoading, setIsLoading] = useState(false)
 
     const [filteredMaterials, setFilteredMaterials] = useState(null);
 
@@ -66,6 +73,50 @@ function Materials() {
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     } 
     
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "material", 
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedMaterials = res.data.materials.map(mtrl => ({
+                    id: mtrl.Id,
+                    name: mtrl.Name,
+                    type: mtrl.Type,
+                    color: mtrl.Color,
+                    description: mtrl.Description,
+                    quantity: mtrl.Quantity,
+                    unitOfMeasure: mtrl.UnitOfMeasure,
+                    category: {
+                        id: mtrl.Category.Id,
+                        name: mtrl.Category.CategoryName
+                    },
+                    supplier: {
+                        id: mtrl.Supplier.Id,
+                        name: mtrl.Supplier.Name
+                    }
+                }));
+                setMaterials(formattedMaterials); 
+                setIsQueryFound(formattedMaterials.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -111,18 +162,37 @@ function Materials() {
 
     useEffect(() => {
         async function getMaterials() {
+            setIsLoading(true)
             try {
-                // @route: api/items/materials
-                // @description: get materials
-                const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "materials"
+                const res = await jwtService.getItems({
+                    itemType: "material"
                 });
-                if (res) {
-                    setMaterials(res)
+                if (res.status === 200) {
+                    setMaterials(res.data.materials.map(mtrl => {
+                        return {
+                            id: mtrl.Id,
+                            name: mtrl.Name,
+                            type: mtrl.Type,
+                            color: mtrl.Color,
+                            description: mtrl.Description,
+                            quantity: mtrl.Quantity,
+                            unitOfMeasure: mtrl.UnitOfMeasure,
+                            category: {
+                                id: mtrl.Category.Id,
+                                name: mtrl.Category.CategoryName
+                            },
+                            supplier: {
+                                id: mtrl.Supplier.Id,
+                                name: mtrl.Supplier.Name
+                            } 
+                        }
+                    }))
+                    setTotalUsers(res.data.count)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -158,7 +228,7 @@ function Materials() {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
                 children: ( 
-                    <ReportDates materialId={materials[i].materialId} materialName={materials[i].name} />
+                    <ReportDates materialId={materials[i].id} />
                 )
             }));
         }, 100);
@@ -173,25 +243,46 @@ function Materials() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={materials[i].materialId} itemType="materials" />
+                    <Delete itemId={materials[i].id} itemType="material" />
                 )
             }));
         }, 100);
     }
 
+
+
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingMaterial}>
+                
+                <button id="btn-generic" className="add-btn" onClick={handleAddingMaterial}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Material</span>
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('ADD_MATERIAL')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Materials" type="search" />
+
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_MATERIAL')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button> 
+
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
+                {isLoading ? (
+                    <div className='progress-container'>
+                        <CircularProgress />
+                    </div>
+                ) : materials.length > 0 ? 
+                <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
                   {materials.length > 0 && !isQueryFound ? materials.map((material, index) => (
                     <Grid item xs={2} sm={4} md={4} key={index}>
@@ -231,15 +322,33 @@ function Materials() {
                                         </span>
                                     </div>
                                     <div>
-                                        <DescriptionIcon />
-                                        <span className="material-description">
-                                            {material.description}
+                                        <NumbersIcon />
+                                        <span className="material-quantity">
+                                            {material.quantity}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <StraightenIcon />
+                                        <span className="material-uom">
+                                            {material.unitOfMeasure}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <CategoryIcon />
+                                        <span className="material-category">
+                                            {material.category.name}
                                         </span>
                                     </div>
                                     <div>
                                         <BusinessIcon /> 
                                         <span className="material-supplier">
-                                            {material.supplier}
+                                            {material.supplier.name}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <DescriptionIcon />
+                                        <span className="material-description">
+                                            {material.description}
                                         </span>
                                     </div>
                                 </div>
@@ -253,13 +362,7 @@ function Materials() {
                                 {material.name}
                             </span>
                         </div>
-                        <div>
-                            <CategoryIcon />
-                            <span className="material-type">
-                                {material.type}
-                            </span>
-                        </div>
-                        <div>
+                        <div>   
                             <PaletteIcon />
                             <span className="material-color" style={{ 
                                 backgroundColor: material.color.toLocaleLowerCase(), 
@@ -267,16 +370,16 @@ function Materials() {
                                 {material.color}
                             </span>
                         </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="material-description">
-                                {trimText(material.description, 40)}
+                        <div> 
+                            <NumbersIcon />
+                            <span className="material-quantity">
+                                {material.quantity}
                             </span>
                         </div>
                         <div>
                             <BusinessIcon /> 
                             <span className="material-supplier">
-                                {material.supplier}
+                                {material.supplier.name}
                             </span>
                         </div>
                       </Paper>
@@ -298,81 +401,109 @@ function Materials() {
                                         <AccountTreeIcon id="material-reports" onClick={() => handleReports(index)} />
                                         <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
                                     </div>
-                                <div>
-                                    <TextSnippetIcon />
-                                    <span className="material-name">
-                                        {highlightMatch(material.name, query)}
-                                    </span>
+                                    <div>
+                                        <TextSnippetIcon />
+                                        <span className="material-name">
+                                            {highlightMatch(material.name, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <CategoryIcon />
+                                        <span className="material-type">
+                                            {highlightMatch(material.type, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <PaletteIcon />
+                                        <span className="material-color" style={{ 
+                                            backgroundColor: material.color.toLocaleLowerCase(), 
+                                            color: tinycolor(material.color.toLocaleLowerCase()).isLight() ? 'black' : 'white' }}>
+                                            {highlightMatch(material.color, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <NumbersIcon />
+                                        <span className="material-quantity">
+                                            {highlightMatch(material.quantity.toString(), query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <StraightenIcon />
+                                        <span className="material-uom">
+                                            {highlightMatch(material.unitOfMeasure, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <CategoryIcon />
+                                        <span className="material-category">
+                                            {highlightMatch(material.category.name, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <BusinessIcon /> 
+                                        <span className="material-supplier">
+                                            {highlightMatch(material.supplier.name, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <DescriptionIcon />
+                                        <span className="material-description">
+                                            {highlightMatch(material.description, query)}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <CategoryIcon />
-                                    <span className="material-type">
-                                        {highlightMatch(material.type, query)}
-                                    </span>
-                                </div>
-                                <div>
-                                    <PaletteIcon />
-                                    <span className="material-color" style={{ 
-                                        backgroundColor: material.color.toLocaleLowerCase(), 
-                                        color: tinycolor(material.color.toLocaleLowerCase()).isLight() ? 'black' : 'white' }}>
-                                        {highlightMatch(material.color, query)}
-                                    </span>
-                                </div>
-                                <div>
-                                    <DescriptionIcon />
-                                    <span className="material-description">
-                                        {highlightMatch(material.description, query)}
-                                    </span>
-                                </div>
-                                <div>
-                                    <BusinessIcon /> 
-                                    <span className="material-supplier">
-                                        {highlightMatch(material.supplier, query)}
-                                    </span>
-                                </div>
-                            </div>
                             )
                         }))
                       }}
                     >
-                            <div>
-                                <TextSnippetIcon />
-                                <span className="material-name">
-                                    {highlightMatch(material.name, query)}
-                                </span>
-                            </div>
-                            <div>
-                                <CategoryIcon />
-                                <span className="material-type">
-                                    {highlightMatch(material.type, query)}
-                                </span>
-                            </div>
-                            <div>
-                                <PaletteIcon />
-                                <span className="material-color" style={{ 
-                                    backgroundColor: material.color.toLocaleLowerCase(), 
-                                    color: tinycolor(material.color.toLocaleLowerCase()).isLight() ? 'black' : 'white' }}>
-                                    {highlightMatch(material.color, query)}
-                                </span>
-                            </div>
-                            <div>
-                                <DescriptionIcon />
-                                <span className="material-description">
-                                    {highlightMatch(trimText(material.description, 40), query)}
-                                </span>
-                            </div>
-                            <div>
-                                <BusinessIcon /> 
-                                <span className="material-supplier">
-                                    {highlightMatch(material.supplier, query)}
-                                </span>
-                            </div>
+                        <div>
+                            <TextSnippetIcon />
+                            <span className="material-name">
+                                {highlightMatch(material.name, query)}
+                            </span>
+                        </div>
+                        <div>   
+                            <PaletteIcon />
+                            <span className="material-color" style={{ 
+                                backgroundColor: material.color.toLocaleLowerCase(), 
+                                color: tinycolor(material.color.toLocaleLowerCase()).isLight() ? 'black' : 'white' }}>
+                                {highlightMatch(material.color, query)}
+                            </span>
+                        </div>
+                        <div> 
+                            <NumbersIcon />
+                            <span className="material-quantity">
+                                {highlightMatch(material.quantity.toString(), query)}
+                            </span>
+                        </div>
+                        <div>
+                            <BusinessIcon /> 
+                            <span className="material-supplier">
+                                {highlightMatch(material.supplier.name, query)}
+                            </span>
+                        </div>
                       </Paper>
                     </Grid>
-                  )) : <div>Loading...</div>
+                  )) : ""
                   }
                 </Grid>
-            </Box>
+                </Box>
+                 : (
+                    <div className='progress-container'>
+                        {t('NO_MATERIAL_AVAILABLE')}
+                    </div>
+                )}
+
+
+                {
+                    materials.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalUsers / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
             </div>
 
         </div>

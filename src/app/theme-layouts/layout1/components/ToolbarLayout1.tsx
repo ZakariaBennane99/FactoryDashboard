@@ -71,7 +71,6 @@ function ToolbarLayout1(props: ToolbarLayout1Props) {
 						<FullScreenToggle />
 						<NavigationSearch />
 						<QuickPanelToggleButton />
-						<NotificationPanelToggleButton />
 						<UserMenu />
 					</div>
 

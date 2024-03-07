@@ -1,5 +1,5 @@
 const locale = {
-	TITLE: 'Template Size'
+	TITLE: 'Template Sizeasdf'
 };
 
 export default locale;

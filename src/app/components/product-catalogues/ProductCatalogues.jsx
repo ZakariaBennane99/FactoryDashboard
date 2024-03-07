@@ -7,7 +7,7 @@ import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import axios from 'axios';
+import { CircularProgress } from '@mui/material';
 import CategoryIcon from '@mui/icons-material/Category';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AddProductCatalogue from './AddProductCatalogue';
@@ -16,6 +16,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../Delete';
 import jwtService from '../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import Pagination from '@mui/material/Pagination';
+import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
+
 
 
 
@@ -27,9 +31,21 @@ function trimText(txt, maxLength) {
     }
 }
 
+
 function ProductCatalogues() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('cataloguesPage');
+    const lang = i18n.language;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredProductCatalogues, setFilteredProductCatalogues] = useState(null);
 
@@ -100,27 +116,68 @@ function ProductCatalogues() {
         }
     }, [productCatalogues, query, isQueryFound]);
 
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "productcatalog", 
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedProductCatalogues = res.data.map(ctlg => ({
+                    id: ctlg.Id,
+                    name: ctlg.ProductCatalogName,
+                    description: ctlg.ProductCatalogDescription,
+                }));
+                setProductCatalogues(formattedProductCatalogues); 
+                setIsQueryFound(formattedProductCatalogues.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error') 
+        } finally {
+            setIsLoading(false); 
+        }
+    }
 
     useEffect(() => {
         async function getProductCatalogues() {
+            setIsLoading(true)
             try {
-                // @route: api/items/productCatalogues
-                // @description: get productCatalogues
-                const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "productCatalogues"
+                const res = await jwtService.getItems({
+                    itemType: "productcatalog",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setProductCatalogues(res)
+                if (res.status === 200) {
+                    console.log('The response', res)
+                    const formatted = res.data.productCatalogs.map(ctlg => ({
+                        id: ctlg.Id,
+                        name: ctlg.ProductCatalogName,
+                        description: ctlg.ProductCatalogDescription,
+                    }));
+                    console.log('The data', res)
+                    setProductCatalogues(formatted)
+                    setTotalCtlgs(res.data.count)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.messgae, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
         getProductCatalogues();
     }, []);
 
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
 
     function handleAddingProductCatalogue() {
         dispatch(openDialog({
@@ -152,7 +209,7 @@ function ProductCatalogues() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={productCatalogues[i].productCatalogueId} itemType="productCatalogues" />
+                    <Delete itemId={productCatalogues[i].id} itemType="productcatalog" />
                 )
             }));
         }, 100);
@@ -163,114 +220,148 @@ function ProductCatalogues() {
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingProductCatalogue}>
+               
+                <button id="btn-generic" className="add-btn" onClick={handleAddingProductCatalogue}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Product Catalogue</span>
+                    <span id="long" className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('ADD_PRODUCT_CATALOGUE')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Product Catalogues" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    label={t('SEARCH_PRODUCT_CATALOGUES')} type="search"
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>
+
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {productCatalogues.length > 0 && !isQueryFound ? productCatalogues.map((productCatalogue, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card productCatalogue"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog productCatalogue">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <CategoryIcon />
-                                        <span className="productCatalogue-name">
-                                            {productCatalogue.name}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="productCatalogue-description">
-                                            {productCatalogue.description}
-                                        </span>
-                                    </div>
-                                </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <CategoryIcon />
-                            <span className="productCatalogue-name">
-                                {productCatalogue.name}
-                            </span>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
                         </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="productCatalogue-description">
-                                {trimText(productCatalogue.description, 30)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredProductCatalogues && isQueryFound ? filteredProductCatalogues.map((productCatalogue, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card productCatalogue"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog productCatalogue">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
+                    ) 
+                     : productCatalogues.length > 0 ? 
+                     (
+                        <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {productCatalogues.length > 0 && !isQueryFound ? productCatalogues.map((productCatalogue, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card productCatalogue"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog productCatalogue">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <CategoryIcon />
+                                                <span className="productCatalogue-name">
+                                                    {productCatalogue.name}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <DescriptionIcon />
+                                                <span className="productCatalogue-description">
+                                                    {productCatalogue.description}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
                                 <div>
                                     <CategoryIcon />
                                     <span className="productCatalogue-name">
-                                        {highlightMatch(productCatalogue.name, query)}
+                                        {productCatalogue.name}
                                     </span>
                                 </div>
                                 <div>
                                     <DescriptionIcon />
                                     <span className="productCatalogue-description">
-                                        {highlightMatch(productCatalogue.description, query)}
+                                        {trimText(productCatalogue.description, 30)}
                                     </span>
                                 </div>
-                            </div>
-                            )
-                        }))
-                      }}
-                    >
-                            <div>
-                                <CategoryIcon />
-                                <span className="productCatalogue-name">
-                                    {highlightMatch(productCatalogue.name, query)}
-                                </span>
-                            </div>
-                            <div>
-                                <DescriptionIcon />
-                                <span className="productCatalogue-description">
-                                    {highlightMatch(trimText(productCatalogue.description, 30), query)}
-                                </span>
-                            </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                              </Paper>
+                            </Grid>
+                          )) : filteredProductCatalogues && isQueryFound ? filteredProductCatalogues.map((productCatalogue, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card productCatalogue"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog productCatalogue">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                        <div>
+                                            <CategoryIcon />
+                                            <span className="productCatalogue-name">
+                                                {highlightMatch(productCatalogue.name, query)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <DescriptionIcon />
+                                            <span className="productCatalogue-description">
+                                                {highlightMatch(productCatalogue.description, query)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                    <div>
+                                        <CategoryIcon />
+                                        <span className="productCatalogue-name">
+                                            {highlightMatch(productCatalogue.name, query)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <DescriptionIcon />
+                                        <span className="productCatalogue-description">
+                                            {highlightMatch(trimText(productCatalogue.description, 30), query)}
+                                        </span>
+                                    </div>
+                              </Paper>
+                            </Grid>
+                          )) : <div>Loading...</div>
+                          }
+                        </Grid>
+                    </Box>
+                     ) : (
+                        <div className='progress-container'>
+                             {t('NO_PRODUCT_CATALOGUE_AVAILABLE')}
+                        </div>
+                    )
+                }
+                {
+                    productCatalogues.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
             </div>
 
         </div>

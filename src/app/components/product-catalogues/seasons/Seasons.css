@@ -5,7 +5,7 @@
 }
 
 .season-card div:not(#edit-container),
-.season-card .dialog div:not(#edit-container) {
+.dialog div:not(#edit-container) {
     margin-top: 15px;
     display: flex;
     flex-direction: row;

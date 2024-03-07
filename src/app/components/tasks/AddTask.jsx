@@ -1,45 +1,59 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import jwtService from '../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
-
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { useTranslation } from 'react-i18next';
+import { useAppDispatch } from 'app/store';
+import '../Departments.css';
 
 
 function AddTask({ tsk }) {
 
-  const currentUserId = window.localStorage.getItem('userId');
+  const { t, i18n } = useTranslation('tasksPage');
+  const lang = i18n.language;
+
+  const dispatch = useAppDispatch();
+
+  const [isLoading, setIsLoading] = useState(false)
 
     const [task, setTask] = useState({
-        taskName: tsk ? tsk.taskName : '',
-        dueDate: tsk ? new Date(tsk.dueDate) : null,
-        status: tsk ? tsk.status : '',
-        priority: tsk ? tsk.priority : '',
-        assignedToDepartment: tsk ? tsk.assignedToDepartment : '',
-        createdByDepartment: tsk ? tsk.createdByDepartment : ''
+      id: tsk ? tsk.id : '',
+      taskName: tsk ? tsk.taskName : '',
+      dueDate: tsk ? new Date(tsk.dueDate) : null,
+      status: tsk ? tsk.status : (lang === 'ar' ? 'معلق' : 'PENDING' ),
+      priority: tsk ? tsk.priority : '',
+      assignedToDepartment: tsk ? tsk.assignedToDepartment : '',
+      notes: tsk ? tsk.notes : ''
     });
 
+    const [departments, setDepartments] = useState([])
+
     const handleChange = (prop) => (event) => {
-        setTask({ ...task, [prop]: event.target.value });
+      setTask({ ...task, [prop]: event.target.value });
     };
 
-    const departments = [
-        { label: 'Design', value: 'Design' },
-        { label: 'Production', value: 'Production' },
-        { label: 'Quality Control', value: 'Quality Control' },
-        { label: 'Warehouse', value: 'Warehouse' },
-        { label: 'Human Resources', value: 'Human Resources' },
-        { label: 'Marketing', value: 'Marketing' },
-        { label: 'Sales', value: 'Sales' },
-        { label: 'Operations', value: 'Operations' },
-        { label: 'Product Management', value: 'Product Management' },
-        { label: 'Supply Chain', value: 'Supply Chain' }
-    ]
-
     const statuses = [
-        'PENDING', 'APPROVED', 'REJECTED', 'FULFILLED',
-        'CANCELLED', 'COMPLETED', 'ONGOING'
+      'PENDING', 'APPROVED', 'REJECTED', 'FULFILLED',
+      'CANCELLED', 'COMPLETED', 'ONGOING'
+    ];
+
+    const statusesAr = [
+      'معلق', // PENDING
+      'موافق عليه', // APPROVED
+      'مرفوض', // REJECTED
+      'مُنجز', // FULFILLED
+      'ملغى', // CANCELLED
+      'مكتمل', // COMPLETED
+      'جاري' // ONGOING
+    ];
+
+    const prioritiesAr = [
+      'منخفض', // LOW
+      'متوسط', // MEDIUM
+      'عالي' // HIGH
     ];
 
     const priorities = [
@@ -49,9 +63,8 @@ function AddTask({ tsk }) {
     ]
 
     const handleDateChange = (date) => {
-        setInternalOrder({ ...task, dueDate: date });
+        setTask({ ...task, dueDate: date });
     };
-
 
     function showMsg(msg, status) {
     
@@ -66,75 +79,81 @@ function AddTask({ tsk }) {
               },
               variant: status // success error info warning null
       })), 100);
-  }
+    }
 
-  const handleAddTasks = async (event) => {
+    const handleAddTasks = async (event) => {
+
       event.preventDefault();
       
+      setIsLoading(true)
+      
+      if (lang === 'ar') {
+        setTask({ ...task, 
+          priority: priorities[prioritiesAr.indexOf(task.priority)],
+          status: statuses[statusesAr.indexOf(task.status)]
+         });
+      } 
+
       try {
-          // @route: api/create/tasks
-          // @description: create a new task
           const res = await jwtService.createItem({ 
-              itemType: 'tasks',
-              data: {
-                  data: task,
-                  currentUserId: currentUserId
-              }
-           }, { 'Content-Type': 'application/json' });
-          if (res) {
-              showMsg(res, 'success')
+            itemType: 'task',
+            data: task
+          }, { 'Content-Type': 'application/json' });
+          if (res.status === 201) {
+              showMsg(res.message, 'success')
           }
       } catch (_error) {
-          showMsg(_error, 'error')
-      } 
-  };
+          showMsg(_error.message, 'error')
+      } finally {
+        setIsLoading(false)
+      }
+    };
 
-  const handleUpdateTasks = async (event) => {
+    const handleUpdateTasks = async (event) => {
       event.preventDefault();
 
+      setIsLoading(true)
       try {
-          // @route: api/update/tasks
-          // @description: update an existing task
           const res = await jwtService.updateItem({ 
-              itemType: 'tasks',
+              itemType: 'task',
               data: {
                   data: task,
-                  currentUserId: currentUserId,
-                  itemId: tsk.taskId
+                  itemId: task.id
               }
            }, { 'Content-Type': 'application/json' });
-          if (res) {
-              // the msg will be sent so you don't have to hardcode it
-              showMsg(res, 'success')
+          if (res.status === 200) {
+              showMsg(res.message, 'success')
           }
       } catch (_error) {
-          // the error msg will be sent so you don't have to hardcode it
-          showMsg(_error, 'error')
-      } 
-  };
+          showMsg(_error.message, 'error')
+      } finally {
+        setIsLoading(false)
+      }
+    };
 
   
-  /* TO BE UNCOMMENTED IN PRODUCTION
   // get the list of existing departments with their DB ids
   useEffect(() => {    
       async function getDepartments() {
           try {
-              // @route: api/departments
-              // @description: get Departments
-              // @response: an array department objects
-              const res = await jwtService.getDepartments({ 
-                  currentUserId: currentUserId
+              const res = await jwtService.getItems({
+                itemType: 'department'
               });
-              if (res) {
-                  setDepartments(res)
+              if (res.status === 200) {
+                console.log('THE RESPONSE', res.data)
+                const formattedDeparts = res.data.departments.map(department => ({
+                  id: department.Id,
+                  name: department.Name,
+                }));
+                setDepartments(formattedDeparts)
               }
           } catch (_error) {
-              showMsg(_error, 'error')
+              showMsg(_error.message, 'error')
           }
       }
       
       getDepartments();
-  }, []);*/
+  }, []);
 
 
     return (
@@ -143,7 +162,7 @@ function AddTask({ tsk }) {
                 <form onSubmit={tsk ? handleUpdateTasks : handleAddTasks}>
                   <FormControl fullWidth margin="normal">
                     <TextField
-                      label="Task Name"
+                      label={t('TASK_NAME')}
                       variant="outlined"
                       value={task.taskName}
                       onChange={handleChange('taskName')}
@@ -153,7 +172,8 @@ function AddTask({ tsk }) {
 
                   <FormControl fullWidth margin="normal">
                         <DatePicker
-                            label="Due Date"
+                            label={t('DUE_DATE')}
+                            minDate={new Date()}
                             value={task.dueDate}
                             onChange={handleDateChange}
                             renderInput={(params) => <TextField {...params} required />}
@@ -161,63 +181,70 @@ function AddTask({ tsk }) {
                   </FormControl>
 
                   <FormControl fullWidth margin="normal">
-                    <InputLabel>Status</InputLabel>
+                    <InputLabel>{t('STATUS')}</InputLabel>
                     <Select
-                      value={task.status}
-                      label="Status"
+                      value={lang === 'ar' ? statusesAr[statuses.indexOf(task.status)] : task.status}
+                      label={t('STATUS')}
                       onChange={handleChange('status')}
                       required
                     >
-                      {statuses.map((status) => (
+                      { lang === 'ar' ?
+                      statusesAr.map((status) => (
                         <MenuItem key={status} value={status}>{status}</MenuItem>
-                      ))}
+                      )) : 
+                      statuses.map((status) => (
+                        <MenuItem key={status} value={status}>{status}</MenuItem>
+                      ))
+                      }
                     </Select>
                   </FormControl>
                     
                   <FormControl fullWidth margin="normal">
-                    <InputLabel>Priority</InputLabel>
+                    <InputLabel>{t('PRIORITY')}</InputLabel>
                     <Select
-                      value={task.priority}
-                      label="Priority"
+                      value={lang === 'ar' ? prioritiesAr[priorities.indexOf(task.priority)] : task.priority}
+                      label={t('PRIORITY')}
                       onChange={handleChange('priority')}
                       required
                     >
-                      {priorities.map((priority) => (
+                      { lang === 'ar' ?
+                         prioritiesAr.map((priority) => (
+                          <MenuItem key={priority} value={priority}>{priority}</MenuItem>
+                        ))
+                      : priorities.map((priority) => (
                         <MenuItem key={priority} value={priority}>{priority}</MenuItem>
-                      ))}
+                      ))
+                      }
                     </Select>
                   </FormControl>
                     
                   <FormControl fullWidth margin="normal">
-                    <InputLabel>Assigned To Department</InputLabel>
+                    <InputLabel>{t('ASSIGN_TO_DEPARTMENT')}</InputLabel>
                     <Select
-                      value={task.assignedToDepartment}
-                      label="Assigned To Department"
+                      value={task.assignedToDepartment.id ? task.assignedToDepartment.id : task.assignedToDepartment}
+                      label={t('ASSIGN_TO_DEPARTMENT')}
                       onChange={handleChange('assignedToDepartment')}
                       required
                     >
                       {departments.map((department) => (
-                        <MenuItem key={department.value} value={department.value}>{department.label}</MenuItem>
+                        <MenuItem key={department.id} value={department.id}>{department.name}</MenuItem>
                       ))}
                     </Select>
                   </FormControl>
-                    
+
                   <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
-                    <InputLabel>Created By Department</InputLabel>
-                    <Select
-                      value={task.createdByDepartment}
-                      label="Created By Department"
-                      onChange={handleChange('createdByDepartment')}
-                      required
-                    >
-                      {departments.map((department) => (
-                        <MenuItem key={department.value} value={department.value}>{department.label}</MenuItem>
-                      ))}
-                    </Select>
+                    <TextField
+                      label={t('NOTES')}
+                      variant="outlined"
+                      multiline
+                      rows={3}
+                      value={task.notes}
+                      onChange={handleChange('notes')}
+                    />
                   </FormControl>
                     
-                  <button type="submit" className="add-depart-btn">
-                    {tsk ? 'Update' : 'Add'} Task
+                  <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                    {tsk ? (isLoading ? t('UPDATING') : t('UPDATE_TASK')) : (isLoading ? t('ADDING') : t('ADD_TASK'))}
                   </button>
                 </form>
             </Box>

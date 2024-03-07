@@ -2,14 +2,26 @@ import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import {  closeDialog } from 'app/store/fuse/dialogSlice';
+import { useTranslation } from 'react-i18next';
+
+
+
 
 
 function AddCategoryI({ ctgrI }) {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('categoriesIPage');
+    const lang = i18n.language;
+
+    const dispatch = useAppDispatch();
+
+    const [isLoading, setIsLoading] = useState(false);
 
     const [categoryI, setCategoriesI] = useState({
-        name: ctgrI ? ctgrI.mame : '',
+        id: ctgrI ? ctgrI.id : '',
+        name: ctgrI ? ctgrI.name : '',
         description: ctgrI ? ctgrI.description : '',
     });
 
@@ -35,48 +47,48 @@ function AddCategoryI({ ctgrI }) {
     const handleAddCategoryI = async (event) => {
         event.preventDefault();
         
+        setIsLoading(true)
         try {
             // @route: api/create/categoryI
             // @description: create a new categoryI
             const res = await jwtService.createItem({ 
-                itemType: 'categoryI',
-                data: {
-                    data: categoryI,
-                    currentUserId: currentUserId
-                }
+                itemType: 'productcatalogcategoryone',
+                data: categoryI
              }, { 'Content-Type': 'application/json' });
-            if (res) {
+            if (res.status === 201) {
                 // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     const handleUpdateCategoryI = async (event) => {
         event.preventDefault();
 
+        setIsLoading(true)
         try {
-            // @route: api/update/categoryI
-            // @description: update category I
             const res = await jwtService.updateItem({ 
-                itemType: 'categoryI',
+                itemType: 'productcatalogcategoryone',
                 data: {
                     data: categoryI,
-                    currentUserId: currentUserId,
-                    itemId: ctgrI.categoryIId
+                    itemId: categoryI.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
+            if (res.status === 200) {
                 // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     return (
@@ -84,7 +96,7 @@ function AddCategoryI({ ctgrI }) {
             <form onSubmit={ctgrI ? handleUpdateCategoryI : handleAddCategoryI}>
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Category I Name"
+                        label={t('CATEGORY_I_NAME')}
                         variant="outlined"
                         value={categoryI.name}
                         onChange={handleChange('name')}
@@ -94,7 +106,7 @@ function AddCategoryI({ ctgrI }) {
 
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
-                        label="Description"
+                        label={t('DESCRIPTION')}
                         variant="outlined"
                         value={categoryI.description}
                         onChange={handleChange('description')}
@@ -104,7 +116,9 @@ function AddCategoryI({ ctgrI }) {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-categoryI-btn">{ctgrI ? 'Update' : 'Add'} Category I</button>
+                <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                    {ctgrI ? (isLoading ? t('UPDATING') : t('UPDATE_CATEGORY_ONE')) : (isLoading ? t('ADDING') : t('ADD_CATEGORY_ONE'))}
+                </button>
             </form>
         </Box>
     );

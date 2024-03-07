@@ -4,7 +4,6 @@ import { TextField, Box, Grid, Paper, Chip } from '@mui/material'
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
-import axios from 'axios';
 import {
     CheckCircleOutline as CompletedIcon,
     HourglassEmpty as PendingIcon,
@@ -14,6 +13,7 @@ import {
     LocalShippingOutlined as FulfilledIcon,
     Loop as OngoingIcon
 } from '@mui/icons-material';
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AddInternalOrder from './AddInternalOrder';
 import EditIcon from '@mui/icons-material/Edit';
@@ -21,12 +21,35 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import SearchIcon from '@mui/icons-material/Search';
+
+
+
+
+
+const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+};
 
 
 
 function InternalOrders() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('internalOrdersPage');
+    const lang = i18n.language;
+    
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredMaterials, setFilteredMaterials] = useState(null);
 
@@ -85,29 +108,59 @@ function InternalOrders() {
 
     useEffect(() => {
         async function getInternalOrders() {
+            setIsLoading(true)
             try {
-                // @route: api/items/internalOrders
-                // @description: get Internal Orders
-                const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "internalOrders"
+                const res = await jwtService.getItems({
+                    itemType: "internalorder",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setInternalOrders(res)
+                if (res.status === 200) {
+                    console.log('The res', res)
+                    const formatted = res.data.internalOrders.map(ctgr => ({ 
+                        id: ctgr.Id,
+                        department: ctgr.Department,
+                        material: ctgr.Material,
+                        orderDate: ctgr.OrderDate,
+                        expectedDelivery: ctgr.ExpectedDeliveryDate,
+                        priority: ctgr.Priority,
+                        status: ctgr.Status,
+                        quantity: ctgr.Quantity,
+                        specifics: ctgr.Specifics,
+                        notes: ctgr.Notes
+                    }));
+                    setTotalCtlgs(res.data.count)
+                    setInternalOrders(formatted)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
         getInternalOrders();
     }, []);
 
+    function showMsg(msg, status) {
+    
+        dispatch(closeDialog())
+        setTimeout(()=> dispatch(
+            showMessage({
+                message: msg, // text or html
+                autoHideDuration: 3000, // ms
+                anchorOrigin: {
+                    vertical  : 'top', // top bottom
+                    horizontal: 'center' // left center right
+                },
+                variant: status // success error info warning null
+        })), 100);
+    }
 
     function handleAddingInternalOrder() {
         dispatch(openDialog({
             children: ( 
-                <AddInternalOrder />
+                <AddInternalOrder intrlOrder={false} />
             )
         }))
     }
@@ -134,7 +187,7 @@ function InternalOrders() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={internalOrders[i].internalOrderId} itemType="internalOrders" />
+                    <Delete itemId={internalOrders[i].id} itemType="internalorder" />
                 )
             }));
         }, 100);
@@ -170,132 +223,241 @@ function InternalOrders() {
             case 'ONGOING':
                 return <OngoingIcon color="info" />;
             default:
-                return null; // or a default icon
+                return null;
         }
     };
     
+
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "internalorder", 
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedInternalOrders = res.data.map(order => ({
+                    id: order.Id,
+                    department: order.Department,
+                    material: order.Material,
+                    orderDate: order.OrderDate,
+                    expectedDelivery: order.ExpectedDeliveryDate,
+                    priority: order.Priority,
+                    status: order.Status,
+                    quantity: order.Quantity,
+                    specifics: order.Specifics,
+                    notes: order.Notes
+                }));
+                setInternalOrders(formattedInternalOrders); 
+                setIsQueryFound(formattedInternalOrders.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+    
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
+
 
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingInternalOrder}>
+
+                <button id="btn-generic" className="add-btn" onClick={handleAddingInternalOrder}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Internal Order</span>
+                    <span id="long">{t('ADD_INTERNAL_ORDER')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Internal Orders" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_INTERNAL_ORDERS')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} 
+                disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button> 
 
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {internalOrders.length > 0 && !isQueryFound ? internalOrders.map((internalOrder, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card internalOrder"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}  
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog internalOrder">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <Chip id="chip-priority" label={internalOrder.priority} color={getPriorityColor(internalOrder.priority)} size="small" />
-                                    </div>
-                                    <div>
-                                        <CalendarTodayIcon />
-                                        <span className="internalOrder-expected-delivery">
-                                            {internalOrder.expectedDelivery}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        {getStatusIcon(internalOrder.status)}
-                                        <span className="internalOrder-status">
-                                            {internalOrder.status}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className="internalOrder-material">
-                                            <span className="txt-identifiers">Material:</span> {internalOrder.material}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className="internalOrder-specifics">
-                                            <span className="txt-identifiers">Specifics:</span> {internalOrder.specifics}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className="internalOrder-notes">
-                                            <span className="txt-identifiers">Notes:</span> {internalOrder.notes}
-                                        </span>
-                                    </div>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
+                        </div>
+                    ) 
+                     : internalOrders.length > 0 ? 
+                    (
+                        <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {internalOrders.length > 0 && !isQueryFound ? internalOrders.map((internalOrder, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card internalOrder"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}  
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog internalOrder">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <Chip id="chip-priority" label={internalOrder.priority} color={getPriorityColor(internalOrder.priority)} size="small" />
+                                            </div>
+                                            <div>
+                                                <CalendarTodayIcon />
+                                                <span className="internalOrder-expected-delivery">
+                                                    {formatDate(internalOrder.expectedDelivery)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <BusinessCenterIcon />
+                                                <span className="internalOrder-expected-delivery">
+                                                    {internalOrder.department.Name}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                {getStatusIcon(internalOrder.status)}
+                                                <span className="internalOrder-status">
+                                                    {internalOrder.status}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="internalOrder-material">
+                                                    <span className="txt-identifiers">{t('MATERIAL')}:</span> {internalOrder.material.Name}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="internalOrder-specifics">
+                                                    <span className="txt-identifiers">{t('SPECIFICS')}:</span> {internalOrder.specifics}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="internalOrder-notes">
+                                                    <span className="txt-identifiers">{t('NOTES')}:</span> {internalOrder.notes}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <Chip id="chip-priority" label={internalOrder.priority} color={getPriorityColor(internalOrder.priority)} size="small" />
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <Chip id="chip-priority" label={internalOrder.priority} color={getPriorityColor(internalOrder.priority)} size="small" />
-                        </div>
-                        <div>
-                            <CalendarTodayIcon />
-                            <span className="internalOrder-expected-delivery">
-                                {internalOrder.expectedDelivery}
-                            </span>
-                        </div>
-                        <div>
-                            {getStatusIcon(internalOrder.status)}
-                            <span className="internalOrder-status">
-                                {internalOrder.status}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="internalOrder-material">
-                                <span className="txt-identifiers">Material:</span> {internalOrder.material}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="internalOrder-specifics">
-                                <span className="txt-identifiers">Specifics:</span> {internalOrder.specifics}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="internalOrder-notes">
-                                <span className="txt-identifiers">Notes:</span> {internalOrder.notes}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredMaterials && isQueryFound ? filteredMaterials.map((internalOrder, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card internalOrder"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                            <div className="depart-card dialog internalOrder">
-                                <div id="edit-container">
-                                    <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                    <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                <div>
+                                    <CalendarTodayIcon />
+                                    <span className="internalOrder-expected-delivery">
+                                        {formatDate(internalOrder.expectedDelivery)}
+                                    </span>
                                 </div>
+                                <div>
+                                    {getStatusIcon(internalOrder.status)}
+                                    <span className="internalOrder-status">
+                                        {internalOrder.status}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="internalOrder-material">
+                                        <span className="txt-identifiers">{t('MATERIAL')}:</span> {internalOrder.material.Name}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="internalOrder-specifics">
+                                        <span className="txt-identifiers">{t('SPECIFICS')}:</span> {internalOrder.specifics}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="internalOrder-notes">
+                                        <span className="txt-identifiers">{t('NOTES')}:</span> {internalOrder.notes}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : filteredMaterials && isQueryFound ? filteredMaterials.map((internalOrder, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card internalOrder"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                    <div className="depart-card dialog internalOrder">
+                                        <div id="edit-container">
+                                            <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                            <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                        </div>
+                                        <div>
+                                            <Chip id="chip-priority" label={highlightMatch(internalOrder.priority, query)} color={getPriorityColor(internalOrder.priority)} size="small" />
+                                        </div>
+                                        <div>
+                                            <CalendarTodayIcon />
+                                            <span className="internalOrder-expected-delivery">
+                                                {highlightMatch(formatDate(internalOrder.expectedDelivery), query)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <BusinessCenterIcon />
+                                            <span className="internalOrder-expected-delivery">
+                                                {internalOrder.department.Name}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            {getStatusIcon(internalOrder.status)}
+                                            <span className="internalOrder-status">
+                                                {highlightMatch(internalOrder.status, query)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="internalOrder-material">
+                                                <span className="txt-identifiers">{t('MATERIAL')}:</span> {highlightMatch(internalOrder.material.Name, query)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="internalOrder-specifics">
+                                                <span className="txt-identifiers">{t('SPECIFICS')}:</span> {highlightMatch(internalOrder.specifics, query)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="internalOrder-notes">
+                                                <span className="txt-identifiers">{t('NOTES')}:</span> {highlightMatch(internalOrder.notes, query)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    )
+                                }))
+                              }}
+                            >
                                 <div>
                                     <Chip id="chip-priority" label={highlightMatch(internalOrder.priority, query)} color={getPriorityColor(internalOrder.priority)} size="small" />
                                 </div>
                                 <div>
                                     <CalendarTodayIcon />
                                     <span className="internalOrder-expected-delivery">
-                                        {highlightMatch(internalOrder.expectedDelivery, query)}
+                                        {highlightMatch(formatDate(internalOrder.expectedDelivery), query)}
                                     </span>
                                 </div>
                                 <div>
@@ -306,60 +468,39 @@ function InternalOrders() {
                                 </div>
                                 <div>
                                     <span className="internalOrder-material">
-                                        <span className="txt-identifiers">Material:</span> {highlightMatch(internalOrder.material, query)}
+                                        <span className="txt-identifiers">{t('MATERIAL')}:</span> {highlightMatch(internalOrder.material.Name, query)}
                                     </span>
                                 </div>
                                 <div>
                                     <span className="internalOrder-specifics">
-                                        <span className="txt-identifiers">Specifics:</span> {highlightMatch(internalOrder.specifics, query)}
+                                        <span className="txt-identifiers">{t('SPECIFICS')}:</span> {highlightMatch(internalOrder.specifics, query)}
                                     </span>
                                 </div>
                                 <div>
                                     <span className="internalOrder-notes">
-                                        <span className="txt-identifiers">Notes:</span> {highlightMatch(internalOrder.notes, query)}
+                                        <span className="txt-identifiers">{t('NOTES')}:</span> {highlightMatch(internalOrder.notes, query)}
                                     </span>
                                 </div>
-                            </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <Chip id="chip-priority" label={highlightMatch(internalOrder.priority, query)} color={getPriorityColor(internalOrder.priority)} size="small" />
+                              </Paper>
+                            </Grid>
+                          )) : ""
+                          }
+                        </Grid>
+                    </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('NO_INTERNAL_ORDER_IS_AVAILABLE')}
                         </div>
-                        <div>
-                            <CalendarTodayIcon />
-                            <span className="internalOrder-expected-delivery">
-                                {highlightMatch(internalOrder.expectedDelivery, query)}
-                            </span>
-                        </div>
-                        <div>
-                            {getStatusIcon(internalOrder.status)}
-                            <span className="internalOrder-status">
-                                {highlightMatch(internalOrder.status, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="internalOrder-material">
-                                <span className="txt-identifiers">Material:</span> {highlightMatch(internalOrder.material, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="internalOrder-specifics">
-                                <span className="txt-identifiers">Specifics:</span> {highlightMatch(internalOrder.specifics, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="internalOrder-notes">
-                                <span className="txt-identifiers">Notes:</span> {highlightMatch(internalOrder.notes, query)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                    )
+                }
+                {
+                    internalOrders.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
             </div>
 
         </div>

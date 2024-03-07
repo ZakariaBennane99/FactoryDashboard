@@ -1,27 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { useTranslation } from 'react-i18next';
+
+
+
 
 
 function AddOrderDetails({ dtls }) {
 
-    const currentUserId = window.localStorage.getItem('userId')
+    const { t, i18n } = useTranslation('orderDetailsPage');
+    const lang = i18n.language;
+
+    const dispatch = useAppDispatch();
+    
+    const [isLoading, setIsLoading] = useState(false);
 
     const [order, setOrder] = useState({
-        orderNumber: dtls ? dtls.orderNumber : '',
+        id: dtls ? dtls.id : '',
+        orderNumber: dtls ? dtls.orderNumber : '', // it has the orderId
         quantityDetails: dtls ? dtls.quantityDetails : '',
-        templatePattern: dtls ? dtls.templatePattern : '',
-        productCatalogue: dtls ? dtls.productCatalogue : '',
-        modelName: dtls ? dtls.modelName : '',
+        productCatalogue: dtls ? dtls.productCatalogue : '', // ProductCatalogDetails id and the productCatalogName
         modelQuantity: dtls ? dtls.modelQuantity : 0
     });
 
-    const [orderData, setOrderData] = useState({
-        templatePatterns: ['Basic Tee', 'Classic Jeans', 'Summer Dress'],
-        productCatalogues: ['Summer Collection 2024', 'Autumn Collection 2024', 'Winter Collection 2024'],
-        modelNames: ['Sunshine Tee', 'Rugged Denim', 'Breezy Sundress', 'Classic White Shirt', 'Winter Puffer', 'Stretch Yoga Pants', 'Cozy Knit']
-    })
 
     function showMsg(msg, status) {
     
@@ -38,162 +43,130 @@ function AddOrderDetails({ dtls }) {
         })), 100);
     }
 
+    const [orders, setOrders] = useState([])
+    const [productcatalogtdetails, setProduCatalogDetails] = useState([])
+    
     const handleChange = (prop) => (event) => {
-        setOrder({ ...order, [prop]: event.target.value });
+        if (prop === 'orderNumber') {
+            // Find the selected order from the orders state array
+            const selectedOrder = orders.find(ord => ord.id === event.target.value);
+            // Update the order state with the selected order's details
+            setOrder({ ...order, [prop]: { id: selectedOrder.id, name: selectedOrder.name } });
+        } else if (prop === 'productCatalogue') {
+            // Find the selected product catalogue from the productcatalogtdetails state array
+            const selectedCatalogue = productcatalogtdetails.find(cat => cat.id === event.target.value);
+            // Update the order state with the selected product catalogue's details
+            setOrder({ ...order, [prop]: { id: selectedCatalogue.id, name: selectedCatalogue.name } });
+        } else {
+            // For all other properties, update directly with the event's target value
+            setOrder({ ...order, [prop]: event.target.value });
+        }
     };
 
     const handleAddDetails = async (event) => {
         event.preventDefault();
         
         try {
-            // @route: api/create/orderDetails
-            // @description: create a new orderDetails
+            setIsLoading(true)
             const res = await jwtService.createItem({ 
-                itemType: 'orderDetails',
-                data: {
-                    data: order,
-                    currentUserId: currentUserId
-                }
+                itemType: 'orderdetail',
+                data: order
              }, { 'Content-Type': 'application/json' });
-            if (res) {
+            if (res.status === 201) {
                 // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     const handleUpdateDetails = async (event) => {
         event.preventDefault();
 
+        setIsLoading(true)
         try {
-            // @route: api/update/orderDetails
-            // @description: update order details
             const res = await jwtService.updateItem({ 
-                itemType: 'orderDetails',
+                itemType: 'orderdetail',
                 data: {
                     data: order,
-                    currentUserId: currentUserId,
-                    itemId: dtls.orderId
+                    itemId: order.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+            if (res.status === 200) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
-            // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
 
-    /* TO BE UNCOMMENTED IN PRODUCTION
-    // get order data: templatePatterns, productCatalogues, modelNames
     useEffect(() => {    
-        async function getOrderData() {
+        async function getDt() {
             try {
-                // @route: api/orderData
-                // @description: get order Data <templatePatterns, productCatalogues, modelNames>
-                const res = await jwtService.getOrderData({ 
-                    currentUserId: currentUserId
-                });
+                const res = await jwtService.getItemNames(['order', 'productcatalogtdetail']);
                 if (res) {
-                    setOrderData({
-                        templatePatterns: res.templatePatterns,
-                        productCatalogues: res.productCatalogues,
-                        modelNames: res.modelNames
-                    })
+                    console.log(res)
+                    setOrders(res[0].data)
+                    setProduCatalogDetails(res[1].data)
                 }
             } catch (_error) {
-                // the error msg will be sent so you don't have to hardcode it
-                showMsg(_error, 'error')
-            }
+                showMsg(_error.message || "An unexpected error occurred", 'error')
+            } 
         }
         
-        getOrderData();
-    }, []);*/
+        getDt();
+    }, []);
+
 
 
     return (
         <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
             <form onSubmit={dtls ? handleUpdateDetails : handleAddDetails}>
                 <FormControl fullWidth margin="normal">
-                    <TextField
-                        label="Order Number"
-                        variant="outlined"
-                        type="number"
-                        value={order.orderNumber}
+                    <InputLabel id="order-number-select-label">{t('ORDER_NUMBER')}</InputLabel>
+                    <Select
+                        labelId="order-number-select-label"
+                        id="order-number-select"
+                        value={order.orderNumber ? order.orderNumber.id : ''}
+                        label={t('ORDER_NUMBER')}
                         onChange={handleChange('orderNumber')}
                         required
-                    />
-                </FormControl>
-
-                <FormControl fullWidth margin="normal">
-                    <TextField
-                        label="Quantity Details"
-                        variant="outlined"
-                        value={order.quantityDetails}
-                        onChange={handleChange('quantityDetails')}
-                        multiline
-                        rows={2}
-                        required
-                    />
-                </FormControl>
-
-                <FormControl fullWidth margin="normal">
-                    <InputLabel id="template-pattern-select-label">Template Pattern</InputLabel>
-                    <Select
-                        labelId="template-pattern-select-label"
-                        id="template-pattern-select"
-                        value={order.templatePattern}
-                        label="Template Pattern"
-                        onChange={handleChange('templatePattern')}
-                        required
                     >
-                        {orderData.templatePatterns.map((pattern, index) => (
-                            <MenuItem key={index} value={pattern}>{pattern}</MenuItem>
+                        {orders.map(ord => (
+                            <MenuItem key={ord.id} value={ord.id}>{ord.name}</MenuItem>
                         ))}
                     </Select>
                 </FormControl>
 
                 <FormControl fullWidth margin="normal">
-                    <InputLabel id="product-catalogue-select-label">Product Catalogue</InputLabel>
+                    <InputLabel id="product-catalogue-select-label">{t('PRODUCT_CATALOGUE')}</InputLabel>
                     <Select
                         labelId="product-catalogue-select-label"
                         id="product-catalogue-select"
-                        value={order.productCatalogue}
-                        label="Product Catalogue"
+                        value={order.productCatalogue ? order.productCatalogue.id : "" }
+                        label={t('PRODUCT_CATALOGUE')}
                         onChange={handleChange('productCatalogue')}
                         required
                     >
-                        {orderData.productCatalogues.map((catalogue, index) => (
-                            <MenuItem key={index} value={catalogue}>{catalogue}</MenuItem>
+                        {productcatalogtdetails.map(prdc => (
+                            <MenuItem key={prdc.id} value={prdc.id}>
+                                {prdc.name}
+                            </MenuItem>
                         ))}
                     </Select>
                 </FormControl>
+
 
                 <FormControl fullWidth margin="normal">
-                    <InputLabel id="model-name-select-label">Model Name</InputLabel>
-                    <Select
-                        labelId="model-name-select-label"
-                        id="model-name-select"
-                        value={order.modelName}
-                        label="Model Name"
-                        onChange={handleChange('modelName')}
-                        required
-                    >
-                        {orderData.modelNames.map((name, index) => (
-                            <MenuItem key={index} value={name}>{name}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-
-                <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
-                        label="Model Quantity"
+                        label={t('MODEL_QUANTITY')}
                         variant="outlined"
                         type="number"
                         value={order.modelQuantity}
@@ -203,7 +176,23 @@ function AddOrderDetails({ dtls }) {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-internalOrder-btn">{dtls ? 'Update' : 'Add'} Order Details</button>
+                
+                <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
+                    <TextField
+                        label={t('QUANTITY_DETAILS')}
+                        variant="outlined"
+                        value={order.quantityDetails}
+                        onChange={handleChange('quantityDetails')}
+                        multiline
+                        rows={3}
+                        required
+                    />
+                </FormControl>
+
+
+                <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                    {dtls ? (isLoading ? t('UPDATING') : t('UPDATE')) : (isLoading ? t('ADDING') : t('ADD'))}
+                </button>
             </form>
         </Box>
     );

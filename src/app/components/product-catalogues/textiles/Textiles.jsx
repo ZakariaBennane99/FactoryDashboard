@@ -15,6 +15,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import SearchIcon from '@mui/icons-material/Search';
+
+
 
 
 
@@ -29,7 +35,18 @@ function trimText(txt, maxLength) {
 
 function Textiles() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('textilesPage');
+    const lang = i18n.language;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredTextiles, setFilteredTextiles] = useState(null);
 
@@ -125,18 +142,28 @@ function Textiles() {
     useEffect(() => {
 
         async function getTextiles() {
+            setIsLoading(true)
             try {
-                // @route: api/items/textiles
-                // @description: get textiles
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "textiles"
+                    itemType: "productcatalogtextile",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setTextiles(res)
+                if (res.status === 200) {
+                    const formatted = res.data.textiles.map(ctgr => ({ 
+                        id: ctgr.Id,
+                        textileName: ctgr.TextileName,
+                        textileType: ctgr.TextileType,
+                        composition: ctgr.Composition,
+                        description: ctgr.Description
+                    }));
+                    setTotalCtlgs(res.data.count)
+                    setTextiles(formatted)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -147,7 +174,7 @@ function Textiles() {
     function handleAddingTextile() {
         dispatch(openDialog({
             children: ( 
-                <AddTextile />
+                <AddTextile txtle={false} />
             )
         }))
     }
@@ -174,116 +201,199 @@ function Textiles() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={textiles[i].textileId} itemType='textiles' />
+                    <Delete itemId={textiles[i].id} itemType='productcatalogtextile' />
                 )
             }));
         }, 100);
     }
 
 
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "productcatalogtextile", // Adjusted to target textiles
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+              
+                const formattedTextiles = res.data.map(textile => ({ // Adjusted for textiles
+                    id: textile.Id,
+                    textileName: textile.TextileName,
+                    textileType: textile.TextileType,
+                    composition: textile.Composition,
+                    description: textile.Description
+                }));
+                setTextiles(formattedTextiles); // Adjusted to setTextiles
+                setIsQueryFound(formattedTextiles.length > 0); 
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error') 
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
+
 
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingTextile}>
+                
+                <button id="btn-generic" className="add-btn" onClick={handleAddingTextile}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Textile</span>
+                    <span id="long" className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('ADD_TEXTILE')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Textiles" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    label={t('SEARCH_TEXTILES')} type="search"
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>
 
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {textiles.length > 0 && !isQueryFound ? textiles.map((textile, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card textile"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}  
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog textile">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <TextureIcon />
-                                        <span className="textile-name">
-                                            {textile.textileName}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <CategoryIcon /> 
-                                        <span className="textile-type">
-                                            {textile.textileType}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <GrainIcon />
-                                        <span className="textile-composition">
-                                            {textile.composition}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="textile-description">
-                                            {textile.description}
-                                        </span>
-                                    </div>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
+                        </div>
+                    ) 
+                     : textiles.length > 0 ? 
+                     (
+                        <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {textiles.length > 0 && !isQueryFound ? textiles.map((textile, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card textile"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}  
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog textile">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <TextureIcon />
+                                                <span className="textile-name">
+                                                    {textile.textileName}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <CategoryIcon /> 
+                                                <span className="textile-type">
+                                                    {textile.textileType}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <GrainIcon />
+                                                <span className="textile-composition">
+                                                    {textile.composition}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <DescriptionIcon />
+                                                <span className="textile-description">
+                                                    {textile.description}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <TextureIcon />
+                                    <span className="textile-name">
+                                        {textile.textileName}
+                                    </span>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <TextureIcon />
-                            <span className="textile-name">
-                                {textile.textileName}
-                            </span>
-                        </div>
-                        <div>
-                            <CategoryIcon /> 
-                            <span className="textile-type">
-                                {textile.textileType}
-                            </span>
-                        </div>
-                        <div>
-                            <GrainIcon />
-                            <span className="textile-composition">
-                                {textile.composition}
-                            </span>
-                        </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="textile-description">
-                                {trimText(textile.description, 30)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredTextiles && isQueryFound ? filteredTextiles.map((textile, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card textile"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                            <div className="depart-card dialog textile">
-                                <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                <div>
+                                    <CategoryIcon /> 
+                                    <span className="textile-type">
+                                        {textile.textileType}
+                                    </span>
                                 </div>
+                                <div>
+                                    <GrainIcon />
+                                    <span className="textile-composition">
+                                        {textile.composition}
+                                    </span>
+                                </div>
+                                <div>
+                                    <DescriptionIcon />
+                                    <span className="textile-description">
+                                        {trimText(textile.description, 30)}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : filteredTextiles && isQueryFound ? filteredTextiles.map((textile, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card textile"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                    <div className="depart-card dialog textile">
+                                        <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                        </div>
+                                        <div>
+                                            <TextureIcon />
+                                            <span className="textile-name">
+                                                {highlightMatch(textile.textileName, query)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <CategoryIcon /> 
+                                            <span className="textile-type">
+                                                {highlightMatch(textile.textileType, query)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <GrainIcon />
+                                            <span className="textile-composition">
+                                                {highlightMatch(textile.composition, query)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <DescriptionIcon />
+                                            <span className="textile-description">
+                                                {highlightMatch(textile.description, query)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    )
+                                }))
+                              }}
+                            >
                                 <div>
                                     <TextureIcon />
                                     <span className="textile-name">
@@ -305,44 +415,30 @@ function Textiles() {
                                 <div>
                                     <DescriptionIcon />
                                     <span className="textile-description">
-                                        {highlightMatch(textile.description, query)}
+                                        {highlightMatch(trimText(textile.description, 30), query)}
                                     </span>
                                 </div>
-                            </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <TextureIcon />
-                            <span className="textile-name">
-                                {highlightMatch(textile.textileName, query)}
-                            </span>
+                              </Paper>
+                            </Grid>
+                          )) : ""
+                          }
+                        </Grid>
+                    </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('NO_TEXTILE_AVAILABLE')}
                         </div>
-                        <div>
-                            <CategoryIcon /> 
-                            <span className="textile-type">
-                                {highlightMatch(textile.textileType, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <GrainIcon />
-                            <span className="textile-composition">
-                                {highlightMatch(textile.composition, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="textile-description">
-                                {highlightMatch(trimText(textile.description, 30), query)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                    )
+                }
+                {
+                    textiles.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+            
             </div>
 
         </div>

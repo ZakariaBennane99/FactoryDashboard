@@ -1,5 +1,31 @@
 const locale = {
-	TITLE: 'المستخدمين'
+    TITLE: 'المهام',
+    ADD_TASK: 'إضافة مهمة',
+    SEARCH: 'بحث',
+    SEARCH_TASKS: 'بحث عن مهام',
+    QUERY_ERROR: 'يرجى إدخال استعلام أكثر تحديدًا.',
+    NO_TASK_AVAILABLE: 'لا توجد مهام متاحة!',
+    HIGH: 'عالي',
+    MEDIUM: 'متوسط',
+    LOW: 'منخفض',
+    PENDING: 'قيد الانتظار',
+    APPROVED: 'موافق عليه',
+    REJECTED: 'مرفوض',
+    FULFILLED: 'مُنجز',
+    CANCELLED: 'ملغى',
+    COMPLETED: 'مكتمل',
+    ONGOING: 'جاري التنفيذ',
+    TASK_NAME: 'اسم المهمة',
+    DUE_DATE: 'تاريخ الاستحقاق',
+    ASSIGNED_TO_DEPARTMENT: 'مُسندة إلى القسم',
+    CREATED_BY_DEPARTMENT: 'أنشأت بواسطة القسم',
+    NOTES: 'ملاحظات',
+    STATUS: 'الحالة',
+    PRIORITY: 'الأولوية',
+    ASSIGN_TO_DEPARTMENT: 'تعيين إلى القسم',
+    UPDATE_TASK: 'تحديث المهمة',
+    UPDATING: 'جاري التحديث...',
+    ADDING: 'جاري الإضافة...'
 };
 
 export default locale;

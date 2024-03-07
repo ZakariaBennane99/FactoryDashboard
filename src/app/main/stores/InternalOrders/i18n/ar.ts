@@ -1,5 +1,33 @@
 const locale = {
-	TITLE: 'الطلبات الداخلية'
+	TITLE: 'الطلبات الداخلية',
+	ADD_INTERNAL_ORDER: "إضافة طلب داخلي",
+    SEARCH_INTERNAL_ORDERS: "بحث في الطلبات الداخلية",
+    SEARCH: "بحث",
+    QUERY_ERROR: "الرجاء إدخال أكثر من 3 أحرف",
+    NO_INTERNAL_ORDER_IS_AVAILABLE: "لا يوجد طلب داخلي متاح",
+    EXPECTED_DELIVERY: "التسليم المتوقع",
+    DEPARTMENT: "القسم",
+    PRIORITY: "الأولوية",
+    STATUS: "الحالة",
+    MATERIAL: "المادة",
+    QUANTITY: "الكمية",
+    SPECIFICS: "التفاصيل",
+    ORDER_DATE: "تاريخ الطلب",
+    NOTES: "ملاحظات",
+    ADDING: "جاري الإضافة...",
+    ADD_INTERNAL_ORDER_BUTTON: "إضافة طلب داخلي",
+    UPDATING: "جاري التحديث...",
+    UPDATE_INTERNAL_ORDER: "تحديث الطلب الداخلي",
+    HIGH: "عالي",
+    MEDIUM: "متوسط",
+    LOW: "منخفض",
+    PENDING: "قيد الانتظار",
+    APPROVED: "موافق عليه",
+    REJECTED: "مرفوض",
+    FULFILLED: "مُنفذ",
+    CANCELLED: "ملغى",
+    COMPLETED: "مكتمل",
+    ONGOING: "جاري"
 };
 
 export default locale;

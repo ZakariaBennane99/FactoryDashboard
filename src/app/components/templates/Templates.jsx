@@ -6,6 +6,7 @@ import { useAppDispatch } from 'app/store';
 import { openDialog, closeDialog } from 'app/store/fuse/dialogSlice';
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
+import NoteAddIcon from '@mui/icons-material/Add'
 import Delete from '../../components/Delete';
 import AddTemplate from './AddTemplate';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -13,6 +14,10 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import jwtService from '../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -27,12 +32,23 @@ function trimText(txt, maxLength) {
 
 function Templates() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('templatesPage');
+    const lang = i18n.language;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredTemplates, setFilteredTemplates] = useState(null);
 
     const dispatch = useAppDispatch();
-    const [elevatedIndex, setElevatedIndex] = useState(null);
+    const [elevatedIndex, setElevatedIndex ] = useState(null);
     const [templates, setTemplates] = useState([]);
     const [query, setQuery] = useState(null)
     const [isQueryFound, setIsQueryFound] = useState(false);
@@ -101,18 +117,28 @@ function Templates() {
 
     useEffect(() => {
         async function getTemplates() {
+            setIsLoading(true)
             try {
-                // @route: api/items/templates
-                // @description: get a list of templates
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "templates"
+                    itemType: "template",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
                 if (res) {
-                    setTemplates(res)
+                    const formatted = res.data.templates.map(ctgr => ({ 
+                        id: ctgr.Id,
+                        productCatalogueDetail: ctgr.ProductCatalogDetail,
+                        templateName: ctgr.TemplateName,
+                        description: ctgr.Description,
+                        file: ctgr.FilePath
+                    }));
+                    setTotalCtlgs(res.data.count)
+                    setTemplates(formatted)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -150,26 +176,83 @@ function Templates() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={templates[i].templateId} itemType="templates" />
+                    <Delete itemId={templates[i].id} itemType="template" />
                 )
             }));
         }, 100);
     }
 
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "template", 
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedTemplates = res.data.map(tmpl => ({
+                    id: tmpl.Id,
+                    templateName: tmpl.TemplateName,
+                    productCatalogueDetail: tmpl.ProductCatalogDetail,
+                    description: tmpl.Description,
+                    file: tmpl.FilePath,
+                }));
+                setTemplates(formattedTemplates); 
+                setIsQueryFound(formattedTemplates.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
+    
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
+
+
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingInternalOrder}>
+                
+                <button id="btn-generic" className="add-btn" onClick={handleAddingInternalOrder}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Template</span>
+                    <span>{t('ADD_TEMPLATE')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Templates" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_TEMPLATES')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>  
 
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
+                        </div>
+                    ) 
+                     : templates.length > 0 ? 
+                    (
+                <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
                   {templates.length > 0 && !isQueryFound ? templates.map((template, index) => (
                     <Grid item xs={2} sm={4} md={4} key={index}>
@@ -196,7 +279,7 @@ function Templates() {
                                     <div>
                                         <CategoryIcon /> 
                                         <span className="product-catalogue">
-                                            {template.productCatalogueDetail}
+                                            {template.productCatalogueDetail.ProductCatalog.ProductCatalogName}
                                         </span>
                                     </div>
                                     <div>
@@ -207,8 +290,10 @@ function Templates() {
                                     </div>
                                     <div>
                                         <InsertDriveFileIcon />
-                                        <span className="template-specifics">
-                                            {template.fileName}
+                                        <span className="template-specifics" 
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => window.open(`http://localhost:3002${template.file}`, '_blank')}>
+                                            {template.file}
                                         </span>
                                     </div>
                                 </div>
@@ -225,7 +310,7 @@ function Templates() {
                         <div>
                             <CategoryIcon /> 
                             <span className="product-catalogue">
-                                {template.productCatalogueDetail}
+                                {template.productCatalogueDetail.ProductCatalog.ProductCatalogName}
                             </span>
                         </div>
                         <div>
@@ -237,7 +322,7 @@ function Templates() {
                         <div>
                             <InsertDriveFileIcon />
                             <span className="template-specifics">
-                                {template.fileName}
+                                {template.file}
                             </span>
                         </div>
                       </Paper>
@@ -267,7 +352,7 @@ function Templates() {
                                     <div>
                                         <CategoryIcon /> 
                                         <span className="product-catalogue">
-                                            {highlightMatch(template.productCatalogueDetail, query)}
+                                            {highlightMatch(template.productCatalogueDetail.ProductCatalog.ProductCatalogName, query)}
                                         </span>
                                     </div>
                                     <div>
@@ -278,8 +363,8 @@ function Templates() {
                                     </div>
                                     <div>
                                         <InsertDriveFileIcon />
-                                        <span className="template-specifics">
-                                            {highlightMatch(template.fileName, query)}
+                                        <span className="template-specifics" onClick={() => window.open(`http://localhost:3002/${template.file}`, '_blank')}>
+                                            {highlightMatch(template.file, query)}
                                         </span>
                                     </div>
                             </div>
@@ -296,7 +381,7 @@ function Templates() {
                         <div>
                             <CategoryIcon /> 
                             <span className="product-catalogue">
-                                {highlightMatch(template.productCatalogueDetail, query)}
+                                {highlightMatch(template.productCatalogueDetail.ProductCatalog.ProductCatalogName, query)}
                             </span>
                         </div>
                         <div>
@@ -308,15 +393,29 @@ function Templates() {
                         <div>
                             <InsertDriveFileIcon />
                             <span className="template-specifics">
-                                {highlightMatch(template.fileName, query)}
+                                {highlightMatch(template.file, query)}
                             </span>
                         </div>
                       </Paper>
                     </Grid>
-                  )) : <div>Loading...</div>
+                  )) : ""
                   }
                 </Grid>
-            </Box>
+                </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('NO_TEMPLATE_AVAILABLE')}
+                        </div>
+                    )
+                }
+                {
+                    templates.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
             </div>
 
         </div>

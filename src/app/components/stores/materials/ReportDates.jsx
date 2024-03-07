@@ -1,17 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
 import { useAppDispatch } from 'app/store';
-import { Box, Button, CircularProgress, FormControl, TextField, 
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { Box, Button, FormControl, TextField, 
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import jwtService from '../../../../app/auth/services/jwtService';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { useTranslation } from 'react-i18next';
+import arLocale from 'date-fns/locale/ar-SA';
+import '../../Departments.css'
 
 
 
-function ReportDates({ materialId, materialName }) {
+function ReportDates({ materialId }) {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { i18n } = useTranslation();
+    const lang = i18n.language;
+
+    const localeMap = {
+        ar: arLocale,
+    };
+
+    const adapterLocale = lang === 'ar' ? localeMap[lang] : undefined;
 
     const dispatch = useAppDispatch();
 
@@ -32,26 +44,33 @@ function ReportDates({ materialId, materialName }) {
         }));
     }
 
-    async function generatePDF() {
-        // call the backend to generate the report 
+    async function downloadPDF() {
+
         setLoading(true); 
         
         try {
-            // @route: api/generatePDFReport
-            // @description: generate a downloadable PDF link for the data
-            const res = await jwtService.generatePDFReport({
-                currentUserId: currentUserId,
-                materialId,
-                from: dates.from,
-                to: dates.to
-             }, { 'Content-Type': 'application/json' });
+            const res = await jwtService.handleReports({
+                itemType: 'downloadReport',
+                data: {
+                    materialId,
+                    from: dates.from,
+                    to: dates.to
+                }
+            });
             if (res) {
-                // here open the link in a new window to get downloaded
-                // setData(res)
+                const url = window.URL.createObjectURL(new Blob([res], { type: 'application/pdf' }));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'report.pdf');
+                link.setAttribute('target', '_blank'); // Open in a new tab/window
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
-            setLoading(false)
         } catch (_error) {
-            showMsg(_error, 'error')
+            console.log('The error', _error)
+            showMsg(_error.message, 'error')
+        } finally {
             setLoading(false)
         }
     }
@@ -61,24 +80,26 @@ function ReportDates({ materialId, materialName }) {
     }
 
     const handleSubmit = async (event) => {
+        // generate data requested
         event.preventDefault();
 
         setLoading(true); 
         try {
-            // @route: api/getReportData
-            // @description: get the data for the report
-            const res = await jwtService.getReportData({
-                currentUserId: currentUserId,
-                materialId,
-                from: dates.from,
-                to: dates.to
-             }, { 'Content-Type': 'application/json' });
-            if (res) {
-                setData(res)
+            const res = await jwtService.handleReports({
+                itemType: 'generateReport',
+                data: {
+                    materialId,
+                    from: dates.from,
+                    to: dates.to
+                }
+             });
+            if (res.status === 200) {
+                console.log('the data', res.data)
+                setData(res.data)
             }
-            setLoading(false)
         } catch (_error) {
-            showMsg(_error, 'error')
+            showMsg(_error.message, 'error')
+        } finally {
             setLoading(false)
         }
     };
@@ -98,19 +119,19 @@ function ReportDates({ materialId, materialName }) {
                     <Table sx={{ minWidth: 750, width: '100%' }} aria-label="simple table">
                         <TableHead>
                             <TableRow>
-                                <TableCell sx={{ minWidth: 130 }}>Internal Orders ID</TableCell>
-                                <TableCell align="right" sx={{ minWidth: 130, textAlign: 'left' }}>Movement ID</TableCell>
-                                <TableCell align="right" sx={{ minWidth: 130, textAlign: 'left' }}>From</TableCell>
-                                <TableCell align="right" sx={{ minWidth: 130, textAlign: 'left' }}>To</TableCell>
-                                <TableCell align="right" sx={{ minWidth: 100, textAlign: 'left' }}>Quantity</TableCell>
-                                <TableCell align="right" sx={{ minWidth: 100, textAlign: 'left' }}>Color</TableCell>
-                                <TableCell align="right" sx={{ minWidth: 120, textAlign: 'left' }}>Date</TableCell>
+                                <TableCell sx={{ minWidth: 130 }}>{lang === 'ar' ? "معرف الطلبات الداخلية" : 'Internal Orders ID'}</TableCell>
+                                <TableCell align="right" sx={{ minWidth: 130, textAlign: 'left' }}>{lang === 'ar' ?  "معرف الحركة" : 'Movement ID'}</TableCell>
+                                <TableCell align="right" sx={{ minWidth: 130, textAlign: 'left' }}>{lang === 'ar' ?  "من" : 'From'}</TableCell>
+                                <TableCell align="right" sx={{ minWidth: 130, textAlign: 'left' }}>{lang === 'ar' ? "إلى" : 'To'}</TableCell>
+                                <TableCell align="right" sx={{ minWidth: 100, textAlign: 'left' }}>{lang === 'ar' ?  "الكمية" : "Quantity"}</TableCell>
+                                <TableCell align="right" sx={{ minWidth: 100, textAlign: 'left' }}>{lang === 'ar' ?  "اللون" : "Color"}</TableCell>
+                                <TableCell align="right" sx={{ minWidth: 120, textAlign: 'left' }}>{lang === 'ar' ?  "التاريخ" : "Date"}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {data.map((row) => (
                                 <TableRow
-                                    key={row.internalOrdersId}
+                                    key={`${row.internalOrdersId}-${row.movementId}`}
                                     sx={{ 
                                         '&:last-child td, &:last-child th': { border: 0 },
                                         borderBottom: '1px solid rgba(224, 224, 224, 1)',
@@ -131,23 +152,25 @@ function ReportDates({ materialId, materialName }) {
                     </Table>
                 </TableContainer>
                 <Button
+                        className={loading ? 'disabled-button' : ''}
                         variant="contained"
                         color="primary"
-                        onClick={() => generatePDF(data)}
+                        onClick={downloadPDF}
+                        disabled={loading}
                         style={{ borderRadius: '6px', width: '100%' }}
                     >
-                        Download
+                       {loading ? (lang === 'ar' ? 'جاري التحميل...' : 'Downloading...') : (lang === 'ar' ? 'تحميل' : 'Download')} 
                 </Button>
             </Box>
         )
     } else {
         return (
-            <LocalizationProvider >
-                <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px' }}>
+            <Box sx={{ minWidth: 120, maxWidth: 500, margin: 'auto', padding: '15px', direction: lang === 'ar' ? 'rtl' : 'ltr'  }}>
+                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={adapterLocale}>
                     <form onSubmit={handleSubmit}>
                         <FormControl fullWidth margin="normal">
                             <DatePicker
-                                label="From"
+                                label={lang === 'ar' ? "" : 'From'}
                                 value={dates.from}
                                 onChange={(newValue) => handleDateChange('from', newValue)}
                                 renderInput={(params) => <TextField {...params} />}
@@ -155,7 +178,7 @@ function ReportDates({ materialId, materialName }) {
                         </FormControl>
                         <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                             <DatePicker
-                                label="To"
+                                label={lang === 'ar' ? "" : 'To'}
                                 value={dates.to}
                                 onChange={(newValue) => handleDateChange('to', newValue)}
                                 renderInput={(params) => <TextField {...params} />}
@@ -169,13 +192,12 @@ function ReportDates({ materialId, materialName }) {
                             disabled={loading}
                             type="submit"
                             style={{ borderRadius: '6px', width: '100%' }}
-                            endIcon={loading && <CircularProgress size={20} />}
                         >
-                            {loading ? 'Generating...' : 'Generate Report'}
+                            {loading ? (lang === 'ar' ? 'جاري الإعداد...' : 'Generating...') : (lang === 'ar' ? 'إعداد التقرير' : 'Generate Report')}
                         </Button>
                     </form>
-                </Box>
-            </LocalizationProvider>
+                </LocalizationProvider>
+            </Box>
         );
     }
 }

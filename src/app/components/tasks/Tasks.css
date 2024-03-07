@@ -10,6 +10,11 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: 1.12em;
+}
+
+#chip-priority {
+    font-size: .9em;
 }
 
 

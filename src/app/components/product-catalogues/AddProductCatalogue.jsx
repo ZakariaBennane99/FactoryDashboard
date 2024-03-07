@@ -2,13 +2,24 @@ import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
 import jwtService from '../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { useTranslation } from 'react-i18next';
+
+
 
 
 function AddProductCatalogue({  prdctCatalogue }) {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('cataloguesPage');
+    const lang = i18n.language;
+
+    const dispatch = useAppDispatch();
+
+    const [isLoading, setIsLoading] = useState(false)
 
     const [productCatalogue, setProductCatalogue] = useState({
+        id: prdctCatalogue ? prdctCatalogue.id : '',
         name: prdctCatalogue ? prdctCatalogue.name : '',
         description: prdctCatalogue ? prdctCatalogue.description : '',
     });
@@ -35,48 +46,42 @@ function AddProductCatalogue({  prdctCatalogue }) {
     const handleAddProductCatalogues = async (event) => {
         event.preventDefault();
         
+        setIsLoading(true)
         try {
-            // @route: api/create/productCatalogues
-            // @description: create a new Product Catalogue
             const res = await jwtService.createItem({ 
-                itemType: 'productCatalogues',
-                data: {
-                    data: productCatalogue,
-                    currentUserId: currentUserId
-                }
+                itemType: 'productcatalog',
+                data: productCatalogue
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+            if (res.status === 201) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
-            // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     const handleUpdateProductCatalogues = async (event) => {
         event.preventDefault();
-
+        
+        setIsLoading(true)
         try {
-            // @route: api/update/productCatalogues
-            // @description: update existing Product Catalogue
             const res = await jwtService.updateItem({ 
-                itemType: 'productCatalogues',
+                itemType: 'productcatalog',
                 data: {
                     data: productCatalogue,
-                    currentUserId: currentUserId,
-                    itemId: prdctCatalogue.productCataloguesId
+                    itemId: prdctCatalogue.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+            if (res.status === 200) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
-            // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
 
@@ -85,7 +90,7 @@ function AddProductCatalogue({  prdctCatalogue }) {
             <form onSubmit={prdctCatalogue ? handleUpdateProductCatalogues : handleAddProductCatalogues}>
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Product Catalogue Name"
+                        label={t('PRODUCT_CATALOGUE_NAME')}
                         variant="outlined"
                         value={productCatalogue.name}
                         onChange={handleChange('name')}
@@ -95,7 +100,7 @@ function AddProductCatalogue({  prdctCatalogue }) {
 
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
-                        label="Description"
+                        label={t('DESCRIPTION')}
                         variant="outlined"
                         value={productCatalogue.description}
                         onChange={handleChange('description')}
@@ -104,7 +109,9 @@ function AddProductCatalogue({  prdctCatalogue }) {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-productCatalogue-btn">{prdctCatalogue ? 'Update' : 'Add'} Product Catalogue</button>
+                <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                {prdctCatalogue ? (isLoading ? t('UPDATING') : t('UPDATE_PRODUCT_CATALOGUE_BUTTON')) : (isLoading ? t('ADDING') : t('ADD_PRODUCT_CATALOGUE_BUTTON'))}
+                </button>
             </form>
         </Box>
     );

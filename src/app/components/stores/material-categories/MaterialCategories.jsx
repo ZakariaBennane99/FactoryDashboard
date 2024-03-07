@@ -15,6 +15,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { CircularProgress } from '@mui/material';
+import Pagination from '@mui/material/Pagination';
+import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -30,7 +34,18 @@ function trimText(txt, maxLength) {
 
 function MaterialCategories() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('materialCategoriesPage');
+    const lang = i18n.language;
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(1);
+    const itemsPerPage = 7;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    const [isLoading, setIsLoading] = useState(false)
 
     const [filteredMaterialCategories, setFilteredMaterialCategories] = useState(null);
 
@@ -59,6 +74,38 @@ function MaterialCategories() {
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     } 
     
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "materialcategory",
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedMaterialCategories = res.data.materialCategories.map(mtrl => ({
+                    id: mtrl.Id,
+                    name: mtrl.CategoryName,
+                    description: mtrl.Description
+                }));
+                setMaterialCategories(formattedMaterialCategories);
+                setIsQueryFound(formattedMaterialCategories.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
 
     function handleSearch(e) {
         const query = e.target.value;
@@ -105,18 +152,25 @@ function MaterialCategories() {
 
     useEffect(() => {
         async function getMaterialCategories() {
+            setIsLoading(true)
             try {
-                // @route: api/items/materialCategories
-                // @description: get Material Categories 
-                const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "materialCategories"
+                const res = await jwtService.getItems({
+                    itemType: "materialcategory"
                 });
-                if (res) {
-                    setMaterialCategories(res)
+                if (res.status === 200) {
+                    setMaterialCategories(res.data.materialCategories.map(mtrl => {
+                        return {
+                            id: mtrl.Id,
+                            name: mtrl.CategoryName,
+                            description: mtrl.Description
+                        }
+                    }))
+                    setTotalUsers(res.data.count)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -154,27 +208,46 @@ function MaterialCategories() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={materialCategories[i].materialCategoryId} itemType="materialCategories" />
+                    <Delete itemId={materialCategories[i].id} itemType="materialcategory" />
                 )
             }));
         }, 100);
     }
     
 
+
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingMaterialCategory}>
+
+                <button id="btn-generic" className="add-btn" onClick={handleAddingMaterialCategory}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Material Category</span>
+                    <span id="long" className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('ADD_MATERIAL_CATEGORY')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Material Categories" type="search" />
+
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_MATERIAL_CATEGORIES')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>    
 
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
+                {isLoading ? (
+                    <div className='progress-container'>
+                        <CircularProgress />
+                    </div>
+                ) : materialCategories.length > 0 ? 
+                <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
                   {materialCategories.length > 0 && !isQueryFound ? materialCategories.map((materialCategory, index) => (
                     <Grid item xs={2} sm={4} md={4} key={index}>
@@ -270,10 +343,25 @@ function MaterialCategories() {
                             </div>
                       </Paper>
                     </Grid>
-                  )) : <div>Loading...</div>
+                  )) : ""
                   }
                 </Grid>
-            </Box>
+                </Box>
+                 : (
+                    <div className='progress-container'>
+                         {t('NO_MATERIAL_CATEGORY_AVAILABLE')}
+                    </div>
+                )}
+
+                {
+                    materialCategories.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalUsers / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
             </div>
 
         </div>

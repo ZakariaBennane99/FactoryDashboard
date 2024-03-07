@@ -1,6 +1,5 @@
 import './Details.css';
 import '../../Departments.css'
-import axios from 'axios';
 import TextField from '@mui/material/TextField';
 import { useEffect, useState } from "react";
 import Box from '@mui/material/Box';
@@ -15,7 +14,6 @@ import Delete from '../../Delete';
 import CategoryIcon from '@mui/icons-material/Category';
 import LayersIcon from '@mui/icons-material/Layers';
 import TextureIcon from '@mui/icons-material/Texture';
-import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AcUnitIcon from '@mui/icons-material/AcUnit'; // Winter
@@ -25,12 +23,29 @@ import LocalFloristIcon from '@mui/icons-material/LocalFlorist'; // Spring
 import DnsIcon from '@mui/icons-material/Dns';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import SearchIcon from '@mui/icons-material/Search';
+
+
 
 
 
 function Details() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('detailsPage');
+    const lang = i18n.language;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredDetails, setFilteredDetails] = useState(null);
 
@@ -96,7 +111,6 @@ function Details() {
                     typeof value === 'string' && value.toLocaleLowerCase().includes(query.toLocaleLowerCase())
                 );
             });
-            console.log('The filtered details', filtered)
     
             setFilteredDetails(filtered);
         }
@@ -105,18 +119,34 @@ function Details() {
 
     useEffect(() => {
         async function getDetails() {
+            setIsLoading(true)
             try {
-                // @route: api/items/catalogueDetails
-                // @description: get product catalogue Details
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "catalogueDetails"
+                    itemType: "productcatalogtdetail",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setDetails(res)
+                if (res.status === 200) {
+                    console.log('The res', res)
+                    const formatted = res.data.details.map(ctgr => ({ 
+                        id: ctgr.Id,
+                        category1: ctgr.CategoryOne,
+                        category2: ctgr.CategoryTwo,
+                        season: ctgr.Season,
+                        textile: ctgr.Textile,
+                        templateCatalog: ctgr.ProductCatalog,
+                        templateType: ctgr.TemplateType,
+                        standardWeight: ctgr.StandardWeight,
+                        grammage: ctgr.Grammage,
+                        description: ctgr.Description
+                    }));
+                    setTotalCtlgs(res.data.count)
+                    setDetails(formatted)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -125,7 +155,6 @@ function Details() {
 
 
     // handling adding a Detail
-
     function handleAddingDepart() {
         dispatch(openDialog({
             children: ( 
@@ -156,7 +185,7 @@ function Details() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={i} itemType="catalogueDetails" />
+                    <Delete itemId={details[i].id} itemType="productcatalogtdetail" />
                 )
             }));
         }, 100);
@@ -181,20 +210,81 @@ function Details() {
     }
 
 
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "productcatalogtdetail", 
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res);
+              
+                
+                const formattedDetails = res.data.map(detail => ({
+                    id: detail.Id,
+                    category1: detail.CategoryOne,
+                    category2: detail.CategoryTwo,
+                    season: detail.Season,
+                    textile: detail.Textile,
+                    templateCatalog: detail.ProductCatalog,
+                    templateType: detail.TemplateType,
+                    standardWeight: detail.StandardWeight,
+                    grammage: detail.Grammage,
+                    description: detail.Description
+                }));
+                setDetails(formattedDetails); 
+                setIsQueryFound(formattedDetails.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
+
 
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingDepart}>
+                
+                <button id="btn-generic" className="add-btn" onClick={handleAddingDepart}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Detail</span>
+                    <span id="long" className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('ADD_DETAIL')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Details" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    label={t('SEARCH_DETAILS')} type="search"
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>
+
             </div>   
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
+                        </div>
+                    ) 
+                     : details.length > 0 ? 
+                    (
+                <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
                   {details.length > 0 && !isQueryFound ? details.map((detail, index) => (
                     <Grid item xs={2} sm={4} md={4} key={index}>
@@ -216,50 +306,46 @@ function Details() {
                                         <div>
                                             <DnsIcon />
                                             <span>
-                                                {detail.Catalogue}
+                                                {detail.templateCatalog.ProductCatalogName}
                                             </span>
                                         </div>
                                         <div className="cat1">
                                             <CategoryIcon />
                                             <span>
-                                                {detail.Category1}
+                                                {detail.category1.CategoryName}
                                             </span>
                                         </div>
                                         <div className="template-type">
                                             <CategoryIcon />
                                             <span>
-                                                {detail.TemplateType}
+                                                {detail.templateType.TemplateTypeName}
                                             </span>
                                         </div>
                                         <div className="cat2">
                                             <LayersIcon />
                                             <span>
-                                                {detail.Category2}
+                                                {detail.category2.CategoryName}
                                             </span>
                                         </div>
                                         <div className="description">
                                             <DescriptionIcon />
-                                            <span>{detail.Description}</span>
+                                            <span>{detail.description}</span>
                                         </div>
                                             <div className="detail">
-                                                {getSeasonIcon(detail.Season)}
-                                                <span>{detail.Season}</span>
+                                                {getSeasonIcon(detail.season.SeasonName)}
+                                                <span>{detail.season.SeasonName}</span>
                                             </div>
                                             <div className="textile">
                                                 <TextureIcon />
-                                                <span>{detail.Textile}</span>
-                                            </div>
-                                            <div className="pattern">
-                                                <FormatColorFillIcon />
-                                                <span>{detail.TemplatePattern}</span>
+                                                <span>{detail.textile.TextileName}</span>
                                             </div>
                                             <div className="weight">
                                                 <FitnessCenterIcon />
-                                                <span>{detail.StandardWeight}g</span>
+                                                <span>{detail.standardWeight}g</span>
                                             </div>
                                             <div className="grammage">
                                                 <span className="txt-identifier">Grammage:</span>
-                                                <span>{detail.Grammage} g/m²</span>
+                                                <span>{detail.grammage} g/m²</span>
                                             </div>
                                     </div>
                                 </div>
@@ -271,20 +357,20 @@ function Details() {
                             <div className="template-type">
                                 <CategoryIcon />
                                 <span>
-                                    {detail.TemplateType}
+                                    {detail.templateType.TemplateTypeName}
                                 </span>
                             </div>
                                 <div className="detail">
-                                    {getSeasonIcon(detail.Season)}
-                                    <span>{detail.Season}</span>
+                                    {getSeasonIcon(detail.season.SeasonName)}
+                                    <span>{detail.season.SeasonName}</span>
                                 </div>
                                 <div className="textile">
                                     <TextureIcon />
-                                    <span>{detail.Textile}</span>
+                                    <span>{detail.textile.TextileName}</span>
                                 </div>
                                 <div className="pattern">
-                                    <FormatColorFillIcon />
-                                    <span>{detail.TemplatePattern}</span>
+                                    <DnsIcon />
+                                    <span>{detail.templateCatalog.ProductCatalogName}</span>
                                 </div>
                         </div>
                       </Paper>
@@ -306,49 +392,49 @@ function Details() {
                                         <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
                                     </div>
                                     <div className="body-container">
+                                        <div>
+                                            <DnsIcon />
+                                            <span>
+                                                {detail.templateCatalog.ProductCatalogName}
+                                            </span>
+                                        </div>
                                         <div className="cat1">
                                             <CategoryIcon />
                                             <span>
-                                                {highlightMatch(detail.Category1, query)}
+                                                {detail.category1.CategoryName}
                                             </span>
                                         </div>
                                         <div className="template-type">
                                             <CategoryIcon />
                                             <span>
-                                                {highlightMatch(detail.TemplateType, query)}
+                                                {detail.templateType.TemplateTypeName}
                                             </span>
                                         </div>
                                         <div className="cat2">
                                             <LayersIcon />
                                             <span>
-                                                {highlightMatch(detail.Category2, query)}
+                                                {detail.category2.CategoryName}
                                             </span>
                                         </div>
                                         <div className="description">
                                             <DescriptionIcon />
-                                            <span>
-                                                {highlightMatch(detail.Description, query)}
-                                            </span>
+                                            <span>{detail.description}</span>
                                         </div>
                                             <div className="detail">
-                                                {getSeasonIcon(detail.Season)}
-                                                <span>{highlightMatch(detail.Season, query)}</span>
+                                                {getSeasonIcon(detail.season.SeasonName)}
+                                                <span>{detail.season.SeasonName}</span>
                                             </div>
                                             <div className="textile">
                                                 <TextureIcon />
-                                                <span>{highlightMatch(detail.Textile, query)}</span>
-                                            </div>
-                                            <div className="pattern">
-                                                <FormatColorFillIcon />
-                                                <span>{highlightMatch(detail.TemplatePattern, query)}</span>
+                                                <span>{detail.textile.TextileName}</span>
                                             </div>
                                             <div className="weight">
                                                 <FitnessCenterIcon />
-                                                <span>{highlightMatch(`${detail.StandardWeight}g`, query)}</span>
+                                                <span>{detail.standardWeight}g</span>
                                             </div>
                                             <div className="grammage">
-                                                <span className="txt-identifier">Grammage: </span>
-                                                <span>{highlightMatch(`${detail.Grammage} g/m²`, query)}</span>
+                                                <span className="txt-identifier">Grammage:</span>
+                                                <span>{detail.grammage} g/m²</span>
                                             </div>
                                     </div>
                                 </div>
@@ -360,28 +446,42 @@ function Details() {
                             <div className="template-type">
                                 <CategoryIcon />
                                 <span>
-                                    {highlightMatch(detail.TemplateType, query)}
+                                    {detail.templateType.TemplateTypeName}
                                 </span>
                             </div>
                                 <div className="detail">
-                                    {getSeasonIcon(detail.Season)}
-                                    <span>{highlightMatch(detail.Season, query)}</span>
+                                    {getSeasonIcon(detail.season.SeasonName)}
+                                    <span>{detail.season.SeasonName}</span>
                                 </div>
                                 <div className="textile">
                                     <TextureIcon />
-                                    <span>{highlightMatch(detail.Textile, query)}</span>
+                                    <span>{detail.textile.TextileName}</span>
                                 </div>
                                 <div className="pattern">
-                                    <FormatColorFillIcon />
-                                    <span>{highlightMatch(detail.TemplatePattern, query)}</span>
+                                    <DnsIcon />
+                                    <span>{detail.templateCatalog.ProductCatalogName}</span>
                                 </div>
                         </div>
                       </Paper>
                     </Grid>
-                  )) : <div>Loading...</div>
+                  )) : ""
                   }
                 </Grid>
-            </Box>
+                </Box>
+                     ) : (
+                        <div className='progress-container'>
+                           {t('NO_DETAIL_AVAILABLE')}
+                        </div>
+                    )
+                }
+                {
+                    details.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
             </div>
         </div>
     )

@@ -11,8 +11,15 @@ import AddColors from './AddColor';
 import PaletteIcon from '@mui/icons-material/Palette';
 import ColorizeIcon from '@mui/icons-material/Colorize';
 import DescriptionIcon from '@mui/icons-material/Description';
-import jwtService from '../../../../app/auth/services/jwtService'
+import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import SearchIcon from '@mui/icons-material/Search';
+
+
+
 
 
 function trimText(txt, maxLength) {
@@ -23,9 +30,22 @@ function trimText(txt, maxLength) {
     }
 }
 
+
+
 function Colors() {
 
-    const currentUserId = window.localStorage.getItem('userId')
+    const { t, i18n } = useTranslation('colorsPage');
+    const lang = i18n.language;
+    
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredColors, setFilteredColors] = useState(null);
 
@@ -87,19 +107,29 @@ function Colors() {
 
     useEffect(() => {
         async function getModelColors() {
+            setIsLoading(true)
             try {
-                // @route: api/items/modelColors
-                // @description: get order colors
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "modelColors"
+                    itemType: "color",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setColors(res)
+                if (res.status === 200) {
+                    console.log('The res', res)
+                    const formatted = res.data.colors.map(ctgr => ({ 
+                        id: ctgr.Id,
+                        colorName: ctgr.ColorName,
+                        colorCode: ctgr.ColorCode,
+                        description: ctgr.Description,
+                    }));
+                    setTotalCtlgs(res.data.count)
+                    setColors(formatted)
                 }
             } catch (_error) {
                 // the error msg will be sent so you don't have to hardcode it
                 showMsg(_error, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -151,10 +181,45 @@ function Colors() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={colors[i].colorsId} itemType='modelsColor' />
+                    <Delete itemId={colors[i].id} itemType='color' />
                 )
             }));
         }, 100);
+    }
+
+
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "color", 
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedColors = res.data.map(color => ({
+                    id: color.Id,
+                    colorName: color.ColorName,
+                    colorCode: color.ColorCode,
+                    description: color.Description,
+                }));
+                setColors(formattedColors); 
+                setIsQueryFound(formattedColors.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+    
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
     }
 
 
@@ -162,138 +227,174 @@ function Colors() {
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingColors}>
+
+                <button id="btn-generic" className="add-btn" onClick={handleAddingColors}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Color</span>
+                    <span>{t('ADD_COLOR')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Colors" color="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_COLORS')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} 
+                disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button> 
+            
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {colors.length > 0 && !isQueryFound ? colors.map((color, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card color"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}  
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog color">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <PaletteIcon /> 
-                                        <span className="color-name">
-                                            {color.colorName}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <ColorizeIcon />
-                                        <span className="color-code">
-                                            {color.colorCode}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="color-description">
-                                            {color.description}
-                                        </span>
-                                    </div>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
+                        </div>
+                    ) 
+                     : colors.length > 0 ? 
+                    (
+                        <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {colors.length > 0 && !isQueryFound ? colors.map((color, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card color"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}  
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog color">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <PaletteIcon /> 
+                                                <span className="color-name">
+                                                    {color.colorName}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <ColorizeIcon />
+                                                <span className="color-code">
+                                                    {color.colorCode}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <DescriptionIcon />
+                                                <span className="color-description">
+                                                    {color.description}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >  
+                                <div>
+                                    <PaletteIcon /> 
+                                    <span className="color-name">
+                                        {color.colorName}
+                                    </span>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >  
-                        <div>
-                            <PaletteIcon /> 
-                            <span className="color-name">
-                                {color.colorName}
-                            </span>
-                        </div>
-                        <div>
-                            <ColorizeIcon />
-                            <span className="color-code">
-                                {color.colorCode}
-                            </span>
-                        </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="color-description">
-                                {trimText(color.description, 30)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredColors && isQueryFound ? filteredColors.map((color, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card color"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog color">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <PaletteIcon /> 
-                                        <span className="color-name">
-                                            {highlightMatch(color.colorName, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <ColorizeIcon />
-                                        <span className="color-code">
-                                            {highlightMatch(color.colorCode, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="color-description">
-                                            {highlightMatch(color.description, query)}
-                                        </span>
-                                    </div>
+                                <div>
+                                    <ColorizeIcon />
+                                    <span className="color-code">
+                                        {color.colorCode}
+                                    </span>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <PaletteIcon /> 
-                            <span className="color-name">
-                                {highlightMatch(color.colorName, query)}
-                            </span>
+                                <div>
+                                    <DescriptionIcon />
+                                    <span className="color-description">
+                                        {trimText(color.description, 30)}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : filteredColors && isQueryFound ? filteredColors.map((color, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card color"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog color">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <PaletteIcon /> 
+                                                <span className="color-name">
+                                                    {highlightMatch(color.colorName, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <ColorizeIcon />
+                                                <span className="color-code">
+                                                    {highlightMatch(color.colorCode, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <DescriptionIcon />
+                                                <span className="color-description">
+                                                    {highlightMatch(color.description, query)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <PaletteIcon /> 
+                                    <span className="color-name">
+                                        {highlightMatch(color.colorName, query)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <ColorizeIcon />
+                                    <span className="color-code">
+                                        {highlightMatch(color.colorCode, query)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <DescriptionIcon />
+                                    <span className="color-description">
+                                        {highlightMatch(trimText(color.description, 30), query)}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : ""
+                          }
+                        </Grid>
+                    </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('NO_COLOR_IS_AVAILABLE')}
                         </div>
-                        <div>
-                            <ColorizeIcon />
-                            <span className="color-code">
-                                {highlightMatch(color.colorCode, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="color-description">
-                                {highlightMatch(trimText(color.description, 30), query)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                    )
+                }
+                {
+                    colors.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
             </div>
 
         </div>

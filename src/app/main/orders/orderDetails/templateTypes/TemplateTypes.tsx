@@ -41,7 +41,7 @@ function TemplateTypes() {
 				</div>
 			}
 			content={
-				<div className="p-24 w-full h-full">
+				<div className="p-24 w-full h-full" style={{ overflowY: "hidden" }}>
 					<TemplateTypeComp />
 				</div>
 			}

@@ -1,23 +1,23 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
-import FormControl from '@mui/material/FormControl';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { Link } from 'react-router-dom';
 import * as yup from 'yup';
 import _ from '@lodash';
 import Paper from '@mui/material/Paper';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import jwtService from '../../auth/services/jwtService';
+import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+
+
+
 
 /**
  * Form Validation Schema
  */
 const schema = yup.object().shape({
-	userName: yup.string().required('You must enter a userName'),
 	userName: yup.string().required('You must enter a userName'),
 	password: yup
 		.string()
@@ -27,7 +27,6 @@ const schema = yup.object().shape({
 
 const defaultValues = {
 	userName: '',
-	userName: '',
 	password: '',
 	remember: true
 };
@@ -36,6 +35,26 @@ const defaultValues = {
  * The sign in page.
  */
 function SignInPage() {
+	
+	const dispatch = useAppDispatch()
+
+	function showMsg(msg, status) {
+
+	
+		setTimeout(()=> dispatch(
+			showMessage({
+				message: msg, // text or html
+				autoHideDuration: 3000, // ms
+				anchorOrigin: {
+					vertical  : 'top', // top bottom
+					horizontal: 'center' // left center right
+				},
+				variant: status // success error info warning null
+		})), 100);
+	}
+
+	const [isLoading, setIsLoading] = useState(false)
+
 	const { control, formState, handleSubmit, setError, setValue } = useForm({
 		mode: 'onChange',
 		defaultValues,
@@ -45,29 +64,27 @@ function SignInPage() {
 	const { isValid, dirtyFields, errors } = formState;
 
 	useEffect(() => {
-		setValue('userName', 'zaki.greene', { shouldDirty: true, shouldValidate: true });
-		setValue('password', 'zakigreene', { shouldDirty: true, shouldValidate: true });
+		setValue('userName', 'zakaria.bennane', { shouldDirty: true, shouldValidate: true });
+		setValue('password', 'zakaria.bennane.19', { shouldDirty: true, shouldValidate: true });
 	}, [setValue]);
 
 	function onSubmit({ userName, password }) {
-	function onSubmit({ userName, password }) {
+		setIsLoading(true)
 		jwtService
 			.signInWithEmailAndPassword(userName, password)
 			.then((user) => {
 				// eslint-disable-next-line no-console
 				console.info(user);
-
 				// No need to do anything, user data will be set at app/auth/AuthContext
 			})
 			.catch((errors) => {
-				console.log('THE ERRORS', errors)
-				errors.forEach((error) => {
-					setError(error.type, {
-						type: 'manual',
-						message: error.message
-					});
-				});
-			});
+				console.log('The error', errors)
+				const status = errors.response.status
+				const msg = status === 401 ? 'Invalid credentials!' : 'Server error'
+				showMsg(msg, 'error')
+			}).finally(() => {
+				setIsLoading(false)
+			})
 	}
 
 	return (
@@ -97,13 +114,11 @@ function SignInPage() {
 					>
 						<Controller
 							name="userName"
-							name="userName"
 							control={control}
 							render={({ field }) => (
 								<TextField
 									{...field}
 									className="mb-24"
-									label="User Name"
 									label="User Name"
 									autoFocus
 									type="userName"
@@ -134,44 +149,21 @@ function SignInPage() {
 							)}
 						/>
 
-						<div className="flex flex-col items-center justify-center sm:flex-row sm:justify-between">
-							<Controller
-								name="remember"
-								control={control}
-								render={({ field }) => (
-									<FormControl>
-										<FormControlLabel
-											label="Remember me"
-											control={
-												<Checkbox
-													size="small"
-													{...field}
-												/>
-											}
-										/>
-									</FormControl>
-								)}
-							/>
-
-							<Link
-								className="text-md font-medium"
-								to="/pages/auth/forgot-password"
-							>
-								Forgot password?
-							</Link>
-						</div>
-
 						<Button
 							variant="contained"
 							color="secondary"
 							className=" mt-16 w-full"
 							aria-label="Sign in"
-							style={{ borderRadius: '6px' }}
+							style={{ 
+								borderRadius: '6px',
+								backgroundColor: (_.isEmpty(dirtyFields) || !isValid || isLoading) ? '#BDBDBD' : '', 
+								cursor: isLoading ? 'not-allowed' : 'pointer'
+							}}
 							disabled={_.isEmpty(dirtyFields) || !isValid}
 							type="submit"
 							size="large"
 						>
-							Sign in
+							{isLoading ? 'Signing you in...' : 'Sign in'}
 						</Button>
 					</form>
 				</div>

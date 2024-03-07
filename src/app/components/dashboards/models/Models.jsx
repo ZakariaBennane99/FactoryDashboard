@@ -13,24 +13,38 @@ import RulerIcon from '@mui/icons-material/Straighten';
 import PlusOneIcon from '@mui/icons-material/PlusOne';
 import DescriptionIcon from '@mui/icons-material/Description';
 import { showMessage } from 'app/store/fuse/messageSlice';
-import EventIcon from '@mui/icons-material/Event';
 import { CircularProgress } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { useAppSelector } from 'app/store';
+import arLocale from 'date-fns/locale/ar-SA';
 import { useLocation } from 'react-router-dom';
 import { selectFuseDialogState } from 'app/store/fuse/dialogSlice';
 import { useNavigate } from 'react-router-dom';
 import jwtService from '../../../auth/services/jwtService/jwtService';
 import Dialog from '@mui/material/Dialog';
 import ShowManStages from './ShowManStages'
+import Pagination from '@mui/material/Pagination';
+import { useTranslation } from 'react-i18next';
+
 
 
 
 
 function Models() {
 
-    const currentUserId = window.localStorage.getItem('userId')
+    const { t, i18n } = useTranslation('modelsPage');
+    const lang = i18n.language;
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(1);
+    const itemsPerPage = 7;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    const [isLoading, setIsLoading] = useState(false)
 
     const [specificModel, setSpecificModel] = useState(null);
 
@@ -127,22 +141,71 @@ function Models() {
     }, [models, query, isQueryFound]);
 
 
+    async function fetchSearchResults() {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "model", 
+                query: searchReq.query,
+                from: searchReq.from,
+                to: searchReq.to
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedModels = res.data.map(model => ({
+                    id: model.Id,
+                    modelName: model.ModelName,
+                    orderNumber: model.Orders.OrderNumber,
+                    orderDetails: model.OrderDetail,
+                    templateName: model.Template.TemplateName, 
+                    color: model.Color.ColorName,
+                    size: model.Size.SizeName,
+                    quantity: model.Quantity,
+                    quantityDetails: model.QuantityDetails,
+                    notes: model.Note
+                }));
+                setModels(formattedModels); // Updating models state instead of warehouses
+                setIsQueryFound(formattedModels.length > 0); // Reflecting search result found status
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
     useEffect(() => {
         async function getModels() {
+            setIsLoading(true)
             try {
-                // @route: api/items/models
-                // @description: get models
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "models"
+                    itemType: "model",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setModels(res.models)
+                if (res.status === 200) {
+                    console.log('The res', res)
+                    const formatted = res.data.models.map(model => ({
+                        id: model.Id,
+                        modelName: model.ModelName,
+                        orderNumber: model.Orders.OrderNumber,
+                        orderDetails: model.OrderDetail,
+                        templateName: model.Template.TemplateName, 
+                        color: model.Color.ColorName,
+                        size: model.Size.SizeName,
+                        quantity: model.Quantity,
+                        quantityDetails: model.QuantityDetails,
+                        notes: model.Note
+                    }));
+                    setTotalUsers(res.data.count)
+                    setModels(formatted)
                 }
             } catch (error) {
-                console.log('ThE ERROR', error)
                 // the error msg will be sent so you don't have to hardcode it
-                showMsg(error, 'error')
+                showMsg(error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -167,26 +230,34 @@ function Models() {
     };
 
 
-    // If the user clicks on the link of the model, the DB id of the model
-    // will be brought here, then we will fetch it separatly and add it here 
-
     const getModelById = async (modelId) => {
         try {
-            // @route: api/items/getModel
-            // @description: get model from the modelId
-            const res = await jwtService.getIModelById({ 
-                modelId: modelId
+            const res = await jwtService.getItemById({ 
+                itemType: "model",
+                itemId: modelId
             });
-            
-            if (res.status === 201) {
-                setSpecificModel(res.data)
+            if (res.status === 200) {
+                const model = res.data;
+                const formattedModel = {
+                    id: model.Id,
+                    modelName: model.ModelName,
+                    orderNumber: model.Orders.OrderNumber,
+                    orderDetails: model.OrderDetail.QuantityDetails, 
+                    templateName: model.Template.TemplateName, 
+                    color: model.Color.ColorName,
+                    size: model.Size.SizeName,
+                    quantity: model.Quantity,
+                    quantityDetails: model.QuantityDetails,
+                    notes: model.Note
+                };
+                setSpecificModel(formattedModel)
             } else if (res.status === 404) {
                 setSpecificModel(null);
                 navigate('/models'); 
             }
         } catch (error) {
             console.log('THE ERROR', error)
-            showMsg(error, 'error')
+            showMsg(error.message, 'error')
         }
     };
 
@@ -197,6 +268,7 @@ function Models() {
             getModelById(modelId);
         }
     }, [location]);
+
 
     useEffect(() => {
 
@@ -212,15 +284,19 @@ function Models() {
     }, [isDialogOpen]);
 
 
+
     const handleClose = () => {
         setSpecificModel(null);
         navigate('/dashboards/models'); 
     };
 
-    useEffect(() => {
-        console.log('THE SPECIFICMODE', specificModel)
-    }, [])
-
+    function handleSearchButtonClick() {
+        if (searchReq.query && searchReq.query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
 
 
     function handleManufacturingStages(modelId, modelQuantity) {
@@ -242,12 +318,12 @@ function Models() {
     return (
         <div className="parent-container">
 
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <div className="top-ribbon">
+            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={lang === 'ar' ? arLocale : undefined}>
+                <div className="top-ribbon" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                     <FormControl fullWidth style={{ width: '18%', height: '100%' }}>
                         <DatePicker
-                            className='datePicker'
-                            label="From"
+                            className={`datePicker ${lang === 'ar' ? 'rtl' : ''}`}
+                            label={t('FROM')}
                             value={searchReq.from}
                             onChange={handleFromDateChange}
                             renderInput={(params) => <TextField {...params} required />}
@@ -255,26 +331,36 @@ function Models() {
                     </FormControl>
                     <FormControl fullWidth style={{ width: '18%', height: '100%' }}>
                         <DatePicker
-                            className="datePicker"
-                            label="To"
+                            className={`datePicker ${lang === 'ar' ? 'rtl' : ''}`}
+                            label={t('TO')}
                             value={searchReq.to}
                             onChange={handleToDateChange}
                             renderInput={(params) => <TextField {...params} required />}
                         />
                     </FormControl>
                     <TextField
-                        className="search dash-search" 
-                        label="Search Orders"
-                        onChange={(e) => handleSearch(e)}  />
-                    <button className="search-btn">
+                        className={`search dash-search ${lang === 'ar' ? 'rtl' : ''}`} 
+                        label={t('SEARCH_ORDERS')}
+                        onChange={(e) => handleSearch(e)}  
+                        type="search"
+                        error={searchError}
+                        helperText={searchError ? t('QUERY_ERROR') : ""} />
+                    <button className={`search-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
                         <SearchIcon />
-                        <span>Search</span>
+                        <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
                     </button>
                 </div>  
             </LocalizationProvider> 
 
-
             <div className="main-content">
+
+                {
+                    isLoading ?<div className="progress-container">
+                    <CircularProgress />  
+                  </div>
+                     : ''
+                }
+
                 {
                     specificModel ? 
                     <Dialog
@@ -283,69 +369,63 @@ function Models() {
                         aria-labelledby="model-dialog-title"
                         style={{ borderRadius: '8px' }}
                     >
-                        <div className="depart-card dialog Model">
-                            <button onClick={() => handleManufacturingStages(specificModel.modelId, specificModel.quantity)} 
-                                id="man-stages-btn" 
-                                className="add-user-btn"
-                            >
-                                Show Manufacturing Stages
-                            </button>
-                            <div>
-                                <ConfirmationNumberIcon /> 
-                                <span className="model-name">
-                                    {specificModel.modelName}
-                                </span>
-                            </div>
-                            <div>
-                                <ConfirmationNumberIcon /> 
-                                <span className="model-date">
-                                    {specificModel.modelId}
-                                </span>
-                            </div>
-                            <div>
-                                <NoteAddIcon /> 
-                                <span className="model-amount">
-                                    {specificModel.modelName}
-                                </span>
-                            </div>
-                            <div>
-                                <CategoryIcon /> 
-                                <span className="model-status">
-                                    {specificModel.templateType}
-                                </span>
-                            </div>
-                            <div>
-                                <PaletteIcon /> 
-                                <span className="model-date">
-                                    {specificModel.color}
-                                </span>
-                            </div>
-                            <div>
-                                <RulerIcon /> 
-                                <span className="model-status">
-                                    {specificModel.size}
-                                </span>
-                            </div>
-                            <div>
-                                <PlusOneIcon />
-                                <span className="model-date">
-                                    {specificModel.quantity}
-                                </span>
-                            </div>
-                            <div>
-                                <DescriptionIcon />
-                                <span className="model-status">
-                                    {specificModel.quantityDetails}
-                                </span>
-                            </div>
-                            <div>
-                                <DescriptionIcon />
-                                <span className="model-date">
-                                    {specificModel.notes}
-                                </span>
-                            </div>
-                        </div>
-                </Dialog>
+                                <div className="depart-card dialog Model">
+                                    <button onClick={() => handleManufacturingStages(specificModel.id, specificModel.quantity)} 
+                                        id="man-stages-btn" 
+                                        className="add-user-btn"
+                                    >
+                                        Show Manufacturing Stages
+                                    </button>
+                                    <div>
+                                        <ConfirmationNumberIcon /> 
+                                        <span className="model-name">
+                                            {specificModel.modelName}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <ConfirmationNumberIcon /> 
+                                        <span className="model-date">
+                                            {specificModel.orderNumber}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <CategoryIcon /> 
+                                        <span className="model-status">
+                                            {specificModel.templateName}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <PaletteIcon /> 
+                                        <span className="model-date">
+                                            {specificModel.color}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <RulerIcon /> 
+                                        <span className="model-status">
+                                            {specificModel.size}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <PlusOneIcon />
+                                        <span className="model-date">
+                                            {specificModel.quantity}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <DescriptionIcon />
+                                        <span className="model-status">
+                                            {specificModel.quantityDetails}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <DescriptionIcon />
+                                        <span className="model-date">
+                                            {specificModel.notes}
+                                        </span>
+                                    </div>
+                                </div>
+                    </Dialog>
                     : ''
                 }
             <Box sx={{ flexGrow: 1 }}>
@@ -362,34 +442,28 @@ function Models() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog Model">
-                                    <button onClick={() => handleManufacturingStages(model.modelId, model.quantity)} 
+                                    <button onClick={() => handleManufacturingStages(model.id, model.quantity)} 
                                         id="man-stages-btn" 
                                         className="add-user-btn"
                                     >
-                                        Show Manufacturing Stages
+                                        {t('SHOW_MANUFACTURING_STAGES')}
                                     </button>
                                     <div>
                                         <ConfirmationNumberIcon /> 
                                         <span className="model-name">
-                                            {model.orderId}
+                                            {model.modelName}
                                         </span>
                                     </div>
                                     <div>
                                         <ConfirmationNumberIcon /> 
                                         <span className="model-date">
-                                            {model.modelId}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <NoteAddIcon /> 
-                                        <span className="model-amount">
-                                            {model.modelName}
+                                            {model.orderNumber}
                                         </span>
                                     </div>
                                     <div>
                                         <CategoryIcon /> 
                                         <span className="model-status">
-                                            {model.templateType}
+                                            {model.templateName}
                                         </span>
                                     </div>
                                     <div>
@@ -433,12 +507,14 @@ function Models() {
                                 {model.modelName}
                             </span>
                         </div>
+                        
                         <div>
                             <CategoryIcon /> 
                             <span className="model-status">
-                                {model.templateType}
+                                {model.templateName}
                             </span>
                         </div>
+                        
                         <div>
                             <PaletteIcon /> 
                             <span className="model-date">
@@ -465,7 +541,7 @@ function Models() {
                         dispatch(openDialog({
                             children: (
                                 <div className="depart-card dialog Model">
-                                    <button onClick={handleManufacturingStages(model.modelId, model.quantity)} 
+                                    <button onClick={() => handleManufacturingStages(model.modelId, model.quantity)} 
                                         id="man-stages-btn" 
                                         className="add-user-btn"
                                     >
@@ -474,38 +550,31 @@ function Models() {
                                     <div>
                                         <ConfirmationNumberIcon /> 
                                         <span className="model-name">
-                                            {highlightMatch(model.orderId, query)}
+                                            {highlightMatch(model.modelName, query)}
                                         </span>
                                     </div>
                                     <div>
                                         <ConfirmationNumberIcon /> 
-                                        <EventIcon />
                                         <span className="model-date">
-                                            {highlightMatch(model.modelId, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <NoteAddIcon /> 
-                                        <span className="model-amount">
-                                            {highlightMatch(model.modelName, query)}
+                                            {highlightMatch(model.orderNumber, query)}
                                         </span>
                                     </div>
                                     <div>
                                         <CategoryIcon /> 
                                         <span className="model-status">
-                                            {highlightMatch(model.templateType, query)}
+                                            {highlightMatch(model.templateName, query)}
                                         </span>
                                     </div>
                                     <div>
                                         <PaletteIcon /> 
                                         <span className="model-date">
-                                            {highlightMatch(model.templateType, query)}
+                                            {highlightMatch(model.color, query)}
                                         </span>
                                     </div>
                                     <div>
                                         <RulerIcon /> 
                                         <span className="model-status">
-                                            {highlightMatch(model.templateType, query)}
+                                            {highlightMatch(model.size, query)}
                                         </span>
                                     </div>
                                     <div>
@@ -527,7 +596,7 @@ function Models() {
                                         </span>
                                     </div>
                                 </div>
-                            )
+                            ),
                         }))
                       }}
                     >
@@ -540,7 +609,7 @@ function Models() {
                         <div>
                             <CategoryIcon /> 
                             <span className="model-status">
-                                {highlightMatch(model.templateType, query)}
+                                {highlightMatch(model.templateName, query)}
                             </span>
                         </div>
                         <div>
@@ -557,13 +626,20 @@ function Models() {
                         </div>
                       </Paper>
                     </Grid>
-                  )) :                   
-                  <div className="progress-container">
-                    <CircularProgress />  
-                  </div>
+                  )) : ""
                   }
                 </Grid>
             </Box>
+
+                 {
+                    models.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalUsers / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
             </div>
 
         </div>

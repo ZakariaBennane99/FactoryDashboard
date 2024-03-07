@@ -1,17 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FormControl, TextField, Box, Select, MenuItem, InputLabel } from '@mui/material';
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import { useTranslation } from 'react-i18next';
+
+
 
 
 
 
 function AddManufacturingStage({ mnfStage }) {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('manufacturingStagesPage');
+    const lang = i18n.language;
+
+    const dispatch = useAppDispatch();
+    
+    const [isLoading, setIsLoading] = useState(false);
 
     const [manufacturingStage, setManufacturingStage] = useState({
+        id: mnfStage ? mnfStage.id : '',
         stageNumber: mnfStage ? mnfStage.stageNumber : '',
         stageName: mnfStage ? mnfStage.stageName : '',
         workDescription: mnfStage ? mnfStage.workDescription : '',
@@ -21,13 +31,20 @@ function AddManufacturingStage({ mnfStage }) {
         department: mnfStage ? mnfStage.department : ''
     });
 
-    const [templates, setTemplates] = useState(['Basic Tee', 'Classic Jeans', 'Summer Dress'])
-    const [departments, setDepartments] = useState(['Engineering Office', 'Finance Office', 
-    'Accounting Office', 'Production Plant 1', 'Cutting Division'])
 
+    const [templates, setTemplates] = useState([])
+    const [departments, setDepartments] = useState([])
 
     const handleChange = (prop) => (event) => {
-        setManufacturingStage({ ...manufacturingStage, [prop]: event.target.value });
+        if (prop === 'template') {
+            const tmple = templates.find(supplier => supplier.id === event.target.value);
+            setManufacturingStage({ ...manufacturingStage, [prop]: tmple });
+        } else if (prop === 'department') {
+            const tmple = departments.find(supplier => supplier.id === event.target.value);
+            setManufacturingStage({ ...manufacturingStage, [prop]: tmple });
+        } else {
+            setManufacturingStage({ ...manufacturingStage, [prop]: event.target.value });
+        }
     };
 
     function showMsg(msg, status) {
@@ -48,74 +65,65 @@ function AddManufacturingStage({ mnfStage }) {
     const handleAddManufacturingStages = async (event) => {
         event.preventDefault();
         
+        setIsLoading(true)
         try {
-            // @route: api/create/manufacturingStages
-            // @description: create a new manufacturingStage
             const res = await jwtService.createItem({ 
-                itemType: 'manufacturingStages',
-                data: {
-                    data: manufacturingStage,
-                    currentUserId: currentUserId
-                }
-             }, { 'Content-Type': 'application/json' });
-            if (res) {
-                showMsg(res, 'success')
+                itemType: 'manufacturingstage',
+                data: manufacturingStage
+            }, { 'Content-Type': 'application/json' });
+            if (res.status === 201) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
 
     const handleUpdateManufacturingStages = async (event) => {
         event.preventDefault();
 
+        setIsLoading(true)
         try {
-            // @route: api/update/manufacturingStages
-            // @description: update an existing manufacturingStage
             const res = await jwtService.updateItem({ 
-                itemType: 'manufacturingStages',
+                itemType: 'manufacturingstage',
                 data: {
                     data: manufacturingStage,
-                    currentUserId: currentUserId,
-                    itemId: mnfStage.manufacturingStagesId
+                    itemId: mnfStage.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
+            if (res.status === 200) {
                 // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
-    
-    /* TO BE UNCOMMENTED IN PRODUCTION
-    // get the list of existing departments and templates
     useEffect(() => {    
-        async function getDepartmentsAndTemplates() {
+        async function getSuppliersNames() {
             try {
-                // @route: api/departmentsAndTemplates
-                // @description: get Departments and Templates
-                // @response: return an object of two arrays one named templates 
-				// the other, departments within which each elements has
-				// an id and it's name
-                const res = await jwtService.getDepartmentsAndTemplates({ 
-                    currentUserId: currentUserId
-                });
+                const res = await jwtService.getItemNames(['template', 'department']);
                 if (res) {
-                    setDepartments(res.departments)
-                    setTemplates(res.templates)
+                    const departs = res[1].data.filter(depart => depart.name !== 'Engineering Office')
+                    setTemplates(res[0].data)
+                    setDepartments(departs)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
-            }
+                showMsg(_error.message || "An unexpected error occurred", 'error')
+            } 
         }
         
-        getDepartsAndTemplates();
-    }, []);*/
+        getSuppliersNames();
+    }, []);
+
+
 
 
     return (
@@ -123,18 +131,18 @@ function AddManufacturingStage({ mnfStage }) {
             <form onSubmit={mnfStage ? handleUpdateManufacturingStages : handleAddManufacturingStages}>
 
                 <FormControl fullWidth margin="normal">
-                    <InputLabel id="template-select-label">Template</InputLabel>
+                    <InputLabel id="template-select-label">{t('TEMPLATE')}</InputLabel>
                     <Select
                         labelId="template-select-label"
                         id="template-select"
-                        value={manufacturingStage.template}
-                        label="Template"
+                        value={manufacturingStage.template ? manufacturingStage.template.id : ''}
+                        label={t('TEMPLATE')}
                         onChange={handleChange('template')}
                         required
                     >
                         {templates.map((template, index) => (
-                            <MenuItem key={index} value={template}>
-                                {template}
+                            <MenuItem key={template.id} value={template.id}>
+                                {template.name}
                             </MenuItem>
                         ))}
                     </Select>
@@ -142,7 +150,7 @@ function AddManufacturingStage({ mnfStage }) {
 
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Stage Number"
+                        label={t('STAGE_NUMBER')}
                         variant="outlined"
                         type="number"
                         value={manufacturingStage.stageNumber}
@@ -154,7 +162,7 @@ function AddManufacturingStage({ mnfStage }) {
 
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Stage Name"
+                        label={t('STAGE_NAME')}
                         variant="outlined"
                         value={manufacturingStage.stageName}
                         onChange={handleChange('stageName')}
@@ -163,18 +171,18 @@ function AddManufacturingStage({ mnfStage }) {
                 </FormControl>
 
                 <FormControl fullWidth margin="normal">
-                    <InputLabel id="department-select-label">Department</InputLabel>
+                    <InputLabel id="department-select-label">{t('DEPARTMENT')}</InputLabel>
                     <Select
                         labelId="department-select-label"
                         id="department-select"
-                        value={manufacturingStage.department}
-                        label="Department"
+                        value={manufacturingStage.department ? manufacturingStage.department.id : ''}
+                        label={t('DEPARTMENT')}
                         onChange={handleChange('department')}
                         required
                     >
                         {departments.map((department, index) => (
-                            <MenuItem key={index} value={department}>
-                                {department}
+                            <MenuItem key={department.id} value={department.id}>
+                                {department.name}
                             </MenuItem>
                         ))}
                     </Select>
@@ -182,7 +190,7 @@ function AddManufacturingStage({ mnfStage }) {
 
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Work Description"
+                        label={t('WORK_DESCRIPTION')}
                         variant="outlined"
                         value={manufacturingStage.workDescription}
                         onChange={handleChange('workDescription')}
@@ -194,7 +202,7 @@ function AddManufacturingStage({ mnfStage }) {
 
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Duration (minutes)"
+                        label={t('DURATION_MINUTES')}
                         variant="outlined"
                         type="number"
                         value={manufacturingStage.duration}
@@ -206,7 +214,7 @@ function AddManufacturingStage({ mnfStage }) {
 
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
-                        label="Description"
+                        label={t('DESCRIPTION')}
                         variant="outlined"
                         value={manufacturingStage.description}
                         onChange={handleChange('description')}
@@ -216,8 +224,8 @@ function AddManufacturingStage({ mnfStage }) {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-internalOrder-btn">
-                    {mnfStage ? 'Update' : 'Add'} Manufacturing Stage
+                <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                {mnfStage ? (isLoading ? t('UPDATING') : t('UPDATE_MANUFACTURING_STAGE_BUTTON')) : (isLoading ? t('ADDING') : t('ADD_MANUFACTURING_STAGE_BUTTON'))}
                 </button>
             </form>
         </Box>

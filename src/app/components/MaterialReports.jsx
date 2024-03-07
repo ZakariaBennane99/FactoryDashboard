@@ -5,8 +5,23 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useAppDispatch } from 'app/store';
 import { closeDialog } from 'app/store/fuse/dialogSlice';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import './Departments.css'
+import jwtService from '../auth/services/jwtService';
+import { useTranslation } from 'react-i18next';
+import arLocale from 'date-fns/locale/ar-SA';
+
+
 
 function MaterialReports() {
+
+    const { i18n } = useTranslation();
+    const lang = i18n.language;
+
+    const localeMap = {
+        ar: arLocale,
+    };
+
+    const adapterLocale = lang === 'ar' ? localeMap[lang] : undefined;
     
     const dispatch = useAppDispatch();
     const [loading, setLoading] = useState(false);
@@ -16,13 +31,20 @@ function MaterialReports() {
     const [reportData, setReportData] = useState(null);
 
 
-    useEffect(() => {
-        // to be fetched from the backend
-        setMaterials([ 
-            { id: 'M001', name: 'Material 1' }, 
-            { id: 'M002', name: 'Material 2' },
-            { id: 'M003', name: 'Material 3' }
-        ]);
+    useEffect(() => {    
+        async function getMaterials() {
+            try {
+                const res = await jwtService.getItemNames(['material']);
+                console.log('THE MATERIAL', res)
+                if (res[0].status === 200) {
+                    setMaterials(res[0].data)
+                }
+            } catch (_error) {
+                showMsg(_error.message || "An unexpected error occurred", 'error')
+            } 
+        }
+        
+        getMaterials();
     }, []);
 
     function showMsg(msg, isError) {
@@ -54,22 +76,22 @@ function MaterialReports() {
         setLoading(true);
 
         try {
-            // @route: api/getReportData
-            // @description: get the data for the report
-            const response = await jwtService.generatePDFReport({
-                materialIds: selectedMaterials.map(material => material.id),
-                from: dates.from,
-                to: dates.to
-            }, { 'Content-Type': 'application/json' });
-            setReportData(response.data.reports);
-            setLoading(false);
-        } catch (error) {
-            setLoading(false);
-            if (error.response && error.response.status === 404) {
-                showMsg(`There is are reports for the chosen options!`, false)
-            } else {
-                showMsg('There was a server error! please try again.', true)
+            const res = await jwtService.handleReports({
+                itemType: 'generateReports',
+                data: {
+                    materialIds: materials.map(material => material.id),
+                    from: dates.from,
+                    to: dates.to
+                }
+            });
+            console.log('THE GENeRATE RES', res)
+            if (res.status === 200) {
+                setReportData(res.data)
             }
+        } catch (error) {
+            showMsg(error.message, 'error')
+        } finally {
+            setLoading(false)
         }
     };
 
@@ -77,29 +99,36 @@ function MaterialReports() {
         return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     };
 
-    const generatePDF = async () => {
+    const downloadPDF = async () => {
         // call the backend to generate the report 
         setLoading(true); 
 
         try {
-            // @route: api/generatePDFReport
-            // @description: generate a downloadable PDF link for the data
-            const res = await jwtService.generatePDFReport({
-                currentUserId: currentUserId,
-                materialIds: selectedMaterials.map(material => material.id),
-                from: dates.from,
-                to: dates.to
-             }, { 'Content-Type': 'application/json' });
+            const res = await jwtService.handleReports({
+                itemType: 'downloadReports',
+                data: {
+                    materialIds: materials.map(material => material.id),
+                    from: dates.from,
+                    to: dates.to
+                }
+            });
             if (res) {
-                // here open the link in a new window to get downloaded
-                // setData(res)
+                const url = window.URL.createObjectURL(new Blob([res], { type: 'application/pdf' }));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'report.pdf');
+                link.setAttribute('target', '_blank'); // Open in a new tab/window
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
-            setLoading(false)
         } catch (_error) {
-            showMsg(_error, 'error')
+            showMsg(_error.message, 'error')
+        } finally {
             setLoading(false)
         }
     };
+
 
 
     if (reportData) {
@@ -114,13 +143,13 @@ function MaterialReports() {
                             <Table sx={{ minWidth: 750 }} aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Internal Orders ID</TableCell>
-                                        <TableCell sx={{ minWidth: 130, textAlign: 'left' }}>Movement ID</TableCell>
-                                        <TableCell sx={{ minWidth: 130, textAlign: 'left' }}>From</TableCell>
-                                        <TableCell sx={{ minWidth: 130, textAlign: 'left' }}>To</TableCell>
-                                        <TableCell sx={{ minWidth: 100, textAlign: 'left' }}>Quantity</TableCell>
-                                        <TableCell sx={{ minWidth: 100, textAlign: 'left' }}>Color</TableCell>
-                                        <TableCell sx={{ minWidth: 120, textAlign: 'left' }}>Date</TableCell>
+                                    <TableCell>{lang === 'ar' ? 'معرف الطلبات الداخلية' : 'Internal Orders ID'}</TableCell>
+                                        <TableCell sx={{ minWidth: 130, textAlign: lang === 'ar' ? 'right' : 'left' }}>{lang === 'ar' ? 'معرف الحركة' : 'Movement ID'}</TableCell>
+                                        <TableCell sx={{ minWidth: 130, textAlign: lang === 'ar' ? 'right' : 'left' }}>{lang === 'ar' ? 'من' : 'From'}</TableCell>
+                                        <TableCell sx={{ minWidth: 130, textAlign: lang === 'ar' ? 'right' : 'left' }}>{lang === 'ar' ? 'إلى' : 'To'}</TableCell>
+                                        <TableCell sx={{ minWidth: 100, textAlign: lang === 'ar' ? 'right' : 'left' }}>{lang === 'ar' ? 'الكمية' : 'Quantity'}</TableCell>
+                                        <TableCell sx={{ minWidth: 100, textAlign: lang === 'ar' ? 'right' : 'left' }}>{lang === 'ar' ? 'اللون' : 'Color'}</TableCell>
+                                        <TableCell sx={{ minWidth: 120, textAlign: lang === 'ar' ? 'right' : 'left' }}>{lang === 'ar' ? 'التاريخ' : 'Date'}</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -146,32 +175,35 @@ function MaterialReports() {
                     </Box>
                 ))}
                 <Button
+                    className={loading ? 'disabled-button' : ''}
                     variant="contained"
                     color="primary"
-                    onClick={generatePDF}
+                    disabled={loading}
+                    onClick={downloadPDF}
                     sx={{ width: '100%', borderRadius: '6px' }}
                 >
-                Download All Reports
+                {loading ? (lang === 'ar' ? 'جاري التحميل...' : 'Downloading...') : (lang === 'ar' ? 'تحميل الكل' : 'Download All')}
             </Button>
             </Box>)
     } else {
         return (
-            <Box sx={{ p: 4 }}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Box sx={{ p: 4, direction: lang === 'ar' ? 'rtl' : 'ltr' }}>
+                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={adapterLocale}>
                     <form onSubmit={handleSubmit}>
                         <FormControl fullWidth margin="normal">
                             <Autocomplete
                                 multiple
                                 options={materials}
                                 getOptionLabel={(option) => option.name}
-                                onChange={handleMaterialChange}
+                                onChange={(event, value) => handleMaterialChange(event, value)}
                                 style={{ borderRadius: '5px' }}
-                                renderInput={(params) => <TextField {...params} label="Select Materials" />}
+                                renderInput={(params) => <TextField {...params} label={lang === 'ar' ? 'اختر المواد' : 'Select Materials'} />}
+                                getOptionSelected={(option, value) => option.id === value.id}
                             />
                         </FormControl>
                         <FormControl fullWidth margin="normal">
                             <DatePicker
-                                label="From"
+                                label={lang === 'ar' ? '' : 'From'}
                                 value={dates.from}
                                 onChange={(newValue) => handleDateChange('from', newValue)}
                                 renderInput={(params) => <TextField {...params} />}
@@ -179,7 +211,7 @@ function MaterialReports() {
                         </FormControl>
                         <FormControl fullWidth margin="normal">
                             <DatePicker
-                                label="To"
+                                label={lang === 'ar' ? '' : 'To'}
                                 value={dates.to}
                                 onChange={(newValue) => handleDateChange('to', newValue)}
                                 renderInput={(params) => <TextField {...params} />}
@@ -196,7 +228,7 @@ function MaterialReports() {
                             style={{ borderRadius: '6px', width: '100%' }}
                             sx={{ mt: 3, mb: 2 }}
                         >
-                            {loading ? 'Generating...' : 'Generate Report'}
+                             {loading ? (lang === 'ar' ? 'جاري الإعداد...' : 'Generating...') : (lang === 'ar' ? 'إعداد التقرير' : 'Generate Report')}
                         </Button>
                     </form>
                 </LocalizationProvider>

@@ -17,13 +17,32 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { CircularProgress } from '@mui/material';
+import Pagination from '@mui/material/Pagination';
+import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
 
 
 
 
 function Warehouses() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('warehousesPage');
+    const lang = i18n.language;
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(1);
+    const itemsPerPage = 7;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    const [isLoading, setIsLoading] = useState(false)
+
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+    }
 
     const [filteredWarehouses, setFilteredWarehouses] = useState(null);
 
@@ -97,22 +116,63 @@ function Warehouses() {
         }
     }, [warehouses, query, isQueryFound]);
 
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "warehouse",
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedWarehouses = res.data.map(warehouse => ({
+                    id: warehouse.Id,
+                    name: warehouse.WarehouseName,
+                    location: warehouse.Location,
+                    capacity: warehouse.Capacity,
+                    manager: {
+                        id: warehouse.ManagerId,
+                        name: `${capitalizeFirstLetter(warehouse.Manager.Firstname)} ${capitalizeFirstLetter(warehouse.Manager.Lastname)}`
+                    }
+                }));
+                setWarehouses(formattedWarehouses);
+                setIsQueryFound(formattedWarehouses.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
 
     useEffect(() => {
-        // get the Userments from the backend
         async function getWarehouses() {
             try {
-                // @route: api/items/warehouses
-                // @description: get a list of warehouses
-                const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "warehouses"
+                setIsLoading(true)
+                const res = await jwtService.getItems({
+                    itemType: "warehouse",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setWarehouses(res)
+                if (res.status === 200) {
+                    const formattedWarehouses = res.data.warehouses.map(warehouse => ({
+                        id: warehouse.Id,
+                        name: warehouse.WarehouseName,
+                        location: warehouse.Location,
+                        capacity: warehouse.Capacity,
+                        manager: {
+                            id: warehouse.ManagerId,
+                            name: `${capitalizeFirstLetter(warehouse.Manager.Firstname)} ${capitalizeFirstLetter(warehouse.Manager.Lastname)}`
+                        }
+                    }))
+                    setTotalUsers(res.data.count)
+                    setWarehouses(formattedWarehouses)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -151,26 +211,52 @@ function Warehouses() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={warehouses[i].warehouseId} itemType="warehouses" />
+                    <Delete itemId={warehouses[i].id} 
+                    itemType="warehouse" />
                 )
             }));
         }, 100);
     }
 
+
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
+
+
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingWarehouse}>
+                <button id="btn-generic" className="add-btn" onClick={handleAddingWarehouse}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Warehouse</span>
+                    <span id="long" className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('ADD_WAREHOUSE')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search warehouses" type="search" />
-
+                <TextField 
+                    onChange={(e) => handleSearch(e)}
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_WAREHOUSES')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} 
+                    disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
+                {isLoading ? (
+                    <div className='progress-container'>
+                        <CircularProgress />
+                    </div>
+                ) : warehouses.length > 0 ? 
+                    <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
                   {warehouses.length > 0 && !isQueryFound ? warehouses.map((warehouse, index) => (
                     <Grid item xs={2} sm={4} md={4} key={index}>
@@ -198,7 +284,7 @@ function Warehouses() {
                                         <div>
                                             <PersonIcon />
                                             <span className="warehouse-manager">
-                                                {warehouse.manager}
+                                                {warehouse.manager.name}
                                             </span>
                                         </div>
                                         <div>
@@ -228,7 +314,7 @@ function Warehouses() {
                             <div>
                                 <PersonIcon />
                                 <span className="warehouse-manager">
-                                    {warehouse.manager}
+                                    {warehouse.manager.name}
                                 </span>
                             </div>
                             <div>
@@ -272,7 +358,7 @@ function Warehouses() {
                                         <div>
                                             <PersonIcon />
                                             <span className="warehouse-manager">
-                                                {highlightMatch(warehouse.manager, query)}
+                                                {highlightMatch(warehouse.manager.name, query)}
                                             </span>
                                         </div>
                                         <div>
@@ -303,7 +389,7 @@ function Warehouses() {
                         <div>
                             <PersonIcon />
                             <span className="warehouse-manager">
-                                {highlightMatch(warehouse.manager, query)}
+                                {highlightMatch(warehouse.manager.name, query)}
                             </span>
                         </div>
                         <div>
@@ -321,12 +407,26 @@ function Warehouses() {
                     </div>    
                       </Paper>
                     </Grid>
-                  )) : <div>Loading...</div>
+                  )) : ""
                   }
                 </Grid>
-            </Box>
-            </div>
+                    </Box>
+                 : (
+                    <div className='progress-container'>
+                        {t('NO_WAREHOUSES_AVAILABLE')}
+                    </div>
+                )}
 
+                {
+                    warehouses.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalUsers / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
+            </div>
         </div>
     )
 }

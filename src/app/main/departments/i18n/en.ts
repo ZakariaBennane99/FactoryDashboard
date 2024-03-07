@@ -1,5 +1,37 @@
 const locale = {
-	TITLE: 'Departments'
+    TITLE: 'Departments',
+    SEARCH: 'Search',
+    ADD_DEPARTMENT: 'Add Department',
+    NO_DEPARTMENT_AVAILABLE: 'No Department is Available!',
+    SEARCH_DEPARTMENTS: 'Search Departments',
+	QUERY_ERROR: 'Query must be longer than 3 characters',
+    MANAGEMENT: 'MANAGEMENT',
+    PRODUCTION: 'PRODUCTION',
+    MANAGER: 'Manager',
+    DESCRIPTION: 'Description',
+    EDIT: 'Edit',
+    DELETE: 'Delete',
+    ADD_BTN: 'Add',
+    SEARCH_BTN: 'Search',
+    LOADING: 'Loading...',
+    ERROR: 'Error',
+    SUCCESS: 'Success',
+    INFO: 'Info',
+    WARNING: 'Warning',
+    CLOSE: 'Close',
+    SAVE: 'Save',
+    CANCEL: 'Cancel',
+    NAME: 'Name',
+    CATEGORY: 'Category',
+    PAGE: 'Page',
+	DEPARTMENT_NAME: 'Department Name',
+    MANAGER_LABEL: 'Manager',
+    CATEGORY_LABEL: 'Category',
+    DESCRIPTION_LABEL: 'Description',
+    ADD_DEPARTMENT_BUTTON: 'Add Department',
+    UPDATE_DEPARTMENT_BUTTON: 'Update Department',
+    UPDATING: 'Updating...',
+    ADDING: 'Adding...'
 };
 
 export default locale;

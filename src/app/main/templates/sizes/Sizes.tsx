@@ -37,11 +37,11 @@ function Sizes() {
 		<Root
 			header={
 				<div className="p-24">
-					<h1 className="text-5xl font-extrabold">Template Size</h1>
+					<h1 className="text-5xl font-extrabold">{t('TITLE')}</h1>
 				</div>
 			}
 			content={
-				<div className="p-24 w-full h-full">
+				<div className="p-24 w-full h-full" style={{ overflowY: "hidden" }}>
 					<SizeComp />
 				</div>
 			}

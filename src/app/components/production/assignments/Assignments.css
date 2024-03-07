@@ -1,4 +1,4 @@
-.depart-card.assignment {
+.depart-card.task {
     height: 175px;
     display: flex;
     flex-direction: column;
@@ -6,26 +6,30 @@
     align-items: flex-start;
 }
 
-.depart-card.assignment div {
+.depart-card.task div {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 
-.depart-card.assignment div .assignment-phone,
-.depart-card.assignment div .assignment-location,
-.depart-card.assignment div .assignment-email {
-    font-size: 1.2em;
+.depart-card.task div .task-name {
+    font-size: 1.15em;
     word-break: break-all;
+    font-weight: bold;
 }
 
-.depart-card.assignment div svg:not(#delete-icon, #edit-icon) {
+.depart-card.task div span {
+    font-size: 1.1em;
+}
+
+.depart-card.task div svg:not(#delete-icon, #edit-icon) {
     margin-right: 15px;
     font-size: x-large;
 }
 
-.dialog.assignment {
+.dialog.task {
     width: 350px;
     height: 330px;
 }
+

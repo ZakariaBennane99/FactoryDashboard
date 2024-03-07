@@ -4,42 +4,38 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import jwtService from '../../../auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { useAppDispatch } from 'app/store';
+import { useTranslation } from 'react-i18next';
 
 
 
-function EditAssignment({ task }) {
+function EditAssignment({ tsk }) {
 
-  const currentUserId = window.localStorage.getItem('userId');
+  const { t, i18n } = useTranslation('assignmentsPage');
+  const lang = i18n.language;
 
-    const [assignment, setTask] = useState({
-        assignmentName: task.taskName,
-        dueDate: new Date(task.dueDate),
-        status: task.status,
-        priority: task.priority,
-        assignedToDepartment: task.assignedToDepartment,
-        createdByDepartment: task.createdByDepartment,
-        notes: task.notes
+  const dispatch = useAppDispatch();
+
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [task, setTask] = useState({
+        id: tsk.id,
+        taskName: tsk.taskName,
+        dueDate: new Date(tsk.dueDate),
+        status: tsk.status,
+        priority: tsk.priority,
+        assignedToDepartment: tsk.assignedToDepartment,
+        createdByDepartment: tsk.createdByDepartment,
+        notes: tsk.notes
     });
 
     const handleChange = (prop) => (event) => {
-        setTask({ ...assignment, [prop]: event.target.value });
+        setTask({ ...task, [prop]: event.target.value });
     };
 
-    const departments = [
-        { label: 'Design', value: 'Design' },
-        { label: 'Production', value: 'Production' },
-        { label: 'Quality Control', value: 'Quality Control' },
-        { label: 'Warehouse', value: 'Warehouse' },
-        { label: 'Human Resources', value: 'Human Resources' },
-        { label: 'Marketing', value: 'Marketing' },
-        { label: 'Sales', value: 'Sales' },
-        { label: 'Operations', value: 'Operations' },
-        { label: 'Product Management', value: 'Product Management' },
-        { label: 'Supply Chain', value: 'Supply Chain' }
-    ]
-
     const statuses = [
-        'REJECTED', 'COMPLETED', 'ONGOING'
+      'REJECTED', 'COMPLETED', 'ONGOING'
     ];
 
     const priorities = [
@@ -49,7 +45,7 @@ function EditAssignment({ task }) {
     ]
 
     const handleDateChange = (date) => {
-        setInternalOrder({ ...assignment, dueDate: date });
+        setInternalOrder({ ...task, dueDate: date });
     };
 
 
@@ -66,29 +62,35 @@ function EditAssignment({ task }) {
               },
               variant: status // success error info warning null
       })), 100);
+
     }
 
     const handleUpdateTasks = async (event) => {
         event.preventDefault();
   
+        setIsLoading(true)
         try {
-            // @route: api/update/assignments
-            // @description: update an existing assignment
             const res = await jwtService.updateItem({ 
-                itemType: 'assignments',
+                itemType: 'task',
                 data: {
-                    data: assignment,
-                    itemId: task.taskId
+                    data: task,
+                    itemId: task.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
-            }
+             if (res.status === 200) {
+              showMsg(res.message, 'success')
+          }
         } catch (_error) {
-            // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+          setIsLoading(false)
+        }
+    };
+
+    const handleDepartmentChange = (prop) => (event) => {
+      const departmentName = event.target.value;
+      const department = departments.find(d => d.value === departmentName);
+      setTask({ ...task, [prop]: { name: department.label, value: department.value } });
     };
 
 
@@ -99,10 +101,10 @@ function EditAssignment({ task }) {
                 <form onSubmit={handleUpdateTasks}>
                   <FormControl fullWidth margin="normal">
                     <TextField
-                      label="Task Name"
+                      label={t('editAssignment.taskName')}
                       variant="outlined"
-                      value={assignment.assignmentName}
-                      onChange={handleChange('assignmentName')}
+                      value={task.taskName}
+                      onChange={handleChange('taskName')}
                       required
                       disabled
                     />
@@ -110,8 +112,8 @@ function EditAssignment({ task }) {
 
                   <FormControl fullWidth margin="normal">
                         <DatePicker
-                            label="Due Date"
-                            value={assignment.dueDate}
+                            label={t('editAssignment.dueDate')}
+                            value={task.dueDate}
                             onChange={handleDateChange}
                             renderInput={(params) => <TextField {...params} required />}
                             disabled
@@ -119,73 +121,74 @@ function EditAssignment({ task }) {
                   </FormControl>
 
                   <FormControl fullWidth margin="normal">
-                    <InputLabel>Status</InputLabel>
+                  <InputLabel>{t('editAssignment.status')}</InputLabel>
                     <Select
-                      value={assignment.status}
-                      label="Status"
+                      value={task.status}
+                      label={t('editAssignment.status')}
                       onChange={handleChange('status')}
                       required
                     >
+                      {statuses.includes(task.status) ? null : (
+                        <MenuItem key={task.status} value={task.status} disabled>
+                          {task.status}
+                        </MenuItem>
+                      )}
                       {statuses.map((status) => (
-                        <MenuItem key={status} value={status}>{status}</MenuItem>
+                          <MenuItem key={status} value={status}>{t(`editAssignment.statusOptions.${status}`)}</MenuItem>
                       ))}
                     </Select>
                   </FormControl>
                     
                   <FormControl fullWidth margin="normal" disabled>
-                    <InputLabel>Priority</InputLabel>
+                  <InputLabel>{t('editAssignment.priority')}</InputLabel>
                     <Select
-                      value={assignment.priority}
-                      label="Priority"
+                      value={task.priority}
+                      label={t('editAssignment.priority')}
                       onChange={handleChange('priority')}
                       required
                     >
                       {priorities.map((priority) => (
-                        <MenuItem key={priority} value={priority}>{priority}</MenuItem>
+                        <MenuItem key={priority} value={priority}>{t(`editAssignment.priorityOptions.${priority}`)}</MenuItem>
                       ))}
                     </Select>
                   </FormControl>
                     
                   <FormControl fullWidth margin="normal" disabled>
-                    <InputLabel>Assigned To Department</InputLabel>
+                  <InputLabel>{t('editAssignment.assignedToDepartment')}</InputLabel>
                     <Select
-                      value={assignment.assignedToDepartment}
-                      label="Assigned To Department"
-                      onChange={handleChange('assignedToDepartment')}
+                      value={task.assignedToDepartment.name}
+                      label={t('editAssignment.assignedToDepartment')}
+                      onChange={handleDepartmentChange('assignedToDepartment')}
                       required
                     >
-                      {departments.map((department) => (
-                        <MenuItem key={department.value} value={department.value}>{department.label}</MenuItem>
-                      ))}
+                      <MenuItem key={task.assignedToDepartment.name} value={task.assignedToDepartment.name}>{task.assignedToDepartment.name}</MenuItem>
                     </Select>
                   </FormControl>
                     
-                  <FormControl fullWidth margin="normal" sx={{ mb: 3 }} disabled>
-                    <InputLabel>Created By Department</InputLabel>
+                  <FormControl fullWidth margin="normal" disabled>
+                  <InputLabel>{t('editAssignment.createdByDepartment')}</InputLabel>
                     <Select
-                      value={assignment.createdByDepartment}
-                      label="Created By Department"
-                      onChange={handleChange('createdByDepartment')}
+                      value={task.createdByDepartment.name}
+                      label={t('editAssignment.createdByDepartment')}
+                      onChange={handleDepartmentChange('createdByDepartment')}
                       required
                     >
-                      {departments.map((department) => (
-                        <MenuItem key={department.value} value={department.value}>{department.label}</MenuItem>
-                      ))}
+                      <MenuItem key={task.createdByDepartment.name} value={task.createdByDepartment.name}>{task.createdByDepartment.name}</MenuItem>
                     </Select>
                   </FormControl>
 
-                  <FormControl fullWidth margin="normal">
+                  <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
-                      label="Notes"
+                      label={t('editAssignment.notes')}
                       variant="outlined"
-                      value={assignment.notes}
+                      value={task.notes}
                       onChange={handleChange('notes')}
                       required
                     />
                   </FormControl>
                     
-                  <button type="submit" className="add-depart-btn">
-                    Update Task
+                  <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                    {isLoading ? t('editAssignment.updatingButton') : t('editAssignment.updateButton')}
                   </button>
                 </form>
             </Box>

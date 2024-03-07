@@ -1,20 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField, Box } from '@mui/material';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { useTranslation } from 'react-i18next';
+import { useAppDispatch } from 'app/store';
+
 
 
 function AddWarehouse({ wrhouse }) {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('warehousesPage');
+    const lang = i18n.language;
 
-    const [managers, setManagers] = useState([
-        'Moha Itani',
-        'Alfered Maha',
-        'Istovav Monk'
-    ])
+    const [isLoading, setIsLoading] = useState(false)
+
+    const [managers, setManagers] = useState([])
+
+    const dispatch = useAppDispatch()
 
     const [warehouse, setWarehouse] = useState({
+        id: wrhouse ? wrhouse.id : '',
         name: wrhouse ? wrhouse.name : '',
         location: wrhouse ? wrhouse.location : '',
         capacity: wrhouse ? wrhouse.capacity : '',
@@ -22,7 +28,18 @@ function AddWarehouse({ wrhouse }) {
     });
 
     const handleChange = (prop) => (event) => {
-        setWarehouse({ ...warehouse, [prop]: event.target.value });
+        if (prop === 'manager') {
+            setWarehouse({
+                ...warehouse,
+                [prop]: {
+                    ...warehouse.manager,
+                    id: event.target.value,
+                    name: managers.find(manager => manager.id === event.target.value).name
+                }
+            });
+        } else {
+            setWarehouse({ ...warehouse, [prop]: event.target.value });
+        }
     };
 
     function showMsg(msg, status) {
@@ -42,70 +59,67 @@ function AddWarehouse({ wrhouse }) {
     const handleAddWarehouses = async (event) => {
         event.preventDefault();
         
+        setIsLoading(true)
         try {
-            // @route: api/create/warehouses
-            // @description: create a new warehouse
             const res = await jwtService.createItem({ 
-                itemType: 'warehouses',
-                data: {
-                    data: warehouse,
-                    currentUserId: currentUserId
-                }
+                itemType: 'warehouse',
+                data: warehouse
              }, { 'Content-Type': 'application/json' });
-            if (res) {
-                showMsg(res, 'success')
+            if (res.status === 201) {
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     const handleUpdateWarehouses = async (event) => {
         event.preventDefault();
 
+        setIsLoading(true)
         try {
             // @route: api/update/warehouses
             // @description: update an existing warehouse
             const res = await jwtService.updateItem({ 
-                itemType: 'warehouses',
+                itemType: 'warehouse',
                 data: {
                     data: warehouse,
-                    currentUserId: currentUserId,
-                    itemId: wrhouse.warehousesId
+                    itemId: warehouse.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
+            if (res.status === 200) {
                 // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
-    /* TO BE UNCOMMENTED IN PRODUCTION
-    // get the names of manager who have the roles of "Warehouse Manager" 
-    // who haven't been assigned to any department 
+
     useEffect(() => {    
-        async function getManagersNames() {
+        async function getManagers() {
             try {
-                // @route: api/managerNames
-                // @description: get Manager Names 
-                // @response: an array of existing manager Names
-                const res = await jwtService.getManagersNames({ 
-                    currentUserId: currentUserId
-                });
-                if (res) {
-                    setManagers(res)
+                const res = await jwtService.getManagers();
+                if (res.status === 200) {
+                    setManagers(res.data.map(manager => ({
+                        id: manager.Id,
+                        name: `${manager.Firstname.charAt(0).toUpperCase() + manager.Firstname.slice(1)} ${manager.Lastname.charAt(0).toUpperCase() + manager.Lastname.slice(1)}`
+                    })));
                 }
-            } catch (_error) {
-                showMsg(_error, 'error')
+            } catch (error) {
+                // the error msg will be sent so you don't have to hardcode it
+                showMsg(error.message, 'error')
             }
         }
         
-        getManagersNames();
-    }, []);*/
+        getManagers();
+    }, []);
 
 
     return (
@@ -113,7 +127,7 @@ function AddWarehouse({ wrhouse }) {
             <form onSubmit={wrhouse ? handleUpdateWarehouses : handleAddWarehouses}>
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Warehouse Name"
+                        label={t('WAREHOUSE_NAME')}
                         variant="outlined"
                         value={warehouse.name}
                         onChange={handleChange('name')}
@@ -123,7 +137,7 @@ function AddWarehouse({ wrhouse }) {
 
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Location"
+                        label={t('WAREHOUSE_LOCATION')}
                         variant="outlined"
                         value={warehouse.location}
                         onChange={handleChange('location')}
@@ -133,7 +147,7 @@ function AddWarehouse({ wrhouse }) {
 
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Capacity"
+                        label={t('WAREHOUSE_CAPACITY')}
                         variant="outlined"
                         type="number"
                         value={warehouse.capacity}
@@ -147,24 +161,27 @@ function AddWarehouse({ wrhouse }) {
                 </FormControl>
 
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
-                    <InputLabel id="manager-label">Manager</InputLabel>
+                    <InputLabel id="manager-label">{t('MANAGER_LABEL')}</InputLabel>
                     <Select
                         labelId="manager-label"
-                        value={warehouse.manager}
-                        label="Manager"
+                        value={warehouse.manager ? warehouse.manager.id : ''}
+                        label={t('MANAGER_LABEL')}
                         onChange={handleChange('manager')}
                         required
                     >
-                        {managers.map((manager, index) => (
-                            <MenuItem key={index} value={manager}>
-                                {manager}
-                            </MenuItem>
-                        ))}
+                        {managers.map((manager) => (
+                                <MenuItem key={manager.id} value={manager.id}>
+                                    {manager.name}
+                                </MenuItem>
+                            ))
+                        }
                     </Select>
                 </FormControl>
 
 
-                <button type="submit" className="add-warehouse-btn">{wrhouse ? 'Update' : 'Add'} Warehouse</button>
+                <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                    {wrhouse ? (isLoading ? t('UPDATING') : t('UPDATE_WAREHOUSE')) : (isLoading ? t('ADDING') : t('ADD_WAREHOUSE_BUTTON')) }
+                </button>
             </form>
         </Box>
     );

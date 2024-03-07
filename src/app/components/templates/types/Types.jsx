@@ -12,6 +12,12 @@ import CategoryIcon from '@mui/icons-material/Category';
 import DescriptionIcon from '@mui/icons-material/Description';
 import jwtService from '../../../auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search'
+import { useTranslation } from 'react-i18next';
+
+
 
 
 
@@ -26,7 +32,18 @@ function trimText(txt, maxLength) {
 
 function Types() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('typesPage');
+    const lang = i18n.language;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredTypes, setFilteredTypes] = useState(null);
 
@@ -100,18 +117,26 @@ function Types() {
 
     useEffect(() => {
         async function getTypes() {
+            setIsLoading(true)
             try {
-                // @route: api/items/templateTypes
-                // @description: get a list of template types
-                const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "types"
+                const res = await jwtService.getItems({
+                    itemType: "templatetype",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setTypes(res)
+                if (res.status === 200) {
+                    const formatted = res.data.types.map(ctgr => ({ 
+                        id: ctgr.Id,
+                        name: ctgr.TemplateTypeName,
+                        description: ctgr.Description
+                    }));
+                    setTotalCtlgs(res.data.count)
+                    setTypes(formatted)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -149,124 +174,195 @@ function Types() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={types[i].typeId} itemType="types" />
+                    <Delete itemId={types[i].id} itemType="templatetype" />
                 )
             }));
         }, 100);
+    }
+
+
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "templatetype", 
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedTypes = res.data.map(type => ({
+                    id: type.Id,
+                    name: type.TemplateTypeName, 
+                    description: type.Description
+                }));
+                setTypes(formattedTypes); // Assuming setTypes is the function to update the types state
+                setIsQueryFound(formattedTypes.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
+    
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
     }
 
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingInternalOrder}>
+
+                <button id="btn-generic" className="add-btn" onClick={handleAddingInternalOrder}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Type</span>
+                    <span>{t('ADD_TYPE')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Types" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_TYPES')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>  
 
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {types.length > 0 && !isQueryFound ? types.map((type, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card type"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}  
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog type">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <CategoryIcon /> 
-                                        <span className="type-name">
-                                            {type.templateTypeName}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="type-description">
-                                            {type.description}
-                                        </span>
-                                    </div>
-                                </div>
-                            )
-                        }))
-                      }}
-                    >   <div>
-                            <CategoryIcon /> 
-                            <span className="type-name">
-                                {type.templateTypeName}
-                            </span>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
                         </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="type-description">
-                                {trimText(type.description, 30)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredTypes && isQueryFound ? filteredTypes.map((type, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card type"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                            <div className="depart-card dialog type">
-                                <div id="edit-container">
-                                    <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                    <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                </div>
-                                <div>
+                    ) 
+                     : types.length > 0 ? 
+                    (
+                    <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {types.length > 0 && !isQueryFound ? types.map((type, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card type"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}  
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog type">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <CategoryIcon /> 
+                                                <span className="type-name">
+                                                    {type.name}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <DescriptionIcon />
+                                                <span className="type-description">
+                                                    {type.description}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >   <div>
                                     <CategoryIcon /> 
                                     <span className="type-name">
-                                        {highlightMatch(type.templateTypeName, query)}
+                                        {type.name}
                                     </span>
                                 </div>
                                 <div>
                                     <DescriptionIcon />
                                     <span className="type-description">
-                                        {highlightMatch(type.description, query)}
+                                        {trimText(type.description, 30)}
                                     </span>
                                 </div>
-                            </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <CategoryIcon /> 
-                            <span className="type-name">
-                                {highlightMatch(type.templateTypeName, query)}
-                            </span>
+                              </Paper>
+                            </Grid>
+                          )) : filteredTypes && isQueryFound ? filteredTypes.map((type, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card type"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                    <div className="depart-card dialog type">
+                                        <div id="edit-container">
+                                            <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                            <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                        </div>
+                                        <div>
+                                            <CategoryIcon /> 
+                                            <span className="type-name">
+                                                {highlightMatch(type.name, query)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <DescriptionIcon />
+                                            <span className="type-description">
+                                                {highlightMatch(type.description, query)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <CategoryIcon /> 
+                                    <span className="type-name">
+                                        {highlightMatch(type.name, query)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <DescriptionIcon />
+                                    <span className="type-description">
+                                        {highlightMatch(trimText(type.description, 30), query)}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : ""
+                          }
+                        </Grid>
+                    </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('NO_TEMPLATE_TYPES')}
                         </div>
-                        <div>
-                            <DescriptionIcon />
-                            <span className="type-description">
-                                {highlightMatch(trimText(type.description, 30), query)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                    )
+                }
+                {
+                    types.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
+
             </div>
 
         </div>

@@ -1,5 +1,37 @@
 const locale = {
-	TITLE: 'الإدارات'
+    TITLE: 'الإدارات',
+    SEARCH: 'بحث',
+    ADD_DEPARTMENT: 'إضافة قسم',
+    NO_DEPARTMENT_AVAILABLE: 'لا توجد أقسام متاحة!',
+	QUERY_ERROR: 'يجب أن يكون الاستعلام أطول من 3 أحرف',
+    SEARCH_DEPARTMENTS: 'بحث في الأقسام',
+    PRODUCTION: 'الإنتاج',
+    MANAGER: 'المدير',
+    DESCRIPTION: 'الوصف',
+    EDIT: 'تعديل',
+    MANAGEMENT: 'الإدارة',
+    DELETE: 'حذف',
+    ADD_BTN: 'إضافة',
+    SEARCH_BTN: 'بحث',
+    LOADING: 'جار التحميل...',
+    ERROR: 'خطأ',
+    SUCCESS: 'نجاح',
+    INFO: 'معلومات',
+    WARNING: 'تحذير',
+    CLOSE: 'إغلاق',
+    SAVE: 'حفظ',
+    CANCEL: 'إلغاء',
+    NAME: 'الاسم',
+    CATEGORY: 'الفئة',
+    PAGE: 'صفحة',
+    DEPARTMENT_NAME: 'اسم القسم',
+    MANAGER_LABEL: 'المدير',
+    CATEGORY_LABEL: 'الفئة',
+    DESCRIPTION_LABEL: 'الوصف',
+    ADD_DEPARTMENT_BUTTON: 'إضافة قسم',
+    UPDATE_DEPARTMENT_BUTTON: 'تحديث القسم',
+    UPDATING: 'جاري التحديث...',
+    ADDING: 'جاري الإضافة...'
 };
 
 export default locale;

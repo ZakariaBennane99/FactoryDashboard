@@ -1,9 +1,5 @@
 import { createEntityAdapter, createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AppThunkType, RootStateType } from 'app/store/types';
-import { PartialDeep } from 'type-fest';
-import { FuseNavItemType } from '@fuse/core/FuseNavigation/types/FuseNavItemType';
-import { FuseNavigationType } from '@fuse/core/FuseNavigation/types/FuseNavigationType';
-import { selectUserRole, userSliceType } from 'app/store/user/userSlice';
+import { selectUserRole } from 'app/store/user/userSlice';
 import FuseNavigationHelper from '@fuse/utils/FuseNavigationHelper';
 import i18next from 'i18next';
 import FuseNavItemModel from '@fuse/core/FuseNavigation/models/FuseNavItemModel';
@@ -11,9 +7,7 @@ import FuseUtils from '@fuse/utils';
 import navigationConfig from 'app/configs/navigationConfig';
 import { selectCurrentLanguageId } from '../i18nSlice';
 
-type AppRootStateType = RootStateType<[navigationSliceType, userSliceType]>;
-
-const navigationAdapter = createEntityAdapter<FuseNavItemType>();
+const navigationAdapter = createEntityAdapter();
 
 const emptyInitialState = navigationAdapter.getInitialState([]);
 
@@ -27,9 +21,9 @@ const initialState = navigationAdapter.upsertMany(emptyInitialState, navigationC
  * Appends a navigation item to the navigation store state.
  */
 export const appendNavigationItem =
-	(item: FuseNavItemType, parentId?: string | null): AppThunkType =>
+	(item, parentId = null) =>
 	async (dispatch, getState) => {
-		const AppState = getState() as AppRootStateType;
+		const AppState = getState();
 		const navigation = selectNavigationAll(AppState);
 
 		dispatch(setNavigation(FuseNavigationHelper.appendNavItem(navigation, FuseNavItemModel(item), parentId)));
@@ -41,9 +35,9 @@ export const appendNavigationItem =
  * Prepends a navigation item to the navigation store state.
  */
 export const prependNavigationItem =
-	(item: FuseNavItemType, parentId?: string | null): AppThunkType =>
+	(item, parentId = null) =>
 	async (dispatch, getState) => {
-		const AppState = getState() as AppRootStateType;
+		const AppState = getState();
 		const navigation = selectNavigationAll(AppState);
 
 		dispatch(setNavigation(FuseNavigationHelper.prependNavItem(navigation, FuseNavItemModel(item), parentId)));
@@ -55,9 +49,9 @@ export const prependNavigationItem =
  * Adds a navigation item to the navigation store state at the specified index.
  */
 export const updateNavigationItem =
-	(id: string, item: PartialDeep<FuseNavItemType>): AppThunkType =>
+	(id, item) =>
 	async (dispatch, getState) => {
-		const AppState = getState() as AppRootStateType;
+		const AppState = getState();
 		const navigation = selectNavigationAll(AppState);
 
 		dispatch(setNavigation(FuseNavigationHelper.updateNavItem(navigation, id, item)));
@@ -69,9 +63,9 @@ export const updateNavigationItem =
  * Removes a navigation item from the navigation store state.
  */
 export const removeNavigationItem =
-	(id: string): AppThunkType =>
+	(id) =>
 	async (dispatch, getState) => {
-		const AppState = getState() as AppRootStateType;
+		const AppState = getState();
 		const navigation = selectNavigationAll(AppState);
 
 		dispatch(setNavigation(FuseNavigationHelper.removeNavItem(navigation, id)));
@@ -83,7 +77,7 @@ export const {
 	selectAll: selectNavigationAll,
 	selectIds: selectNavigationIds,
 	selectById: selectNavigationItemById
-} = navigationAdapter.getSelectors((state: AppRootStateType) => state.fuse.navigation);
+} = navigationAdapter.getSelectors((state) => state.fuse.navigation);
 
 /**
  * The navigation slice
@@ -92,7 +86,7 @@ export const navigationSlice = createSlice({
 	name: 'fuse/navigation',
 	initialState,
 	reducers: {
-		setNavigation: (state, action: PayloadAction<FuseNavigationType>) =>
+		setNavigation: (state, action) =>
 			navigationAdapter.setAll(state, action.payload),
 		resetNavigation: () => initialState
 	}
@@ -103,7 +97,7 @@ export const { setNavigation, resetNavigation } = navigationSlice.actions;
 export const selectNavigation = createSelector(
 	[selectNavigationAll, selectUserRole, selectCurrentLanguageId],
 	(navigation, userRole) => {
-		function setAdditionalData(data: FuseNavigationType): FuseNavigationType {
+		function setAdditionalData(data) {
 			return data?.map((item) => ({
 				hasPermission: Boolean(FuseUtils.hasPermission(item?.auth, userRole)),
 				...item,
@@ -121,7 +115,5 @@ export const selectNavigation = createSelector(
 export const selectFlatNavigation = createSelector([selectNavigation], (navigation) =>
 	FuseNavigationHelper.getFlatNavigation(navigation)
 );
-
-export type navigationSliceType = typeof navigationSlice;
 
 export default navigationSlice.reducer;

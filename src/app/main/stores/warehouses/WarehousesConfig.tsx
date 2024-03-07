@@ -17,7 +17,7 @@ const WarehousesConfig = {
 	},
 	routes: [
 		{
-			path: '/store-management/warehouses',
+			path: '/warehouses',
 			element: <Warehouses />
 		}
 	]

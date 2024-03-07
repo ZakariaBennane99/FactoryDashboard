@@ -16,15 +16,31 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import { showMessage } from 'app/store/fuse/messageSlice';
 import Delete from '../Delete';
 import AddOrder from './AddModel';
-import EventIcon from '@mui/icons-material/Event';
 import jwtService from '../../../app/auth/services/jwtService'
+import Pagination from '@mui/material/Pagination';
+import { CircularProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import SearchIcon from '@mui/icons-material/Search';
+
 
 
 
 
 function Models() {
 
-    const currentUserId = window.localStorage.getItem('userId')
+    const { t, i18n } = useTranslation('modelsPage');
+    const lang = i18n.language;
+    
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalCtlgs, setTotalCtlgs] = useState(1);
+    const itemsPerPage = 7;
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const [filteredOrders, setFilteredOrders] = useState(null);
 
@@ -102,20 +118,35 @@ function Models() {
 
     useEffect(() => {
         async function getModels() {
+            setIsLoading(true)
             try {
-                // @route: api/items/models
-                // @description: get models
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "models"
+                    itemType: "model",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setModels(res.models)
+                if (res.status === 200) {
+                    console.log('The res', res)
+                    const formatted = res.data.models.map(model => ({
+                        id: model.Id,
+                        modelName: model.ModelName,
+                        order: model.Orders,
+                        orderDetails: model.OrderDetail,
+                        modelImage: `http://localhost:3002/${model.ModelImage}`, 
+                        color: model.Color,
+                        size: model.Size,
+                        quantity: model.Quantity,
+                        quantityDetails: model.QuantityDetails,
+                        notes: model.Note
+                      }));
+                    setTotalCtlgs(res.data.count)
+                    setModels(formatted)
                 }
             } catch (error) {
-                console.log('ThE ERROR', error)
                 // the error msg will be sent so you don't have to hardcode it
-                showMsg(error, 'error')
+                showMsg(error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -126,7 +157,7 @@ function Models() {
     function handleAddingInternalOrder() {
         dispatch(openDialog({
             children: ( 
-                <AddOrder ordr={false} />
+                <AddOrder mdl={false} />
             )
         }))
     }
@@ -138,7 +169,7 @@ function Models() {
             // Now open a new edit dialog with the selected user data
             dispatch(openDialog({
                 children: ( 
-                    <AddOrder ordr={models[i]} />
+                    <AddOrder mdl={models[i]} />
                 )
             }));
         }, 100);
@@ -153,234 +184,290 @@ function Models() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={models[i].modelId} itemType='model' />
+                    <Delete itemId={models[i].id} itemType='model' />
                 )
             }));
         }, 100);
     }
 
 
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "model", // Changed to search for models
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                // Adapt the mapping to the structure of models data
+                const formattedModels = res.data.map(model => ({
+                    id: model.Id,
+                    modelName: model.ModelName,
+                    order: model.Orders,
+                    orderDetails: model.OrderDetail,
+                    modelImage: `http://localhost:3002/${model.ModelImage}`, 
+                    color: model.Color,
+                    size: model.Size,
+                    quantity: model.Quantity,
+                    quantityDetails: model.QuantityDetails,
+                    notes: model.Note
+                }));
+                setModels(formattedModels); // Update the state with the fetched models
+                setIsQueryFound(formattedModels.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+    
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
+
+
+
     return (
         <div className="parent-container">
 
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingInternalOrder}>
+                
+                <button id="btn-generic" className="add-btn" onClick={handleAddingInternalOrder}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Model</span>
+                    <span>{t('ADD_MODEL')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Models" Model="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_MODELS')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} 
+                disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>  
+            
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
-                  {models.length > 0 && !isQueryFound ? models.map((model, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card Model"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}  
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog Model">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <ConfirmationNumberIcon /> 
-                                        <span className="model-name">
-                                            {model.orderId}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <ConfirmationNumberIcon /> 
-                                        <span className="model-date">
-                                            {model.modelId}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <NoteAddIcon /> 
-                                        <span className="model-amount">
-                                            {model.modelName}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <CategoryIcon /> 
-                                        <span className="model-status">
-                                            {model.templateType}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <PaletteIcon /> 
-                                        <span className="model-date">
-                                            {model.color}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <RulerIcon /> 
-                                        <span className="model-status">
-                                            {model.size}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <PlusOneIcon />
-                                        <span className="model-date">
-                                            {model.quantity}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="model-status">
-                                            {model.quantityDetails}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="model-date">
-                                            {model.notes}
-                                        </span>
-                                    </div>
+            {
+                    isLoading ?
+                    (
+                        <div className='progress-container'>
+                            <CircularProgress />
+                        </div>
+                    ) 
+                     : models.length > 0 ? 
+                    (
+                    <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                          {models.length > 0 && !isQueryFound ? models.map((model, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card Model"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}  
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog Model">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <ConfirmationNumberIcon /> 
+                                                <span className="model-name">
+                                                    {model.order.Id}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <ConfirmationNumberIcon /> 
+                                                <span className="model-date">
+                                                    {model.id}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <NoteAddIcon /> 
+                                                <span className="model-amount">
+                                                    {model.modelName}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <PaletteIcon /> 
+                                                <span className="model-date">
+                                                    {model.color.ColorName}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <RulerIcon /> 
+                                                <span className="model-status">
+                                                    {model.size.SizeName}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <PlusOneIcon />
+                                                <span className="model-date">
+                                                    {model.quantity}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <DescriptionIcon />
+                                                <span className="model-status">
+                                                    {model.quantityDetails}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <DescriptionIcon />
+                                                <span className="model-date">
+                                                    {model.notes}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <NoteAddIcon /> 
+                                    <span className="model-amount">
+                                        {model.modelName}
+                                    </span>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <NoteAddIcon /> 
-                            <span className="model-amount">
-                                {model.modelName}
-                            </span>
-                        </div>
-                        <div>
-                            <CategoryIcon /> 
-                            <span className="model-status">
-                                {model.templateType}
-                            </span>
-                        </div>
-                        <div>
-                            <PaletteIcon /> 
-                            <span className="model-date">
-                                {model.color}
-                            </span>
-                        </div>
-                        <div>
-                            <RulerIcon /> 
-                            <span className="model-status">
-                                {model.size}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : filteredOrders && isQueryFound ? filteredOrders.map((model, index) => (
-                    <Grid item xs={2} sm={4} md={4} key={index}>
-                    <Paper
-                      className="depart-card Model"
-                      elevation={elevatedIndex === index ? 6 : 2}
-                      onMouseOver={() => setElevatedIndex(index)}
-                      onMouseOut={() => setElevatedIndex(null)}
-                      onClick={() => {
-                        setElevatedIndex(index)
-                        dispatch(openDialog({
-                            children: (
-                                <div className="depart-card dialog Model">
-                                    <div id="edit-container">
-                                        <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
-                                        <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
-                                    </div>
-                                    <div>
-                                        <ConfirmationNumberIcon /> 
-                                        <span className="model-name">
-                                            {highlightMatch(model.orderId, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <ConfirmationNumberIcon /> 
-                                        <EventIcon />
-                                        <span className="model-date">
-                                            {highlightMatch(model.modelId, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <NoteAddIcon /> 
-                                        <span className="model-amount">
-                                            {highlightMatch(model.modelName, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <CategoryIcon /> 
-                                        <span className="model-status">
-                                            {highlightMatch(model.templateType, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <PaletteIcon /> 
-                                        <span className="model-date">
-                                            {highlightMatch(model.templateType, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <RulerIcon /> 
-                                        <span className="model-status">
-                                            {highlightMatch(model.templateType, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <PlusOneIcon />
-                                        <span className="model-date">
-                                            {highlightMatch(model.quantity, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="model-status">
-                                            {highlightMatch(model.quantityDetails, query)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <DescriptionIcon />
-                                        <span className="model-date">
-                                            {highlightMatch(model.notes, query)}
-                                        </span>
-                                    </div>
+                                <div>
+                                    <PaletteIcon /> 
+                                    <span className="model-date">
+                                        {model.color.ColorName}
+                                    </span>
                                 </div>
-                            )
-                        }))
-                      }}
-                    >
-                        <div>
-                            <NoteAddIcon /> 
-                            <span className="model-amount">
-                                {highlightMatch(model.modelName, query)}
-                            </span>
+                                <div>
+                                    <RulerIcon /> 
+                                    <span className="model-status">
+                                        {model.size.SizeName}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : filteredOrders && isQueryFound ? filteredOrders.map((model, index) => (
+                            <Grid item xs={2} sm={4} md={4} key={index}>
+                            <Paper
+                              className="depart-card Model"
+                              elevation={elevatedIndex === index ? 6 : 2}
+                              onMouseOver={() => setElevatedIndex(index)}
+                              onMouseOut={() => setElevatedIndex(null)}
+                              onClick={() => {
+                                setElevatedIndex(index)
+                                dispatch(openDialog({
+                                    children: (
+                                        <div className="depart-card dialog Model">
+                                            <div id="edit-container">
+                                                <EditIcon id="edit-icon" onClick={() => handleEdit(index)} />
+                                                <DeleteIcon id="delete-icon" onClick={() => handleDelete(index)} />
+                                            </div>
+                                            <div>
+                                                <ConfirmationNumberIcon /> 
+                                                <span className="model-name">
+                                                    {highlightMatch(model.order.Id, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <ConfirmationNumberIcon /> 
+                                                <span className="model-date">
+                                                    {highlightMatch(model.id, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <NoteAddIcon /> 
+                                                <span className="model-amount">
+                                                    {highlightMatch(model.modelName, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <PaletteIcon /> 
+                                                <span className="model-date">
+                                                    {highlightMatch(model.color.ColorName, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <RulerIcon /> 
+                                                <span className="model-status">
+                                                    {highlightMatch(model.size.SizeName, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <PlusOneIcon />
+                                                <span className="model-date">
+                                                    {highlightMatch(model.quantity, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <DescriptionIcon />
+                                                <span className="model-status">
+                                                    {highlightMatch(model.quantityDetails, query)}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <DescriptionIcon />
+                                                <span className="model-date">
+                                                    {highlightMatch(model.notes, query)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                }))
+                              }}
+                            >
+                                <div>
+                                    <NoteAddIcon /> 
+                                    <span className="model-amount">
+                                        {model.modelName}
+                                    </span>
+                                </div>
+                                <div>
+                                    <PaletteIcon /> 
+                                    <span className="model-date">
+                                        {model.color.ColorName}
+                                    </span>
+                                </div>
+                                <div>
+                                    <RulerIcon /> 
+                                    <span className="model-status">
+                                        {model.size.SizeName}
+                                    </span>
+                                </div>
+                              </Paper>
+                            </Grid>
+                          )) : ""
+                          }
+                        </Grid>
+                    </Box>
+                     ) : (
+                        <div className='progress-container'>
+                            {t('NO_MODEL_IS_AVAILABLE')}
                         </div>
-                        <div>
-                            <CategoryIcon /> 
-                            <span className="model-status">
-                                {highlightMatch(model.templateType, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <PaletteIcon /> 
-                            <span className="model-date">
-                                {highlightMatch(model.color, query)}
-                            </span>
-                        </div>
-                        <div>
-                            <RulerIcon /> 
-                            <span className="model-status">
-                                {highlightMatch(model.size, query)}
-                            </span>
-                        </div>
-                      </Paper>
-                    </Grid>
-                  )) : <div>Loading...</div>
-                  }
-                </Grid>
-            </Box>
+                    )
+                }
+                {
+                    models.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalCtlgs / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
+
             </div>
 
         </div>

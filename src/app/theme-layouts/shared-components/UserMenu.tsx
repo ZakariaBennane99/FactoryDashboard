@@ -10,12 +10,30 @@ import { useSelector } from 'react-redux';
 import { Link, NavLink } from 'react-router-dom';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { selectUser } from 'app/store/user/userSlice';
+import { useTranslation } from 'react-i18next';
 
 /**
  * The user menu.
  */
 function UserMenu() {
+
+	const { i18n } = useTranslation();
+    const lang = i18n.language;
+
+	
 	const user = useSelector(selectUser);
+
+	const rolesLang = {
+		CUTTING: 'القطع',
+		TAILORING: 'الخياطة',
+		PRINTING: 'الطباعة',
+		QUALITYASSURANCE: 'ضمان الجودة',
+		ENGINEERING: 'الهندسة',
+		FACTORYMANAGER: 'مدير المصنع',
+		WAREHOUSEMANAGER: 'مدير المستودع'
+	}
+
+	const userRoleFormatted = lang === 'ar' ? rolesLang[`${user.userRole}`] : user.userRole;
 
 	const [userMenu, setUserMenu] = useState<HTMLElement | null>(null);
 
@@ -27,7 +45,6 @@ function UserMenu() {
 		setUserMenu(null);
 	};
 
-	console.log('THE USER IN THE USERMENU', user)
 
 	return (
 		<>
@@ -36,7 +53,38 @@ function UserMenu() {
 				onClick={userMenuClick}
 				color="inherit"
 			>
-				<div className="mx-4 hidden flex-col items-end md:flex">
+				{
+					lang === 'ar' ?
+                    <>
+					{user.userImage ? (
+						<Avatar
+							className="md:mx-4"
+							alt="user photo"
+							src={`http://localhost:3002${user.userImage}`}
+						/>
+					) : (
+						<Avatar className="md:mx-4">{user.name}</Avatar>
+					)}
+
+					<div className="mx-4 hidden flex-col items-start md:flex">
+						<Typography
+							component="span"
+							className="flex font-semibold"
+						>
+							{user.name}
+						</Typography>
+						<Typography
+							className="text-11 font-medium capitalize"
+							color="text.secondary"
+						>
+							{userRoleFormatted}
+							{(!user.role || (Array.isArray(user.role) && user.role.length === 0)) && 'Guest'}
+						</Typography>
+					</div>
+					</>
+					:
+				<>	
+					<div className="mx-4 hidden flex-col items-end md:flex">
 					<Typography
 						component="span"
 						className="flex font-semibold"
@@ -47,7 +95,7 @@ function UserMenu() {
 						className="text-11 font-medium capitalize"
 						color="text.secondary"
 					>
-						{user.userRole.toString()}
+						{userRoleFormatted}
 						{(!user.role || (Array.isArray(user.role) && user.role.length === 0)) && 'Guest'}
 					</Typography>
 				</div>
@@ -61,6 +109,9 @@ function UserMenu() {
 				) : (
 					<Avatar className="md:mx-4">{user.name}</Avatar>
 				)}
+				</>
+				}
+
 			</Button>
 
 			<Popover
@@ -112,7 +163,7 @@ function UserMenu() {
 							<ListItemIcon className="min-w-40">
 								<FuseSvgIcon>heroicons-outline:user-circle</FuseSvgIcon>
 							</ListItemIcon>
-							<ListItemText primary="Profile" />
+							<ListItemText primary={lang === 'ar' ? "الملف الشخصي" : 'Profile'} />
 						</MenuItem>
 						<MenuItem
 							component={NavLink}
@@ -124,7 +175,7 @@ function UserMenu() {
 							<ListItemIcon className="min-w-40">
 								<FuseSvgIcon>heroicons-outline:logout</FuseSvgIcon>
 							</ListItemIcon>
-							<ListItemText primary="Sign out" />
+							<ListItemText primary={lang === 'ar' ? "تسجيل الخروج" : 'Sign out'} />
 						</MenuItem>
 					</>	
 				)}

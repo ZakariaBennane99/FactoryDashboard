@@ -4,6 +4,12 @@
     height: 100%;
 }
 
+/* This applies when RTL is active */
+[dir="rtl"] .depart-card div svg:not(#delete-icon, #edit-icon) {
+    margin-right: 0px !important;
+    margin-left: 14px;
+}
+
 .parent-container .top-ribbon {
     width: 100%;
     height: 63px;
@@ -20,6 +26,18 @@
     justify-content: center;
     align-items: center;
 }
+
+.add-depart-btn.disabled-button, .add-user-btn.disabled-button {
+    background-color: #ccc;
+    color: #666; 
+    cursor: not-allowed; 
+} 
+
+.add-depart-btn.disabled-button:hover, .add-user-btn.disabled-button:hover {
+    background-color: #ccc;
+    color: #666; 
+    cursor: not-allowed; 
+}    
 
 
 .add-depart-btn, .add-user-btn, .add-warehouse-btn, 
@@ -51,6 +69,17 @@
     transition: all .25s;
 }
 
+
+#btn-generic {
+    width: 20%;
+}
+
+#long {
+    font-size: 1em !important;
+}
+
+
+
 .parent-container .top-ribbon .add-btn img {
     height: 100%;
     margin-right: 5px;
@@ -74,7 +103,7 @@
 
 
 .parent-container .top-ribbon .search:not(.dash-search), .search-user {
-    width: 63%;
+    width: 52%;
     height: 100%;
 }
 
@@ -88,9 +117,6 @@
     transform: translate(14px, -7px) scale(0.75); 
 }
 
-.MuiDialog-container.MuiDialog-scrollPaper.muiltr-1sep8xo-MuiDialog-container {
-    overflow-y: auto;
-}
 
 .parent-container .main-content {
     width: 100%;
@@ -113,7 +139,10 @@
     cursor: pointer;
 }
 
-
+.muiltr-mo2ukc, .muiltr-79vqhf {
+    max-height: 85vh;
+    overflow-y: auto;
+}
 
 .depart-card.dialog {
     width: 350px;
@@ -125,7 +154,7 @@
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 9px;
+    margin-bottom: 3px;
 }
 
 .depart-card .head-container img {
@@ -143,6 +172,7 @@
 }
 
 .depart-card .head-container .name {
+    text-align: center;
     font-size: 1.55em;
     font-weight: bold;
 }
@@ -252,8 +282,27 @@
     color: white;
 }
 
+.button-container .yes-button.disabled-button,
+.button-container .no-button.disabled-button {
+    background-color: #ccc;
+    color: #666; 
+    cursor: not-allowed;
+}
+
+.button-container .yes-button.disabled-button:hover,
+.button-container .no-button.disabled-button:hover {
+    background-color: #ccc;
+    color: #666; 
+    cursor: not-allowed;
+}
+
 .button-container .yes-button {
     margin-right: 15px;
+}
+
+[dir="rtl"] .button-container .yes-button {
+    margin-right: 0px;
+    margin-left: 15px;
 }
 
 .button-container .yes-button:hover {
@@ -262,4 +311,51 @@
 
 .button-container .no-button:hover {
     background-color: #f44336;
+}
+
+.muiltr-1oj2twp-MuiPagination-root,
+.muirtl-1oj2twp-MuiPagination-root {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 35px;
+}
+
+
+.ar-txt-btn {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-right: 7px;
+}
+
+.rtl {
+    direction: rtl;
+}
+
+.rtl-label {
+    right: 0;
+    transform-origin: top right;
+}
+
+.rtl-input {
+    text-align: right;
+}
+
+.rtl .MuiInputBase-root {
+    direction: rtl;
+}
+
+.rtl .MuiInputLabel-outlined.Mui-focused {
+    transform: translate(7.5px, -8px) scale(0.75) !important;
+    transform-origin: top right !important;
+}
+
+.rtl .MuiOutlinedInput-input {
+    text-align: right;
+}
+
+.rtl .MuiInputLabel-outlined {
+    right: 0;
+    left: auto;
+    margin-right: 22px !important;
 }

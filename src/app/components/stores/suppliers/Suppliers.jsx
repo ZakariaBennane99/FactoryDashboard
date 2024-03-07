@@ -17,13 +17,29 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Delete from '../../Delete';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { CircularProgress } from '@mui/material';
+import Pagination from '@mui/material/Pagination';
+import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
+
 
 
 
 
 function Suppliers() {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('suppliersPage');
+    const lang = i18n.language;
+
+    // pagination
+    const [page, setPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(1);
+    const itemsPerPage = 7;
+
+    // search
+    const [searchError, setSearchError] = useState(false);
+
+    const [isLoading, setIsLoading] = useState(false)
 
     const [filteredSuppliers, setFilteredSuppliers] = useState(null);
 
@@ -52,7 +68,6 @@ function Suppliers() {
         return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
     } 
     
-
     function handleSearch(e) {
         const query = e.target.value;
         setQuery(query)
@@ -95,21 +110,67 @@ function Suppliers() {
         }
     }, [suppliers, query, isQueryFound]);
 
+    async function fetchSearchResults(query) {
+        try {
+            setIsLoading(true);
+            const res = await jwtService.searchItems({
+                itemType: "supplier",
+                query: query
+            });
+            if (res.status === 200) {
+                console.log('The response', res)
+                
+                const formattedSuppliers = res.data.suppliers.map(sup => ({
+                    id: sup.Id,
+                    name: sup.Name,
+                    address: sup.Address,
+                    phone: sup.PhoneNumber,
+                    email: sup.Email
+                }));
+                setSuppliers(formattedSuppliers);
+                setIsQueryFound(formattedSuppliers.length > 0);
+            }
+        } catch (_error) {
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false); 
+        }
+    }
+
+    function handleSearchButtonClick() {
+        if (query && query.length > 3) {
+            fetchSearchResults(query);
+        } else {
+            setSearchError(true);
+        }
+    }
 
     useEffect(() => {
         async function getSuppliers() {
+            setIsLoading(true)
             try {
-                // @route: api/items/suppliers
-                // @description: get a list of suppliers
                 const res = await jwtService.getItems({ 
-                    currentUserId: currentUserId,
-                    itemType: "suppliers"
+                    itemType: "supplier",
+                    page: page,
+                    itemsPerPage: itemsPerPage
                 });
-                if (res) {
-                    setSuppliers(res)
+                if (res.status === 200) {
+                    const formattedSuppliers = res.data.suppliers.map(sup => {
+                        return {
+                            id: sup.Id,
+                            name: sup.Name,
+                            address: sup.Address,
+                            phone: sup.PhoneNumber,
+                            email: sup.email
+                        } 
+                    })
+                    setTotalUsers(res.data.count)
+                    setSuppliers(formattedSuppliers)
                 }
             } catch (_error) {
-                showMsg(_error, 'error')
+                showMsg(_error.message, 'error')
+            } finally {
+                setIsLoading(false)
             }
         }
         
@@ -147,7 +208,7 @@ function Suppliers() {
                 // you need to pass the user id to the 
                 // component, so you can easily delete it
                 children: ( 
-                    <Delete itemId={suppliers[i]} itemType="suppliers" />
+                    <Delete itemId={suppliers[i].id} itemType="supplier" />
                 )
             }));
         }, 100);
@@ -156,17 +217,34 @@ function Suppliers() {
     return (
         <div className="parent-container">
 
+
             <div className="top-ribbon">
-                <button className="add-btn" onClick={handleAddingSupplier}>
+                
+                <button id="btn-generic" className="add-btn" onClick={handleAddingSupplier}>
                     <img src="/assets/gen/plus.svg" /> 
-                    <span>Add Supplier</span>
+                    <span>{t('ADD_SUPPLIER')}</span>
                 </button>
-                <TextField onChange={(e) => handleSearch(e)} id="outlined-search" className="search" label="Search Suppliers" type="search" />
+                <TextField 
+                    onChange={(e) => handleSearch(e)} 
+                    className={`search ${lang === 'ar' ? 'rtl' : ''}`}
+                    label={t('SEARCH_SUPPLIERS')}
+                    type="search"
+                    error={searchError}
+                    helperText={searchError ? t('QUERY_ERROR') : ""} />
+                <button id="btn-generic" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading} onClick={handleSearchButtonClick}>
+                    <SearchIcon />
+                    <span className={lang === 'ar' ? 'ar-txt-btn' : '' }>{t('SEARCH')}</span>
+                </button>    
 
             </div>  
 
             <div className="main-content">
-            <Box sx={{ flexGrow: 1 }}>
+                {isLoading ? (
+                    <div className='progress-container'>
+                        <CircularProgress />
+                    </div>
+                ) : suppliers.length > 0 ? 
+                <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
                   {suppliers.length > 0 && !isQueryFound ? suppliers.map((supplier, index) => (
                     <Grid item xs={2} sm={4} md={4} key={index}>
@@ -310,10 +388,25 @@ function Suppliers() {
                         </div>
                       </Paper>
                     </Grid>
-                  )) : <div>Loading...</div>
+                  )) : ""
                   }
                 </Grid>
-            </Box>
+                </Box>
+                 : (
+                    <div className='progress-container'>
+                        {t('NO_SUPPLIER_AVAILABLE')}
+                    </div>
+                )}
+
+                {
+                    suppliers.length > 0 ?
+                    <Pagination
+                        count={Math.ceil(totalUsers / itemsPerPage)}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                    /> : ''
+                }
+
             </div>
 
         </div>

@@ -2,14 +2,23 @@ import { useState } from 'react';
 import { FormControl, TextField, Box } from '@mui/material';
 import jwtService from '../../../../app/auth/services/jwtService';
 import { showMessage } from 'app/store/fuse/messageSlice';
+import { useAppDispatch } from 'app/store';
+import { closeDialog } from 'app/store/fuse/dialogSlice';
+import { useTranslation } from 'react-i18next';
 
 
 
 function AddCategoryII({ ctgrII }) {
 
-    const currentUserId = window.localStorage.getItem('userId');
+    const { t, i18n } = useTranslation('categoriesIIPage');
+    const lang = i18n.language;
+
+    const dispatch = useAppDispatch();
+
+    const [isLoading, setIsLoading] = useState(false);    
 
     const [categoryII, setCategoriesII] = useState({
+        id: ctgrII ? ctgrII.id : '',
         name: ctgrII ? ctgrII.name : '',
         description: ctgrII ? ctgrII.description : '',
     });
@@ -36,48 +45,46 @@ function AddCategoryII({ ctgrII }) {
     const handleAddCategoryII = async (event) => {
         event.preventDefault();
         
+        setIsLoading(true)
         try {
-            // @route: api/create/categoryII
-            // @description: create a new categoryII
             const res = await jwtService.createItem({ 
-                itemType: 'categoryII',
-                data: {
-                    data: categoryII,
-                    currentUserId: currentUserId
-                }
+                itemType: 'productcatalogcategorytwo',
+                data: categoryII
              }, { 'Content-Type': 'application/json' });
-            if (res) {
+            if (res.status === 201) {
                 // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
     const handleUpdateCategoryII = async (event) => {
         event.preventDefault();
 
+        setIsLoading(true)
         try {
-            // @route: api/update/categoryII
-            // @description: update category II
             const res = await jwtService.updateItem({ 
-                itemType: 'categoryI',
+                itemType: 'productcatalogcategorytwo',
                 data: {
                     data: categoryII,
-                    currentUserId: currentUserId,
-                    itemId: ctgrII.categoryIIId
+                    itemId: ctgrII.id
                 }
              }, { 'Content-Type': 'application/json' });
-            if (res) {
+            if (res.status === 200) {
                 // the msg will be sent so you don't have to hardcode it
-                showMsg(res, 'success')
+                showMsg(res.message, 'success')
             }
         } catch (_error) {
             // the error msg will be sent so you don't have to hardcode it
-            showMsg(_error, 'error')
-        } 
+            showMsg(_error.message, 'error')
+        } finally {
+            setIsLoading(false)
+        }
     };
 
 
@@ -86,7 +93,7 @@ function AddCategoryII({ ctgrII }) {
             <form onSubmit={ctgrII ? handleUpdateCategoryII : handleAddCategoryII}>
                 <FormControl fullWidth margin="normal">
                     <TextField
-                        label="Category II Name"
+                        label={t('CATEGORY_II_NAME')}
                         variant="outlined"
                         value={categoryII.name}
                         onChange={handleChange('name')}
@@ -96,7 +103,7 @@ function AddCategoryII({ ctgrII }) {
 
                 <FormControl fullWidth margin="normal" sx={{ mb: 3 }}>
                     <TextField
-                        label="Description"
+                        label={t('DESCRIPTION')}
                         variant="outlined"
                         value={categoryII.description}
                         onChange={handleChange('description')}
@@ -106,7 +113,9 @@ function AddCategoryII({ ctgrII }) {
                     />
                 </FormControl>
 
-                <button type="submit" className="add-categoryII-btn">{ctgrII ? 'Update' : 'Add'} Category II</button>
+                <button type="submit" className={`add-depart-btn ${isLoading ? 'disabled-button' : ''}`} disabled={isLoading}>
+                    {ctgrII ? (isLoading ? t('UPDATING') : t('UPDATE_CATEGORY_TWO')) : (isLoading ? t('ADDING') : t('ADD_CATEGORY_TWO'))}
+                </button>
             </form>
         </Box>
     );
